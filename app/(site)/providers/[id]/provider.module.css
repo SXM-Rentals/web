@@ -1,0 +1,105 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of a rental business's public page — the panel
+   describing them, and the grid of every car they have listed. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 340px 1fr;
+    gap: var(--space-3xl);
+  }
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+  .about {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-lg));
+  }
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.identityBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--ink3);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.contactNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.contactNote > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- THEIR CARS ---- */
+.fleet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+.fleetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+  .fleetGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1440px) {
+  .fleetGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

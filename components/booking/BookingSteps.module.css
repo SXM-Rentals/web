@@ -1,0 +1,223 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the pieces inside each booking step — the
+   card headings, the date summary, the payment panel, the signature box, and the
+   short explanatory notes that appear under things. */
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.dateSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* The small explanatory lines. Used constantly — for why a button is
+   unavailable, what happens next, and what a charge actually is. */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--space-md);
+}
+
+.note > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- THE SIGN-IN GATE ---- */
+.signInGate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.gateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+/* ==================================================================
+   PAYMENT
+   ================================================================== */
+
+/* The panel standing in for Stripe's own card fields. It is drawn to look like
+   what will eventually sit there, and labelled clearly so nobody mistakes it for
+   something that takes real card details. */
+.stripePanel {
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  background: var(--tile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: flex-start;
+}
+
+.fakeField {
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--space-md);
+  color: var(--ink3);
+  font-size: 14px;
+}
+
+.fakeFieldRow {
+  display: flex;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.fakeFieldRow > * { flex: 1; }
+
+.savedCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ==================================================================
+   AGREEMENT
+   ================================================================== */
+
+/* The scrolling box holding the rental agreement. Capped in height on purpose:
+   a wall of terms that pushes the button off the bottom of the page is how
+   people end up agreeing to something they never saw. */
+.agreementBox {
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-lg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.clause { display: flex; flex-direction: column; gap: 2px; }
+
+/* ---- THE SIGNATURE BOX ---- */
+.signatureWrap {
+  position: relative;
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.signatureCanvas {
+  display: block;
+  width: 100%;
+  height: 160px;
+  cursor: crosshair;
+}
+
+.signatureHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink3);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.signatureActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+/* ==================================================================
+   CONFIRMATION AND SUCCESS
+   ================================================================== */
+.reviewRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.reviewRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.reviewValue { text-align: right; min-width: 0; }
+
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: center;
+  padding-block: var(--space-5xl);
+  max-width: 620px;
+  margin-inline: auto;
+}
+
+.successIcon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.reference {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+}
+
+/* The list of what happens next. */
+.nextSteps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  text-align: left;
+}
+
+.nextStep {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.nextStep > :global(svg) { margin-top: 2px; flex-shrink: 0; }

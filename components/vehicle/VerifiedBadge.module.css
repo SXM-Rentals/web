@@ -1,0 +1,74 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the "SXM Verified" tick and of the two lists
+   inside the panel that explains it. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink3);
+  border-radius: var(--radius-sm);
+  /* Enough room around the small tick to be an easy target, without pushing the
+     business name away from it. */
+  padding: 2px;
+}
+
+@media (hover: hover) {
+  .badge:hover { color: var(--ink); }
+}
+
+.lede {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+}
+
+.listHead { margin-bottom: var(--space-md); }
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.listItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.listItem > :global(svg) { margin-top: 3px; }
+
+.divider { margin-block: var(--space-xl); }
+
+/* ---- ROOM FOR A THUMB ----
+   Asked both ways: no mouse, OR a screen small enough that there probably is
+   not one. "pointer: coarse" is the right question but not one every browser
+   answers, and a tablet held upright is exactly 768px — which a 767px rule
+   misses by a pixel. See components/layout/Footer.module.css for the full
+   reasoning; it is the same condition throughout. */
+/* The badge itself is small on purpose — it sits beside a business name and
+   should not shout. It is also a button that opens an explanation of what SXM
+   Verified means, which is worth reading before handing over a card. The mark
+   keeps its size; the area that responds grows around it. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .badge {
+    position: relative;
+  }
+
+  .badge::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    transform: translate(-50%, -50%);
+  }
+}

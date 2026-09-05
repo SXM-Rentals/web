@@ -1,0 +1,82 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the heading block at the top of an inner
+   page, and of the trail of links above it showing where in the site you are. */
+
+/* ---- BREADCRUMBS ----
+   A phone has a back button and a website has browser history, but neither tells
+   you WHERE you are — only where you came from. Someone landing on a car page
+   from a search result has no history at all, and no idea this sits under
+   "Cars". That is what this is for. */
+.crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-md);
+}
+
+.crumb {
+  color: var(--ink3);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+@media (hover: hover) {
+  .crumbLink:hover { color: var(--ink); text-decoration: underline; }
+}
+
+/* The page you are on. Not a link, because a link to the page you are already
+   looking at is a dead end. */
+.crumbCurrent {
+  color: var(--ink2);
+  font-size: 13px;
+  /* A long car name is trimmed rather than wrapping the trail onto three lines. */
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.separator {
+  color: var(--ink3);
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* ---- THE HEADING BLOCK ---- */
+.header {
+  padding-block: var(--space-2xl) var(--space-xl);
+}
+
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+  max-width: 720px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+/* A back arrow beside the heading, for a page deep in a flow where the trail
+   above would be more clutter than help. */
+.backRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}

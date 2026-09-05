@@ -1,0 +1,58 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the "step 2 of 4" progress line shown across
+   the top of the booking flow and the business sign-up. */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* One segment per step. They share the width evenly, so the bar always fills
+   the space whether there are three steps or six. */
+.segment {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--hairline);
+  transition: background-color 0.25s ease;
+}
+
+.done { background: var(--primary); }
+.current { background: var(--primary); }
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+/* The step names underneath. Hidden on a narrow window, where four names side
+   by side become unreadable — the "Step 2 of 4" wording carries the meaning on
+   its own there. */
+.stepNames {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .stepNames {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .stepName {
+    flex: 1;
+    text-align: center;
+  }
+
+  .stepName:first-child { text-align: left; }
+  .stepName:last-child { text-align: right; }
+}

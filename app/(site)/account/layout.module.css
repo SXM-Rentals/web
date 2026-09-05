@@ -1,0 +1,13 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The shape of a page inside the account area.
+
+   It used to hold a whole sidebar of its own, which is why the site had one on
+   My Rentals and none on the homepage or Find a Car. That list now lives in the
+   site-wide sidebar, on every page, so all that is left here is the column the
+   page content sits in. */
+
+.content {
+  min-width: 0;
+  padding-bottom: var(--space-5xl);
+}

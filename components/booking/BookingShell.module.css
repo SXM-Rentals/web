@@ -1,0 +1,96 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The shape of every step in the booking flow — the
+   progress line across the top, the step itself on the left, and the order
+   summary alongside it.
+
+   THE PHONE APP SHOWS FOUR SCREENS ONE AFTER ANOTHER, with the price only
+   visible on some of them. On a laptop there is room to keep the summary beside
+   the step the whole way through, so the price and the deposit are never off
+   screen while someone is deciding whether to go ahead. */
+
+.wrap { padding-bottom: var(--space-5xl); }
+
+.progress {
+  max-width: 720px;
+  margin-block: var(--space-xl) var(--space-2xl);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+    gap: var(--space-3xl);
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  min-width: 0;
+}
+
+.stepHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ---- THE SUMMARY ALONGSIDE ---- */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+  .summary {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-lg));
+  }
+}
+
+/* The car being booked, at the top of the summary. */
+.vehicle {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.vehiclePhoto { width: 92px; flex-shrink: 0; }
+
+.vehicleBody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.tripRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tripRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.tripRowValue { text-align: right; min-width: 0; }
+
+/* ---- THE BUTTONS AT THE END OF A STEP ---- */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+@media (max-width: 519px) {
+  .actions > * { flex: 1; }
+}

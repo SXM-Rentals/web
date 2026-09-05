@@ -1,0 +1,103 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the cards a car appears on — the tall one
+   used in search results, and the short wide one used in the sideways-scrolling
+   rows on the homepage. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Every card in a row is the same height whatever the length of the car's
+     name, so their prices line up along the bottom. */
+  height: 100%;
+}
+
+.photoWrap {
+  position: relative;
+}
+
+.photo { border-radius: 0; }
+
+/* The heart, floating on the photo. */
+.heart {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+}
+
+/* A label in the top-left of the photo, for "Coming Soon" or "Delivers". */
+.flag {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  flex: 1;
+}
+
+/* A car name too long for the card is trimmed with an ellipsis rather than
+   wrapping onto a second line and making this card taller than its neighbours. */
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink3);
+  min-width: 0;
+}
+
+.metaText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pushes the price to the bottom of the card, so prices line up across a row
+   regardless of how much detail each card carries. */
+.priceRow {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.deposit {
+  width: 100%;
+}
+
+/* ---- THE SHORT WIDE CARD ----
+   Photo on the left, details on the right. */
+.wide {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.widePhoto {
+  width: 118px;
+  flex-shrink: 0;
+}
+
+.wideBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}

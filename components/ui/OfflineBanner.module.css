@@ -1,0 +1,42 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the strip that appears across the top of the
+   page when the connection drops. */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-bottom: 1px solid var(--hairline);
+  position: sticky;
+  top: 0;
+  /* Above the page content, but below any panel that opens on top of it. */
+  z-index: 60;
+  animation: drop 0.2s ease;
+}
+
+.body { flex: 1; min-width: 0; }
+
+.close {
+  color: inherit;
+  opacity: 0.75;
+  display: flex;
+  flex-shrink: 0;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  /* Kept at a comfortable size even though the icon inside is small. */
+  min-width: var(--size-touch-min);
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+}
+
+.close:hover { opacity: 1; }
+
+@keyframes drop {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}

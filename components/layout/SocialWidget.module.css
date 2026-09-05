@@ -1,0 +1,102 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the small round button fixed in the corner of
+   every page. Clicking it fans the share options upward; clicking again folds
+   them back down. */
+
+.wrap {
+  position: fixed;
+  right: var(--space-xl);
+  bottom: var(--space-xl);
+  z-index: 80;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.toggle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-floating);
+  transition: transform 0.2s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .toggle:hover { background: var(--primary-pressed); }
+}
+
+/* The button turns a little as it becomes a close cross, so opening and closing
+   feel like one movement rather than two different buttons. */
+.toggleOpen { transform: rotate(90deg); }
+
+.links {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.link {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  /* Each icon rises into place slightly after the one before, so they fan
+     outward rather than all appearing at once. The delay is set per icon in
+     the component. */
+  animation: rise 0.22s ease backwards;
+}
+
+@media (hover: hover) {
+  .link:hover { background: var(--tile); border-color: var(--ink3); }
+}
+
+/* The copy button once the address is on the clipboard. Green rather than a
+   toast, because the tick appears exactly where the click happened. */
+.linkDone {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+@keyframes rise {
+  from { transform: translateY(14px) scale(0.8); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* THE PANEL HAS TO FIT ON THE SCREEN. Six options stacked upward comes to
+   roughly 330px including the button — comfortable on an upright phone, taller
+   than a phone held sideways. Below that height they lay out sideways along the
+   bottom edge instead, which is the direction there is room in. */
+@media (max-height: 560px) {
+  .wrap { flex-direction: row-reverse; }
+  .links { flex-direction: row-reverse; }
+}
+
+/* A wide margin from the edge is fine on a desktop; on a phone it is width the
+   page cannot spare, so the button tucks closer in and shrinks a little. */
+@media (max-width: 480px) {
+  .wrap {
+    right: var(--space-md);
+    bottom: var(--space-md);
+  }
+  .toggle { width: 48px; height: 48px; }
+}
+
+/* Out of the way when printing — a floating button means nothing on paper. */
+@media print {
+  .wrap { display: none; }
+}

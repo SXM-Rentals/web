@@ -1,0 +1,109 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the four vehicle types — cars, ATVs, boats
+   and bikes — both as the row of tabs on the search page and as the larger
+   cards on the homepage.
+
+   Only cars can be booked at the moment. The other three are drawn deliberately
+   greyed and struck with a "Coming Soon" label, because something that looks
+   available and then does nothing reads as broken rather than unfinished. */
+
+/* ---- TABS, used on the search page ---- */
+.tabs {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: var(--space-xs);
+  /* Hides the scrollbar on Firefox and older WebKit while still allowing the
+     row to be dragged sideways when it overflows. */
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-sm) var(--space-lg);
+  /* Was 40px. Four pixels short of the 44px minimum used everywhere else — near
+     enough to look right, and just short enough that a thumb misses it. These
+     are the first thing touched on the search page, so it matters here. */
+  min-height: var(--size-touch-min);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tabActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.tabLocked {
+  color: var(--ink3);
+  background: var(--disabled-surface);
+  border-color: transparent;
+}
+
+@media (hover: hover) {
+  .tab:hover:not(.tabActive) { border-color: var(--ink3); }
+}
+
+/* ---- CARDS, used on the homepage ---- */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  text-align: left;
+  width: 100%;
+  height: 100%;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .card:hover { border-color: var(--ink3); }
+}
+
+.cardLocked {
+  background: var(--tile);
+  border-style: dashed;
+  color: var(--ink3);
+}
+
+.cardIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+}
+
+.cardLocked .cardIcon {
+  background: var(--disabled-surface);
+  color: var(--ink3);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  justify-content: space-between;
+}

@@ -1,0 +1,144 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the policy index and of a single policy
+   document — the three groups of links, and the readable column of text. */
+
+/* Like the rewards panel on the homepage, this is a plain tinted block rather
+   than a <Card>. Card paints "background: var(--card)" from a single-class
+   selector; this needs a tint from another single-class selector. Same
+   specificity means the load order decides the winner, which is not something to
+   leave to chance — so this owns its own background, border and padding and has
+   nothing to argue with. */
+.draftNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--warning-soft);
+  margin-bottom: var(--space-2xl);
+}
+
+.draftNotice > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xl);
+  padding-bottom: var(--space-5xl);
+}
+
+.group { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+.groupHead { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+.docGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .docGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .docGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.docCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink3);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .docCard:hover { border-color: var(--ink3); background: var(--tile); }
+}
+
+.docBody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+/* ==================================================================
+   ONE DOCUMENT
+   ================================================================== */
+.documentLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .documentLayout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: var(--space-3xl);
+  }
+}
+
+/* Capped at a comfortable reading width. A line of legal text running the full
+   width of a wide monitor is genuinely harder to read — the eye loses its place
+   coming back to the start of the next line. */
+.document {
+  max-width: 70ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  /* Somewhere for the contents links on the right to jump to, clear of the
+     sticky top bar. */
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-xl));
+}
+
+/* ---- CONTENTS ----
+   A nineteen-section policy is unusable without one. */
+.contents {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .contents {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-lg));
+    max-height: calc(100vh - var(--topbar-height) - var(--space-3xl));
+    overflow-y: auto;
+    padding-left: var(--space-lg);
+    border-left: 1px solid var(--hairline);
+  }
+}
+
+.contentsLink {
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 18px;
+  border-radius: var(--radius-sm);
+  padding-block: 2px;
+}
+
+@media (hover: hover) {
+  .contentsLink:hover { color: var(--ink); text-decoration: underline; }
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+}

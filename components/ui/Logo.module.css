@@ -1,0 +1,40 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: Decides which version of the logo artwork is visible —
+   the black one on a light page, the white one on a dark page. Both are in the
+   page; this simply hides whichever is wrong for the current theme. */
+
+.logo {
+  display: inline-block;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* By default the page is light, so the black artwork shows. */
+.light { opacity: 1; }
+.dark  { opacity: 0; }
+
+/* The visitor's computer is set to dark and they have not chosen otherwise. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .light { opacity: 0; }
+  :root:not([data-theme='light']) .dark  { opacity: 1; }
+}
+
+/* The visitor chose dark with our own toggle, which wins over the above. */
+:root[data-theme='dark'] .light { opacity: 0; }
+:root[data-theme='dark'] .dark  { opacity: 1; }
+
+/* Printing is always on white paper, so the black artwork is always the right
+   one regardless of the theme on screen. */
+@media print {
+  .light { opacity: 1 !important; }
+  .dark  { opacity: 0 !important; }
+}

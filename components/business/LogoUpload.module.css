@@ -1,0 +1,143 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the business logo panel — the round preview
+   on the left, and the place to drag a file in on the right. */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--space-lg);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 640px) {
+  .row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+/* ---- THE PREVIEW ---- */
+.previewWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+  /* Room for the 96px circle and nothing more, so the drop area beside it takes
+     all the width that is left. */
+  width: 96px;
+}
+
+.preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  /* A logo that is not square is cropped to fill the circle rather than being
+     squashed into it. */
+  object-fit: cover;
+  background: var(--tile);
+  border: 1px solid var(--hairline);
+}
+
+/* ---- CHOOSING A FILE ---- */
+.chooser {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--hairline);
+  background: var(--tile);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .dropZone:hover { border-color: var(--ink3); }
+}
+
+/* While a file is being dragged over it. */
+.dropZoneActive {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.dropIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The real file input, moved out of sight but still reachable by the keyboard.
+   "display: none" would make it unreachable entirely. */
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The chosen file, once there is one. */
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+}
+
+.fileBody { flex: 1; min-width: 0; }
+
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* What was wrong with the file, in plain words. */
+.problem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+}
+
+.problem > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.note > :global(svg) { margin-top: 2px; flex-shrink: 0; }

@@ -1,0 +1,171 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the blocks on a car's page — the grid of
+   features, the rental business row, the security deposit panel, the accident
+   history, and the minimum and maximum rental length. */
+
+/* ---- THE FEATURE GRID ----
+   Seats, gearbox, fuel, doors, air conditioning and class, as small tiles. */
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+  .features { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  min-width: 0;
+}
+
+.featureIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.featureValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- THE RENTAL BUSINESS ---- */
+.provider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.providerBody { flex: 1; min-width: 0; }
+
+.providerName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.providerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: 2px;
+}
+
+/* ---- THE SECURITY DEPOSIT ---- */
+.deposit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.depositBody { flex: 1; min-width: 0; }
+
+.depositHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.depositLink {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: var(--space-sm);
+  display: inline-block;
+  border-radius: var(--radius-sm);
+}
+
+@media (hover: hover) {
+  .depositLink:hover { text-decoration: underline; }
+}
+
+/* The four points inside the explanation panel. */
+.explainerItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.explainerItem > :global(svg) { margin-top: 3px; }
+
+/* ---- ACCIDENT HISTORY ---- */
+.accidentHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.accidentRecord {
+  padding-block: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.accidentRecord:first-of-type { border-top: none; padding-top: 0; }
+
+/* The line saying this came from the business, not from us. It appears whether
+   or not there is any history to show. */
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.disclaimer > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- RENTAL PERIOD ---- */
+.periodRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.periodEnd { text-align: right; }
+
+.weekly {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.saving { margin-left: var(--space-sm); }
+
+/* ---- ROOM FOR A THUMB ----
+   Asked both ways: no mouse, OR a screen small enough that there probably is
+   not one. "pointer: coarse" is the right question but not one every browser
+   answers, and a tablet held upright is exactly 768px — which a 767px rule
+   misses by a pixel. See components/layout/Footer.module.css for the full
+   reasoning; it is the same condition throughout. */
+/* This one opens the explanation of the single most misunderstood thing on the
+   site — that the deposit is held rather than charged. A person reaching for it
+   and missing is a person who books without understanding what happens to their
+   money. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .depositLink {
+    min-height: var(--size-touch-min);
+    display: inline-flex;
+    align-items: center;
+  }
+}

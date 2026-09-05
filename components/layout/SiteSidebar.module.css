@@ -1,0 +1,202 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the sidebar down the left of every customer
+   page — the same set of sections whether you are on the homepage, searching for
+   a car, or deep inside your account.
+
+   IT HAS TWO SHAPES. On a laptop it is part of the page and the hamburger
+   shrinks it to a strip of icons. On a narrow window there is no room for it at
+   all, so the same button slides it in over the page with a dimmed backdrop
+   behind, the way every app on a phone does it. */
+
+/* ---- THE PAGE, BESIDE THE SIDEBAR ---- */
+.body {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.content {
+  flex: 1;
+  /* Without this a wide table or a long word inside the page can force the
+     whole layout wider than the window and produce sideways scrolling. */
+  min-width: 0;
+  /* A column, so the page grows and the footer is pushed to the bottom of the
+     window even when there is very little on the page. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- THE SIDEBAR ---- */
+.sidebar {
+  flex-shrink: 0;
+  background: var(--card);
+  border-right: 1px solid var(--hairline);
+  width: 244px;
+  /* Only the width animates. Animating anything else here makes the whole page
+     beside it repaint on every frame, which is visibly slow on a long list. */
+  transition: width 0.18s ease;
+}
+
+.inner {
+  position: sticky;
+  /* Sits below the top bar so it never slides underneath it. */
+  top: var(--topbar-height);
+  height: calc(100vh - var(--topbar-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-lg) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---- COLLAPSED: A STRIP OF ICONS ---- */
+.collapsed { width: 72px; }
+
+/* The labels go, the icons stay, and each row centres what is left of it. */
+.collapsed .label,
+.collapsed .groupTitle,
+.collapsed .badge {
+  display: none;
+}
+
+.collapsed .navLink {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+/* ---- ONE ROW ---- */
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-height: var(--size-touch-min);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .navLink:hover { background: var(--tile); color: var(--ink); }
+}
+
+/* The page currently being looked at. Marked with a background as well as a
+   colour, so it is still obvious to somebody who cannot distinguish the two. */
+.navLinkActive {
+  background: var(--tile);
+  color: var(--ink);
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* A count on the right of a row — saved cars, unread notifications. */
+.badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+
+.groupTitle {
+  padding: var(--space-lg) var(--space-md) var(--space-xs);
+  white-space: nowrap;
+}
+
+/* A thin line between groups, used when the labels are hidden and the group
+   headings with them — otherwise the collapsed strip is one undivided column of
+   icons with nothing to separate the sections. */
+.collapsed .groupRule {
+  display: block;
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: var(--space-sm) var(--space-sm);
+}
+
+.groupRule { display: none; }
+
+/* Pinned to the bottom: the way across to the business dashboard. */
+.foot {
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--hairline);
+}
+
+/* ==================================================================
+   THE NARROW-WINDOW VERSION
+   Slides in over the page rather than taking room from it.
+   ================================================================== */
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 90;
+    width: 268px;
+    /* Parked off the left edge until opened. Moved rather than hidden, so it
+       can slide rather than appear. */
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow-floating);
+  }
+
+  /* Never a strip of icons on a narrow window — there, it is either fully open
+     or entirely out of the way. */
+  .collapsed { width: 268px; }
+
+  .collapsed .label,
+  .collapsed .groupTitle,
+  .collapsed .badge { display: revert; }
+
+  .collapsed .navLink {
+    justify-content: flex-start;
+    padding-inline: var(--space-md);
+  }
+
+  .collapsed .groupRule { display: none; }
+
+  .drawerOpen { transform: translateX(0); }
+
+  .inner {
+    top: 0;
+    height: 100%;
+    padding-top: var(--space-xl);
+  }
+
+  /* The dimmed layer over the page behind. Clicking it closes the drawer. */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    background: var(--overlay);
+    animation: fade 0.15s ease;
+  }
+}
+
+/* On a wide window there is no drawer, so there is never a backdrop. */
+.backdrop { display: none; }
+
+@media (max-width: 1023px) {
+  .backdrop { display: block; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Nothing here belongs on a printed page. */
+@media print {
+  .sidebar,
+  .backdrop { display: none; }
+}

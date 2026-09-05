@@ -1,0 +1,208 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the search page — the filters down the left,
+   the grid of cars beside them, and the bar of trip dates across the top.
+
+   THE PHONE APP OPENS FILTERS AS A FULL-SCREEN PANEL because there is no room
+   for them beside the results. On a laptop there is, so they live permanently
+   down the left instead. That also removes the need for an "Apply" button: when
+   the filters are always visible, changing one can take effect straight away and
+   the person can see it happen. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: var(--sidebar-width) 1fr;
+    gap: var(--space-3xl);
+  }
+}
+
+/* ---- THE FILTER SIDEBAR ---- */
+/* Hidden below 1024px, where the same filters open as a panel instead. */
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    display: block;
+    position: sticky;
+    /* Sits just below the top bar, so scrolling a long list of results does not
+       carry the filters off the screen. */
+    top: calc(var(--topbar-height) + var(--space-lg));
+    max-height: calc(100vh - var(--topbar-height) - var(--space-3xl));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: var(--space-sm);
+  }
+}
+
+.filterGroup {
+  padding-block: var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.filterGroup:last-child { border-bottom: none; }
+
+.filterHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.priceRow > * { flex: 1; min-width: 0; }
+
+.priceDash { flex: 0 0 auto; color: var(--ink3); }
+
+/* ---- THE RESULTS ---- */
+.results { min-width: 0; }
+
+.resultsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.resultsActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* The "Filters" button that opens the panel. Only on narrow windows, where the
+   sidebar is not shown. */
+.filterButton { display: inline-flex; }
+
+@media (min-width: 1024px) {
+  .filterButton { display: none; }
+}
+
+/* Two columns on a phone through to four on a wide monitor, exactly as the
+   breakpoints in the handoff describe. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1440px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ---- THE ACTIVE FILTERS ----
+   A row of what is currently narrowing the list, each removable. Without it,
+   an empty result list is a mystery: the filter causing it is off in the
+   sidebar and easy to miss. */
+.activeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.activeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--tile);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 30px;
+}
+
+.activeChipRemove {
+  display: flex;
+  color: var(--ink3);
+  border-radius: 50%;
+}
+
+@media (hover: hover) {
+  .activeChipRemove:hover { color: var(--ink); }
+}
+
+/* ---- THE TRIP BAR ----
+   Dates and pickup location, kept visible across the catalogue. */
+.tripBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  margin-bottom: var(--space-xl);
+}
+
+.tripField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  flex: 1;
+  min-width: 190px;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .tripField:hover { background: var(--tile); }
+}
+
+.tripFieldText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tripDivider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--hairline);
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .tripDivider { display: none; }
+}
+
+/* The grid of loading blocks shown while results arrive. */
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}

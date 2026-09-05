@@ -1,0 +1,248 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the bar across the top of every customer
+   page — logo on the left, the main links in the middle, and the account,
+   theme and language controls on the right.
+
+   THE PHONE APP HAS A FLOATING BAR AT THE BOTTOM INSTEAD. That is a phone
+   pattern: it exists because a thumb cannot comfortably reach the top of a tall
+   screen. On a laptop there is no thumb and no reach problem, and every other
+   site puts its navigation at the top, so that is where this goes. */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--card);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  min-height: var(--topbar-height);
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  /* The logo itself is 28px tall, which is the right size for it to look. This
+     makes the part that responds to a tap 44px without making the mark bigger:
+     the extra height is empty space above and below it. */
+  min-height: var(--size-touch-min);
+}
+
+/* ---- THE MAIN LINKS ----
+   Hidden on a narrow window, where they move into the menu behind the button on
+   the right instead. */
+.nav {
+  display: none;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: var(--space-lg);
+}
+
+@media (min-width: 900px) {
+  .nav { display: flex; }
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* These appear from 1024px up, which includes tablets held in landscape — so
+     they are touched as often as they are clicked, and 38px was too short. */
+  min-height: var(--size-touch-min);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-pill);
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .navLink:hover { background: var(--tile); color: var(--ink); }
+}
+
+/* The page you are currently on. Marked with weight and colour, not colour
+   alone, so it is still obvious to someone who cannot distinguish the two. */
+.navLinkActive {
+  color: var(--ink);
+  background: var(--tile);
+}
+
+/* Pushes everything after it over to the right-hand end. */
+.spacer { flex: 1; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+/* THE LIGHT/DARK BUTTON ONLY. The language globe used to be hidden by this too,
+   which was the wrong call: see the note beside it in TopBar.tsx. Light and dark
+   is a preference, and it has a labelled row in the menu at every width, so
+   hiding the icon on a narrow bar costs nothing. */
+.desktopOnly { display: none; }
+
+@media (min-width: 700px) {
+  .desktopOnly { display: inline-flex; }
+}
+
+.mobileOnly { display: inline-flex; }
+
+@media (min-width: 900px) {
+  .mobileOnly { display: none; }
+}
+
+/* ---- THE ACCOUNT MENU ---- */
+.accountWrap { position: relative; }
+
+.accountButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  min-height: var(--size-icon-button);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .accountButton:hover { background: var(--tile); border-color: var(--ink3); }
+}
+
+.accountName {
+  display: none;
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .accountName { display: block; }
+}
+
+/* The panel that drops down. On a narrow window it stretches nearly the full
+   width so the links inside stay comfortably large. */
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  right: 0;
+  width: min(300px, calc(100vw - var(--space-3xl)));
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-floating);
+  padding: var(--space-sm);
+  z-index: 70;
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: dropIn 0.14s ease;
+}
+
+.menuHeader {
+  padding: var(--space-md) var(--space-lg) var(--space-md);
+}
+
+.menuDivider {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: var(--space-sm) 0;
+}
+
+.menuFooter {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+}
+
+.menuFooter > * { flex: 1; }
+
+@keyframes dropIn {
+  from { transform: translateY(-6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* A link straight to the business dashboard, shown only to someone who has an
+   approved rental business. */
+.businessLink {
+  /* Was 40px — near enough to look right and just short enough to miss. */
+  min-height: var(--size-touch-min);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .businessLink:hover { background: var(--tile); border-color: var(--ink3); }
+}
+
+/* The word "Business" beside the shopfront icon. The icon is always there; the
+   word appears once there is room for it, so the link never disappears — it
+   only gets shorter. */
+.businessLabel { display: none; }
+
+@media (min-width: 1100px) {
+  .businessLabel { display: inline; }
+}
+
+/* Without a label the link would be a wide pill around a small icon. Square it
+   up, and keep it a full-size touch target. */
+@media (max-width: 1099px) {
+  .businessLink {
+    width: var(--size-touch-min);
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* ---- THE ONE WIDTH WHERE EVERYTHING WILL NOT FIT ----
+   At 320px the bar holds the hamburger, the logo, this shortcut, the language
+   globe and the account button. Together they are wider than the screen, and
+   something has to give.
+
+   This is what gives. The language globe stays, because somebody who cannot
+   read English cannot navigate to a menu in order to find it — that is the one
+   control that has to be visible at every width. The shortcut to the business
+   dashboard is a convenience for somebody who already knows the site, and it is
+   still one tap away in the account menu, so it is the honest thing to drop.
+
+   320px is a small phone — an iPhone SE and not much else. Every other width
+   keeps all five. */
+@media (max-width: 359px) {
+  .businessLink { display: none; }
+}
+
+/* ---- THE SMALLEST PHONES ----
+   On a 320px screen the bar holds a hamburger, the wordmark, the language
+   globe, this, and the account button. That is 47px more than there is, and the
+   bar pushed the whole page sideways.
+
+   Something has to go, so it is this one. The language globe stays because
+   somebody who cannot read the menu cannot reach the menu; the way across to
+   the business side is still in that menu, labelled, and in the sidebar. Losing
+   a shortcut is a smaller loss than a page that scrolls sideways. */
+@media (max-width: 359px) {
+  .businessLink { display: none; }
+}

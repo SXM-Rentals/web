@@ -1,0 +1,57 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the sort drop-down on the search page. */
+
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.label {
+  white-space: nowrap;
+  /* Hidden on a narrow window, where the drop-down's own wording already says
+     what it does and the room is better spent on the results. */
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .label { display: block; }
+}
+
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select {
+  /* A dropdown is tapped, and 40px is four pixels short of a thumb. */
+  min-height: var(--size-touch-min);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Room on the right for the arrow drawn on top. */
+  padding: var(--space-sm) var(--space-4xl) var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .select:hover { border-color: var(--ink3); }
+}
+
+.arrow {
+  position: absolute;
+  right: var(--space-md);
+  color: var(--ink2);
+  /* Clicks pass through to the drop-down underneath. */
+  pointer-events: none;
+  display: flex;
+}

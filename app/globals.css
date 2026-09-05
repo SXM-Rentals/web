@@ -1,0 +1,501 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: This is the site's style rulebook. Every colour, spacing
+   size, corner roundness and text size used anywhere in SXM Rentals is defined
+   once, right here, as a "CSS variable". No other file is allowed to write a
+   colour directly — they all read from this file. That means changing the whole
+   look of the site (say, a new brand colour once the logo is designed) is a
+   one-line edit here.
+
+   These values are copied from the mobile app's lib/theme/tokens.ts so the phone
+   app and the website look like the same product. */
+
+/* ==================================================================
+   LIGHT MODE COLOURS
+   An almost black-and-white look, with colour used only where it means
+   something (a star rating, a verified tick, a warning).
+   ================================================================== */
+:root {
+  /* Backgrounds */
+  --ground: #f5f5f6;          /* the page behind everything */
+  --card: #ffffff;            /* white panels that sit on the page */
+  --tile: #f0f1f2;            /* light grey blocks, e.g. car feature squares */
+  --overlay: rgba(14, 17, 20, 0.45); /* dims the screen behind a pop-up */
+
+  /* Lines and edges */
+  --hairline: #e4e5e7;        /* the very thin border around cards and inputs */
+
+  /* Text */
+  --ink: #0e1114;             /* main text, near-black */
+  --ink2: #6b7280;            /* supporting text, grey */
+  --ink3: #9ca3af;            /* faint text and placeholder text */
+
+  /* The main action colour — dark buttons, selected chips */
+  --primary: #232b2e;
+  --primary-text: #ffffff;    /* text sitting on top of a primary button */
+  --primary-pressed: #151a1c; /* slightly darker while being clicked */
+
+  /* Colours that carry a meaning */
+  --star: #ff9500;            /* rating stars */
+  --brand: #0b9bff;           /* verified ticks, unread dots, links */
+  --brand-soft: #e6f4ff;      /* pale blue behind brand-coloured things */
+  --success: #22c55e;
+  --success-soft: #d6f5de;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-soft: #fee2e2;
+
+  /* Something switched off or not yet available (the "Coming Soon" look) */
+  --disabled: #c9ccd1;
+  --disabled-surface: #edeef0;
+
+  /* ---- SPACING ----
+     All gaps between things are multiples of 4, so the layout stays even. */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 40px;
+  --space-5xl: 48px;
+
+  /* ---- CORNER ROUNDNESS ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;    /* input boxes */
+  --radius-lg: 14px;    /* cards */
+  --radius-xl: 20px;    /* pop-up sheets */
+  --radius-pill: 999px; /* fully rounded buttons and chips */
+
+  /* ---- STANDARD SIZES ----
+     Fixed measurements reused across the site so buttons and rows line up. */
+  --size-button: 56px;      /* height of a full-width button */
+  --size-button-sm: 44px;   /* height of a small button */
+  --size-input: 54px;       /* height of a text box */
+  --size-icon-button: 44px; /* the round back/more buttons in headers */
+  --size-touch-min: 44px;   /* never make anything clickable smaller than this */
+
+  /* ---- SHADOWS ----
+     Used sparingly. The design leans on thin borders rather than heavy shadows. */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 6px 16px rgba(0, 0, 0, 0.18);
+
+  /* ---- LAYOUT ----
+     Content never runs edge-to-edge on a wide monitor; it caps and centres. */
+  --content-max: 1400px;
+  --sidebar-width: 280px;
+  --topbar-height: 68px;
+
+  /* The system font stack, used for everything you actually read — body text,
+     labels, prices, tables. Nothing is downloaded for it, so text appears
+     instantly and looks native on whichever computer is being used. */
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Hammersmith One, loaded in app/layout.tsx, now used across the whole site
+     rather than only on headings. The system stack sits behind it as a fallback
+     so text is never invisible or unstyled while the face is arriving — or if it
+     fails to arrive at all.
+
+     ONE THING TO KNOW: the family ships a single weight. Anything asking for
+     bold — labels at 600, buttons at 700 — has no real bold to use, so the
+     browser thickens the letters itself. It is passable at heading sizes and
+     coarser on small text, which is why the weights below have been eased back
+     rather than left as they were.
+
+     TO REVERT: change the first value here back to var(--font-stack) and the
+     whole site returns to the system font. Nothing else needs touching. */
+  --font-heading-stack: var(--font-heading), var(--font-stack);
+  --font-body-stack: var(--font-heading), var(--font-stack);
+
+  color-scheme: light;
+}
+
+/* ==================================================================
+   DARK MODE COLOURS
+   NOTE THE FLIP: in dark mode the main button becomes near-WHITE with
+   dark text, because a charcoal button on a charcoal page would be
+   almost invisible. This is not simply a darkened version of the light
+   palette — the primary colour genuinely inverts.
+
+   The same values are written twice on purpose:
+     1. for when the visitor's computer is set to dark, and
+     2. for when the visitor picks dark using our own toggle.
+   Writing both means our toggle always wins, in either direction.
+   ================================================================== */
+
+/* 1. The visitor's computer is set to dark and they have not chosen otherwise. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d0f11;
+    --card: #16191d;
+    --tile: #1c2025;
+    --overlay: rgba(0, 0, 0, 0.6);
+
+    --hairline: #2a2f36;
+
+    --ink: #f3f5f7;
+    --ink2: #a2aab5;
+    --ink3: #78818d;
+
+    --primary: #f3f5f7;
+    --primary-text: #0d0f11;
+    --primary-pressed: #d8dde3;
+
+    --star: #ffa726;
+    --brand: #3daeff;
+    --brand-soft: #10293c;
+    --success: #34d399;
+    --success-soft: #0f2e22;
+    --warning: #fbbf24;
+    --warning-soft: #33270a;
+    --danger: #f87171;
+    --danger-soft: #3a1616;
+
+    --disabled: #4a525c;
+    --disabled-surface: #22272d;
+
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-floating: 0 6px 16px rgba(0, 0, 0, 0.5);
+
+    color-scheme: dark;
+  }
+}
+
+/* 2. The visitor chose dark using our toggle. */
+:root[data-theme="dark"] {
+  --ground: #0d0f11;
+  --card: #16191d;
+  --tile: #1c2025;
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --hairline: #2a2f36;
+
+  --ink: #f3f5f7;
+  --ink2: #a2aab5;
+  --ink3: #78818d;
+
+  --primary: #f3f5f7;
+  --primary-text: #0d0f11;
+  --primary-pressed: #d8dde3;
+
+  --star: #ffa726;
+  --brand: #3daeff;
+  --brand-soft: #10293c;
+  --success: #34d399;
+  --success-soft: #0f2e22;
+  --warning: #fbbf24;
+  --warning-soft: #33270a;
+  --danger: #f87171;
+  --danger-soft: #3a1616;
+
+  --disabled: #4a525c;
+  --disabled-surface: #22272d;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-floating: 0 6px 16px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+/* ==================================================================
+   RESET
+   Clears the inconsistent default styling every browser applies, so a
+   page looks the same in Chrome, Edge, Firefox and Safari.
+   ================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Stops iPhones and iPads enlarging text when the screen is turned sideways. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body-stack);
+  font-size: 15px;
+  line-height: 22px;
+  /* Smooths letter edges on Apple screens, which render text heavier by default. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img, svg, video {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Form controls do not inherit the page font on their own — a browser gives
+   them its own default — so they have to be told. */
+input, textarea, select, button {
+  font-family: inherit;
+}
+
+input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- KEYBOARD FOCUS ----
+   A visible ring around whatever the keyboard is currently on. Essential for
+   anyone navigating with the Tab key instead of a mouse. ":focus-visible" means
+   it only appears for keyboard users, so clicking with a mouse does not leave
+   rings everywhere. Never replace this with "outline: none". */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- REDUCED MOTION ----
+   Some people set their computer to minimise animation, often because movement
+   makes them unwell. We honour that and switch animation off. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================================================================
+   TEXT STYLES
+   Instead of every page deciding its own font size, they use one of
+   these named styles. "display" is the biggest heading, "body" is
+   normal writing, "caption" is the smallest fine print.
+   ================================================================== */
+/* ---- HEADINGS ----
+   These four take the display face. It has one weight, so they ask for 400
+   rather than 700 — requesting a bold the family does not have makes the browser
+   synthesise one, which thickens the letters unevenly and looks like a mistake.
+   The face is heavy enough on its own to read as a heading without it.
+
+   Letter-spacing is eased off slightly too: the tight negative tracking suits the
+   condensed system font and pinches this one. */
+.t-display  { font-family: var(--font-heading-stack); font-size: 38px; line-height: 46px; font-weight: 400; letter-spacing: -0.4px; }
+.t-h1       { font-family: var(--font-heading-stack); font-size: 30px; line-height: 38px; font-weight: 400; letter-spacing: -0.2px; }
+.t-h2       { font-family: var(--font-heading-stack); font-size: 22px; line-height: 30px; font-weight: 400; letter-spacing: 0; }
+.t-h3       { font-family: var(--font-heading-stack); font-size: 18px; line-height: 25px; font-weight: 400; letter-spacing: 0; }
+/* ---- BODY STYLES ----
+   Line heights are a touch looser than the mobile app's tokens: Hammersmith One
+   has taller letters than the system font, and at the original spacing the lines
+   sat too close to read comfortably in a paragraph. */
+.t-bodyLg   { font-size: 16px; line-height: 25px; font-weight: 400; letter-spacing: 0; }
+.t-body     { font-size: 15px; line-height: 23px; font-weight: 400; letter-spacing: 0; }
+.t-label    { font-size: 14px; line-height: 21px; font-weight: 600; letter-spacing: 0; }
+.t-small    { font-size: 13px; line-height: 19px; font-weight: 400; letter-spacing: 0; }
+.t-caption  { font-size: 11px; line-height: 15px; font-weight: 600; letter-spacing: 0.3px; }
+
+/* ---- THE SMALLEST TEXT, ON THE SMALLEST SCREENS ----
+   11px is fine on a laptop held at arm's length on a desk. On a phone in
+   sunlight — which is most of how this site will actually be read, on an island
+   — it is at the edge of legible, and this is not decorative text: it carries
+   the date of a booking and the words "deposit held, then returned". A person
+   who cannot read that line is a person who does not understand what they are
+   being charged.
+
+   So on a phone it goes up to 12px. One pixel, on the one class, at the one
+   width where it matters. Nothing else moves. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .t-caption { font-size: 12px; line-height: 16px; }
+}
+
+/* On a big screen the largest heading grows, because a size chosen to fit a
+   phone looks undersized across a laptop. Everything else stays as it is.
+
+   ONLY "display" GROWS, AND ONLY THE HERO USES IT. "h1" deliberately does not:
+   it is the page title on every inner page — Settings, Notifications, Saved
+   Cars — and at 38px those read as a shout above a 15px line of supporting
+   text. 30px is also exactly what the mobile app's token file says h1 is, so
+   leaving it alone keeps the two products on one type scale rather than the
+   website quietly running a size larger than the design system it came from. */
+@media (min-width: 1024px) {
+  .t-display { font-size: 52px; line-height: 58px; }
+}
+
+/* ---- TEXT COLOURS ---- */
+.tone-ink       { color: var(--ink); }
+.tone-ink2      { color: var(--ink2); }
+.tone-ink3      { color: var(--ink3); }
+.tone-brand     { color: var(--brand); }
+.tone-danger    { color: var(--danger); }
+.tone-success   { color: var(--success); }
+.tone-warning   { color: var(--warning); }
+.tone-onPrimary { color: var(--primary-text); }
+
+/* ==================================================================
+   SHARED HELPERS
+   ================================================================== */
+
+/* Hides something from the screen but keeps it readable by screen-reader
+   software — used for labels that would be visual clutter but that someone
+   listening to the page still needs. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- THE SKIP LINK ----
+   Invisible until somebody presses Tab on a fresh page, when it becomes the
+   first thing focused. It jumps straight past the navigation to the content.
+   Without it, anyone using a keyboard has to tab through the entire top bar and
+   every link in it, on every single page, before reaching what they came for. */
+.skipLink {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 200;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--primary-text);
+  font-size: 14px;
+  font-weight: 700;
+  /* Moved off screen rather than hidden, so it can still be focused — something
+     with "display: none" cannot be reached by the keyboard at all. */
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
+}
+
+/* ---- SCROLLBARS INSIDE PANELS ----
+   The browser's own scrollbar is a wide grey slab, sized for scrolling a whole
+   window. Inside a 244px sidebar it eats a chunk of the width and draws more
+   attention than the navigation next to it.
+
+   This is the same scrollbar, thinner and in the hairline colour, so it reads as
+   part of the panel rather than something sitting on top of it. It darkens on
+   hover so it is still easy to find and grab.
+
+   THE PAGE'S OWN SCROLLBAR IS DELIBERATELY LEFT ALONE. People expect the main
+   window to scroll the way every other window on their computer does, and
+   restyling that is the kind of thing that reads as a website being clever at
+   the expense of being familiar. This is opt-in, on inner panels only. */
+.thinScroll {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+
+/* Chrome, Edge and Safari. The track stays invisible so there is no grey
+   channel running down the edge of the panel when there is nothing to scroll. */
+.thinScroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.thinScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* The visible bar is 4px, but it keeps a 10px hit area: the transparent border
+   is part of the element for pointer purposes and invisible for painting, so it
+   is comfortable to grab without looking heavy. */
+.thinScroll::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: var(--radius-pill);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.thinScroll:hover::-webkit-scrollbar-thumb {
+  background: var(--ink3);
+  background-clip: padding-box;
+}
+
+/* Stops the two bars meeting in an empty grey square at the bottom corner when a
+   panel scrolls both ways. */
+.thinScroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Caps how wide content can get and centres it, so nothing stretches across a
+   very wide monitor. */
+.container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding-inline: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .container { padding-inline: var(--space-2xl); }
+}
+
+@media (min-width: 1440px) {
+  .container { padding-inline: var(--space-4xl); }
+}
+
+/* ==================================================================
+   PRINTING
+   Receipts and the signed rental agreement need to print sensibly:
+   no navigation, no footer, no dark background eating the ink.
+   ================================================================== */
+@media print {
+  :root,
+  :root[data-theme="dark"] {
+    --ground: #ffffff;
+    --card: #ffffff;
+    --tile: #ffffff;
+    --ink: #000000;
+    --ink2: #333333;
+    --ink3: #666666;
+    --hairline: #cccccc;
+    --shadow-card: none;
+    --shadow-floating: none;
+    color-scheme: light;
+  }
+
+  body { background: #fff; }
+
+  /* Anything marked "do not print" disappears — top bar, footer, buttons. */
+  [data-print="hide"] { display: none !important; }
+
+  /* Keep a card from being split across two pages. */
+  [data-print="keep"] { break-inside: avoid; }
+}

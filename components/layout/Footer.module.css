@@ -1,0 +1,171 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the footer at the bottom of every customer
+   page, which carries all nineteen policy documents, the two sign-up routes,
+   and the contact details. */
+
+.footer {
+  background: var(--card);
+  border-top: 1px solid var(--hairline);
+  margin-top: var(--space-5xl);
+  padding-block: var(--space-4xl) var(--space-2xl);
+}
+
+/* One column on a phone, growing to four on a laptop. The legal column is given
+   twice the room because it holds nineteen links rather than four. */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3xl);
+}
+
+@media (min-width: 640px) {
+  .columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .columns { grid-template-columns: 1.4fr 1fr 1fr 1.6fr; }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.columnTitle {
+  margin-bottom: var(--space-xs);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.link {
+  color: var(--ink2);
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: var(--radius-sm);
+  /* A comfortable click target without pushing the list apart visually. */
+  padding-block: 2px;
+  width: fit-content;
+  /* The footer holds more links than anywhere else on the site, stacked close
+     together. At 24px tall each one was a 24px-high strip with a 24px-high
+     neighbour directly above and below — reliably tappable with a mouse and a
+     coin-flip with a thumb. See the phone rule at the bottom of this file. */
+}
+
+@media (hover: hover) {
+  .link:hover { color: var(--ink); text-decoration: underline; }
+}
+
+/* The nineteen policy documents, in two narrow columns so the list does not run
+   the entire height of the page. */
+.legalGroups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.legalGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.legalLinks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-sm) var(--space-lg);
+}
+
+@media (min-width: 480px) {
+  .legalLinks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.about {
+  max-width: 300px;
+}
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+/* One logo. Circular and hairline-bordered, matching the round buttons used
+   everywhere else on the site, and large enough to be an easy target. */
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px on a touch screen, 38px with a mouse — see the touch rule at the
+     bottom of this file. The circle you can see stays 38px either way; only the
+     area that responds to a finger grows. */
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink2);
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .socialLink:hover {
+    background: var(--tile);
+    border-color: var(--ink3);
+    color: var(--ink);
+  }
+}
+
+/* ---- THE BOTTOM LINE ---- */
+.base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-4xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--hairline);
+}
+
+.baseSpacer { flex: 1; }
+
+/* ---- ROOM FOR A THUMB ----
+   Below the tablet breakpoint every footer link becomes at least 44px tall.
+   The words do not move and nothing looks different; the strip that responds to
+   a touch simply grows to meet the finger. Set on the phone breakpoint only,
+   because on a desktop the same change would space the columns out for no
+   reason — a mouse pointer is one pixel wide.
+
+   44px is Apple's figure and 48px is Google's. 44 is used throughout this
+   project, as --size-touch-min in app/globals.css. */
+/* THE CONDITION IS ASKED BOTH WAYS, and it is worth saying why.
+
+   "pointer: coarse" is the correct question — it means the person has no mouse,
+   whatever the size of their screen, so a touchscreen laptop at 1400px is
+   covered and a narrow desktop window is not.
+
+   But it is not a question every browser answers reliably, and a tablet held
+   upright is exactly 768px, which a "max-width: 767px" rule misses by one pixel.
+   So the width is asked as well. Either being true is enough. The cost of being
+   wrong in this direction is a slightly roomier footer on a small laptop; the
+   cost in the other direction is links nobody can reliably tap. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .link {
+    min-height: var(--size-touch-min);
+    display: flex;
+    align-items: center;
+  }
+
+  .socialLink {
+    width: var(--size-touch-min);
+    height: var(--size-touch-min);
+  }
+}

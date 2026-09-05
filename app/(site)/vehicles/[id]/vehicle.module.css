@@ -1,0 +1,199 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of a single car's page.
+
+   THE PHONE APP STACKS EVERYTHING IN ONE COLUMN, with the price and the book
+   button at the very bottom. On a laptop that would mean scrolling past
+   everything to find the price and then scrolling back up to check a detail. So
+   here the page splits: the photos and the description on the left, and a
+   booking panel on the right that follows the page as it scrolls, keeping the
+   price, the dates and the deposit permanently in view. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    /* Roughly 60/40, as the handoff describes. */
+    grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr);
+    gap: var(--space-3xl);
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  min-width: 0;
+}
+
+/* ---- THE GALLERY ----
+   One large panel with a strip of smaller ones beneath. There are no real
+   photographs yet, so these are deliberate placeholders of the right shape —
+   which means adding real ones later changes what is inside them and moves
+   nothing else on the page. */
+.gallery {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.galleryStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+@media (min-width: 640px) {
+  .galleryStrip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ---- THE HEADING BLOCK ---- */
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.titleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink2);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ---- THE BOOKING PANEL ---- */
+.panel {
+  position: static;
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    position: sticky;
+    /* Below the top bar, so it never slides underneath it. */
+    top: calc(var(--topbar-height) + var(--space-lg));
+  }
+}
+
+.panelInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.priceHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.panelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.datesButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  text-align: left;
+  min-height: var(--size-input);
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .datesButton:hover { border-color: var(--ink3); }
+}
+
+.datesText { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+
+/* The running total, once dates have been chosen. */
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+/* THE DEPOSIT LINE.
+   Below the total and in its own tinted box, so it can never be read as part of
+   what is being charged. It is never added into the figure above it. */
+.depositLine {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  margin-top: var(--space-sm);
+}
+
+.depositLineBody { flex: 1; min-width: 0; }
+
+.depositLineHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.panelNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.panelNote > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- REVIEWS ---- */
+.reviewsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.reviews {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .reviews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -1,0 +1,297 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the homepage — the big opening panel, the
+   two "how it works" sequences, the preview of cars, the three reasons to use
+   SXM Rentals, and the rewards teaser. */
+
+/* Even spacing between the bands of the page, without each section having to
+   remember its own margins. */
+.section {
+  padding-block: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .section { padding-block: 72px; }
+}
+
+.sectionHead {
+  max-width: 640px;
+  margin-bottom: var(--space-3xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.centered {
+  margin-inline: auto;
+  text-align: center;
+  align-items: center;
+}
+
+/* ==================================================================
+   HERO
+   ================================================================== */
+/* Less air above the headline than before. With the badge gone there is nothing
+   to sit under, and the first thing on the page should be the sentence that
+   explains what this is — not a band of empty colour. */
+.hero {
+  padding-block: var(--space-3xl) var(--space-4xl);
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    padding-block: var(--space-4xl) 64px;
+  }
+}
+
+/* The hero is one centred column. It previously had a stack of cars alongside
+   it, with the second column nudged downward — which read as two things that
+   had failed to line up rather than as an arrangement, and left an awkward
+   overhang at the top of the page. The real catalogue further down the page
+   does that job properly, so the opening is now just the headline and the two
+   ways out of it, centred. */
+.heroGrid {
+  display: flex;
+  justify-content: center;
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-lg);
+  /* Capped so the headline and the paragraph under it stay a comfortable
+     reading width rather than stretching across a wide monitor. */
+  max-width: 760px;
+}
+
+.heroLede { max-width: 620px; }
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+/* The small reassurance line under the buttons. */
+.heroNotes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+}
+
+.heroNote {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink2);
+}
+
+/* ==================================================================
+   HOW IT WORKS
+   ================================================================== */
+.steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 640px) {
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  height: 100%;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-text);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+/* The business sequence sits on a tinted band so the two sequences do not blur
+   into one long list of eight steps. */
+.tintedBand {
+  background: var(--card);
+  border-block: 1px solid var(--hairline);
+}
+
+.tintedBand .step {
+  background: var(--tile);
+  border-color: transparent;
+}
+
+/* ==================================================================
+   BROWSE PREVIEW
+   ================================================================== */
+.previewHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.cars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .cars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .cars { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* The four vehicle types. Only cars are live; the rest are clearly marked and
+   explain themselves when clicked rather than doing nothing. */
+.types {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+}
+
+@media (min-width: 768px) {
+  .types { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ==================================================================
+   WHY SXM RENTALS
+   ================================================================== */
+.pillars {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 900px) {
+  .pillars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.pillar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-2xl);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  height: 100%;
+}
+
+.pillarIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================================================================
+   REWARDS TEASER
+
+   THIS IS A PLAIN PANEL, NOT A <Card>, AND THAT MATTERS. Card paints itself
+   with "background: var(--card)". This block needs "var(--primary)" instead, so
+   putting this class on a Card left two single-class selectors fighting over the
+   same property with identical specificity — and whichever stylesheet happened
+   to load last won.
+
+   It lost. In dark mode the panel kept Card's dark background while the text
+   stayed --primary-text, which is near-black in dark mode: dark on dark. In
+   light mode the reverse — white text on Card's white background. Either way,
+   invisible. Owning the background here, with nothing to argue with, is what
+   fixes it.
+   ================================================================== */
+.rewards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-3xl);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+@media (min-width: 900px) {
+  .rewards {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4xl);
+    padding: var(--space-4xl);
+  }
+}
+
+.rewardsCopy { flex: 1; display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* The palette inverts in dark mode, so text on the primary colour has to use
+   the matching inverted text colour rather than a fixed white. */
+.rewardsTitle { color: var(--primary-text); }
+.rewardsBody { color: var(--primary-text); opacity: 0.78; }
+
+.tierLadder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.tier {
+  padding: 5px var(--space-md);
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* ==================================================================
+   THE CLOSING CALL TO ACTION
+   ================================================================== */
+.closing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: center;
+  padding-block: var(--space-5xl);
+}
+
+.closingActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}

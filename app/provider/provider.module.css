@@ -1,0 +1,633 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the whole provider portal — the sidebar down
+   the left, and the shared patterns used across its pages: the stat tiles, the
+   tables, the ranked bars and the payout rows.
+
+   THE PHONE APP PUTS THE BUSINESS SECTIONS IN A BOTTOM BAR because that is the
+   only place they fit. On a laptop this is a proper sidebar, permanently on
+   screen, and the overview becomes a real multi-column dashboard rather than a
+   tall stack of cards. */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .layout { grid-template-columns: 250px 1fr; }
+}
+
+/* ---- THE SIDEBAR ---- */
+.sidebar {
+  border-bottom: 1px solid var(--hairline);
+  background: var(--card);
+  padding: var(--space-md);
+  /* WITHOUT THIS THE WHOLE PORTAL SCROLLED SIDEWAYS ON A PHONE.
+     On a narrow window the nine sections become a row that scrolls inside
+     itself, which the nav below is set up to do. But a grid item's minimum
+     width defaults to the width of its content, and the content here is nine
+     links that refuse to wrap — so instead of the nav scrolling, the column
+     grew to fit them and took the entire page with it, 619px past the edge of a
+     375px screen. Allowing the column to shrink is what lets the nav's own
+     scrolling actually happen. */
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    border-bottom: none;
+    border-right: 1px solid var(--hairline);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    /* The whole thing is sized to fit a laptop window, so nothing here should
+       ever need scrolling — nine sections and a way out is not a long list, and
+       having to scroll a sidebar to reach "Business Profile" is absurd. The
+       rows and headings below are deliberately compact to make that fit on a
+       short window. This stays as a safety net for a very short window or very
+       large text, not as the normal case. */
+    overflow-y: auto;
+  }
+}
+
+/* On a narrow window the sections become a sideways-scrolling row, since a tall
+   sidebar would push the actual dashboard off the bottom of the screen. */
+@media (max-width: 1023px) {
+  /* The sidebar itself becomes a row, so the sections and the way out sit side
+     by side rather than stacked. */
+  .sidebar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .nav {
+    display: flex;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    /* Same reason as the sidebar above: a flex item will not shrink below its
+       content unless told it may. */
+    min-width: 0;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+}
+
+.brandRow a {
+  /* The logo at the top of the sidebar links home. It is a small mark, so the
+     area that responds to a tap is grown to meet a thumb without the mark
+     itself changing size. */
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-min);
+}
+
+.brandRow {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .brandRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md) var(--space-md);
+  }
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  color: var(--ink2);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  /* 38px rather than the usual 44px minimum. Still a comfortable mouse target,
+     and the nine rows now fit a short laptop window without scrolling. On a
+     narrow window these become a scrolling row rather than a column, where the
+     height is not under pressure, so the full target size is restored below. */
+  min-height: 38px;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (max-width: 1023px) {
+  .navLink {
+    min-height: var(--size-touch-min);
+    padding: var(--space-md);
+    font-size: 14px;
+  }
+}
+
+/* A tablet held upright is exactly 1024px wide, so it gets the compact desktop
+   sidebar above — sized for a mouse, and touched with a finger. This restores
+   the full target height for anything without a mouse, at any width. The
+   compact rows are kept for a pointer, which is where the request to fit the
+   whole sidebar without scrolling came from. */
+@media (pointer: coarse) {
+  .navLink { min-height: var(--size-touch-min); }
+}
+
+@media (hover: hover) {
+  .navLink:hover { background: var(--tile); color: var(--ink); }
+}
+
+.navLinkActive { background: var(--tile); color: var(--ink); }
+
+.navGroup { padding: var(--space-md) var(--space-md) 2px; }
+
+@media (max-width: 1023px) {
+  .navGroup { display: none; }
+}
+
+/* Pinned to the bottom of the sidebar: the way back to the customer site. */
+.sidebarFoot {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+  display: block;
+}
+
+/* ---- THE WAY BACK TO THE CUSTOMER SIDE ----
+   This used to be hidden below 1024px, which meant a rental business owner
+   looking at a booking on their phone — which is most of how a business owner
+   uses this — had no way back to the rest of the site at all. The portal was a
+   room with no door.
+
+   On a narrow window the sections above are a sideways-scrolling row, so this
+   joins the end of that row rather than sitting under it: no border, no margin
+   pushing it to the bottom of a container that is no longer tall. */
+@media (max-width: 1023px) {
+  .sidebarFoot {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .sidebarFoot .navLink {
+    white-space: nowrap;
+  }
+}
+
+/* ---- THE MAIN AREA ---- */
+.main {
+  min-width: 0;
+  padding: var(--space-xl);
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 1024px) {
+  .main { padding: var(--space-3xl); }
+}
+
+.inner {
+  max-width: 1200px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.pageHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.headText { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+.headActions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+
+.stack { display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* ==================================================================
+   THE DASHBOARD
+   ================================================================== */
+
+/* The row of headline numbers. One column on a phone, four on a laptop. */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .statGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* The dashboard proper — two columns of panels on a wide screen. */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .dashboardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.spanFull { grid-column: 1 / -1; }
+
+/* ==================================================================
+   TABLES
+   A real table for anything genuinely tabular — bookings, payouts,
+   imported rows. Marked up properly so a screen reader can announce
+   which column a figure belongs to, which a grid of boxes cannot.
+   ================================================================== */
+.tableWrap {
+  overflow-x: auto;
+  /* Matches the thin scrollbar used on the panels, so a wide table does not
+     grow a heavy grey bar along its bottom edge. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+  /* The page body must never scroll sideways, so a wide table scrolls inside
+     its own box instead. */
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.table th {
+  text-align: left;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+/* The car's name in a table row is a link to that car. In a tight row it came
+   out 40px tall, four pixels short of the minimum. Giving it the full height
+   costs nothing: the row is already taller than the text inside it. */
+.table td a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-min);
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* ---- TWO-LINE CELLS ----
+   Several cells carry a main value with a quieter line under it — a vehicle and
+   its reference, a renter and whether their licence is checked, an amount and
+   the commission behind it.
+
+   The quieter line uses the "caption" or "small" text style, and both of those
+   render as a <span>, which is correct everywhere else on the site because they
+   usually sit inline beside something. Inside a table cell it is wrong: the two
+   lines ran together into "Ford ExplorerSXM-4915" and "Priya N.Licence verified".
+
+   Forcing them to their own line here fixes every such cell at once, without
+   each table having to remember to wrap its contents in something. The status
+   pills are untouched, since they carry their own class rather than these. */
+.table td :global(.t-caption),
+.table td :global(.t-small) {
+  display: block;
+}
+
+/* A little air between the two lines, so they read as one cell rather than two
+   crammed rows. */
+.table td :global(.t-caption) { margin-top: 3px; }
+
+@media (hover: hover) {
+  .table tbody tr:hover { background: var(--tile); }
+}
+
+.numeric { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ==================================================================
+   THE FLEET
+   ================================================================== */
+.fleetGrid {
+  display: grid;
+  /* One column on a phone. Two vehicle cards side by side at 375px leaves each
+     about 160px wide — the name, rating, rate and deposit all crush together,
+     and it was still spilling 16px past the edge of the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 480px) {
+  .fleetGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .fleetGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1440px) {
+  .fleetGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* The four ways to add vehicles. */
+.routeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .routeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.route {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  height: 100%;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .route:hover { border-color: var(--ink3); }
+}
+
+.routeIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+}
+
+/* ==================================================================
+   THE PRIVACY NOTE
+   Explains, on the booking pages, why there is no phone number and no
+   email address. Said plainly so it reads as a deliberate rule rather
+   than as missing data.
+   ================================================================== */
+.privacyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+}
+
+.privacyNote > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ==================================================================
+   FORMS
+   ================================================================== */
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .formGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.formHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* The small explanatory line under a control. It had no margin at all, so it
+   landed directly against whatever sat above it — on the border of the row
+   before it, or hard under a row of buttons. A pass of air is enough to read it
+   as a note about the thing above rather than part of it.
+
+   Any place that sets its own marginTop still wins, which is what the few
+   first-in-a-card notes rely on to sit flush. */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--space-md);
+}
+
+.note > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+.infoRows { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.infoRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.infoValue { text-align: right; min-width: 0; }
+
+/* ==================================================================
+   THE SPREADSHEET IMPORT
+   ================================================================== */
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-5xl) var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--hairline);
+  background: var(--tile);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .dropZone:hover { border-color: var(--ink3); }
+}
+
+.dropZoneActive { border-color: var(--brand); background: var(--brand-soft); }
+
+.dropIcon {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A row of the preview that has something wrong with it. Tinted AND carrying a
+   written reason — the colour alone would mean nothing to somebody who cannot
+   distinguish it. */
+.badRow { background: var(--danger-soft); }
+
+.problemList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+/* ==================================================================
+   API CONNECTION
+   ================================================================== */
+.codeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  border: 1px solid var(--hairline);
+}
+
+.code {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+/* ---- TABLE HEADINGS ON A PHONE ----
+   The column headings are 11px. On a phone these tables already scroll sideways
+   inside their own box, so the heading is the only thing telling you which
+   column you are looking at once it has scrolled away from the left edge —
+   which makes it the worst thing on the page to have set too small to read. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .table th {
+    font-size: 12px;
+  }
+}
+
+/* ---- THE TWO SMALL BUTTONS BESIDE A KEY ----
+   Show/hide, and copy. The icons are 18px, which is the right size next to a
+   line of code. The button around each one is sized for a thumb instead, so the
+   icon looks the same and the target is three times the area. */
+.codeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-touch-min);
+  height: var(--size-touch-min);
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  color: var(--ink2);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .codeButton:hover { background: var(--tile); color: var(--ink); }
+}
+
+/* ==================================================================
+   THE SETTINGS PAGE
+   Stacked cards with a row per switch. The same shapes the customer settings
+   page uses — see app/(site)/account/account.module.css — deliberately, so the
+   two sides of the product do not drift into looking like different products.
+   ================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2xl);
+  padding-block: var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* The last row in a card has nothing under it to be separated from. "data-last"
+   is for a card holding a single row, which has no last-child to match. */
+.settingRow:last-child,
+.settingRow[data-last] {
+  border-bottom: none;
+}
+
+/* The name and its description are one unit, with a little air between them
+   rather than sitting directly on top of each other. */
+.settingText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* A switch and a long description on a phone need the full width for the words,
+   so the switch drops underneath rather than squeezing the sentence into a
+   column three words wide. */
+@media (max-width: 600px) {
+  .settingRow {
+    align-items: flex-start;
+    gap: var(--space-lg);
+  }
+}

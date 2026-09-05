@@ -1,0 +1,388 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the sign-in, join and identity-check pages —
+   a narrow centred column, the buttons for signing in with Apple or Google, the
+   one-time-code boxes, and the webcam frame used for the identity photos. */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
+}
+
+/* The mark keeps its own size; only the area that responds to a tap grows to
+   meet a thumb. Same reasoning as the top bar's logo. */
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-min);
+  border-radius: var(--radius-sm);
+}
+
+.headerActions { display: flex; gap: var(--space-xs); }
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg) var(--space-5xl);
+}
+
+/* Narrow on purpose. A sign-in form stretched across a wide monitor looks
+   wrong and is harder to read than one at the width of a phone. */
+.column {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* A wider column for the identity-check pages, which have a camera frame and
+   more explaining to do. */
+.columnWide { max-width: 560px; }
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ---- SIGNING IN WITH APPLE OR GOOGLE ---- */
+.socialButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  width: 100%;
+  min-height: var(--size-button);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .socialButton:hover { background: var(--tile); border-color: var(--ink3); }
+}
+
+/* A line with the word "or" through the middle of it. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--ink3);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.footNote {
+  text-align: center;
+}
+
+.link {
+  color: var(--brand);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+@media (hover: hover) {
+  .link:hover { text-decoration: underline; }
+}
+
+/* ---- THE ONE-TIME CODE ----
+   Six separate boxes. Typing moves forward on its own, backspace moves back,
+   and pasting a whole code from a text message fills them all at once. */
+.codeRow {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: space-between;
+}
+
+.codeBox {
+  flex: 1;
+  min-width: 0;
+  height: 60px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.codeBox:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-color: var(--ink);
+}
+
+/* ==================================================================
+   THE IDENTITY CHECK
+   ================================================================== */
+
+/* The oval the face has to sit inside. Same framing as the phone app, so the
+   instructions match whichever one somebody happens to be using. */
+.cameraFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 420px;
+  border-radius: var(--radius-xl);
+  background: var(--tile);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirrored, so moving left on screen matches moving left in the room.
+     An unmirrored view of yourself is oddly hard to line up with. */
+  transform: scaleX(-1);
+}
+
+.cameraOval {
+  position: absolute;
+  inset: 12% 18%;
+  border: 3px dashed var(--card);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.cameraPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--ink3);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+/* ---- THE FILE DROP ZONE ----
+   The thing a website can do that a phone app cannot: drag a photo of a
+   document straight in from the desktop. Most people on a laptop already have
+   a scan of their passport in a folder, and would far rather use it than hold
+   the document up to a webcam. */
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-4xl) var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--hairline);
+  background: var(--tile);
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dropZone:hover { border-color: var(--ink3); }
+}
+
+/* While a file is being dragged over it. */
+.dropZoneActive {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.dropIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A file that has been chosen. */
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+}
+
+.fileBody { flex: 1; min-width: 0; }
+
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- THE RESULT OF THE CHECK ---- */
+.statusIcon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.statusPending { background: var(--warning-soft); color: var(--warning); }
+.statusApproved { background: var(--success-soft); color: var(--success); }
+.statusRejected { background: var(--danger-soft); color: var(--danger); }
+
+/* The box holding the reason a check was refused. It is never optional — being
+   told no without being told why is the most frustrating thing an identity
+   check can do, and it produces a support message every single time. */
+.reasonBox {
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.reasonBox > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.step > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- CHOOSING LOCAL OR TOURIST ---- */
+.choiceGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .choice:hover { border-color: var(--ink3); }
+}
+
+.choiceSelected {
+  border-color: var(--primary);
+  background: var(--tile);
+}
+
+.choiceIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--tile);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+}
+
+.choiceSelected .choiceIcon { background: var(--card); }
+
+.choiceList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--space-sm);
+}
+
+.choiceListItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.note > :global(svg) { margin-top: 2px; flex-shrink: 0; }
+
+/* ---- ROOM FOR A THUMB ----
+   Asked both ways: no mouse, OR a screen small enough that there probably is
+   not one. "pointer: coarse" is the right question but not one every browser
+   answers, and a tablet held upright is exactly 768px — which a 767px rule
+   misses by a pixel. See components/layout/Footer.module.css for the full
+   reasoning; it is the same condition throughout. */
+/* "Forgotten your password?", "Create an account", and the links to the terms.
+   Every one of them is a whole line to itself rather than a word inside a
+   sentence, so making the line 44px tall costs nothing and is the difference
+   between reaching it and reaching past it. */
+@media (pointer: coarse), (max-width: 1023px) {
+  .link {
+    min-height: var(--size-touch-min);
+    display: inline-flex;
+    align-items: center;
+  }
+}

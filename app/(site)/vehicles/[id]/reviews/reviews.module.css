@@ -1,0 +1,84 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the full reviews page — the summary panel
+   with its star breakdown down the side, and the list of reviews beside it. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-bottom: var(--space-5xl);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 300px 1fr;
+    gap: var(--space-3xl);
+  }
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: flex-start;
+}
+
+@media (min-width: 900px) {
+  .summary {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-lg));
+  }
+}
+
+/* ---- THE STAR BREAKDOWN ----
+   Plain blocks sized by percentage. No charting library: they inherit the
+   theme, work in light and dark without any extra code, and add nothing to what
+   the browser has to download. */
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.starLabel { width: 26px; flex-shrink: 0; }
+.countLabel { width: 22px; text-align: right; flex-shrink: 0; }
+
+.barTrack {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--tile);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--star);
+  /* Never narrower than nothing, never wider than the track. */
+  max-width: 100%;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+@media (min-width: 1280px) {
+  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

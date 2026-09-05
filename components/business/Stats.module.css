@@ -1,0 +1,148 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the numbers and charts on the business side —
+   the headline stat tiles, the ranked bars showing which car earns most, the
+   percentage bars, and the split showing what a customer paid against what the
+   business receives.
+
+   EVERY CHART HERE IS A PLAIN BLOCK WITH A WIDTH SET AS A PERCENTAGE. There is
+   no charting library anywhere on this site, on purpose: a library would be
+   several hundred kilobytes, would need its own colours configured to match, and
+   would have to be told about light and dark mode. These read the same variables
+   as everything else, so they follow the theme for free and cost nothing to
+   download. */
+
+/* ---- A HEADLINE NUMBER ---- */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  background: var(--card);
+  height: 100%;
+}
+
+.tileHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  color: var(--ink3);
+}
+
+.tileValue { font-variant-numeric: tabular-nums; }
+
+/* A short line under the number saying what it means, or which way it moved. */
+.tileNote {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-xs);
+}
+
+/* ---- RANKED BARS ----
+   Which car earns most, in order, each bar sized against the biggest. */
+.ranked { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.rankedRow { display: flex; flex-direction: column; gap: 5px; }
+
+.rankedHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.rankedLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.rankedValue { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.track {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tile);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  /* However odd the numbers, a bar can never draw wider than its track. */
+  max-width: 100%;
+  transition: width 0.3s ease;
+}
+
+/* ---- A PERCENTAGE BAR ----
+   Occupancy, and inquiry-to-booking conversion. */
+.percent { display: flex; flex-direction: column; gap: 5px; }
+
+.percentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.fillBrand { background: var(--brand); }
+.fillSuccess { background: var(--success); }
+.fillWarning { background: var(--warning); }
+
+/* ---- THE EARNINGS SPLIT ----
+   What customers paid, what SXM Rentals took, and what the business receives —
+   all three, always. A business that cannot see the deduction cannot check it.
+   ================================================================== */
+.split { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.splitBar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--tile);
+}
+
+.splitYours { background: var(--success); }
+.splitCommission { background: var(--ink3); }
+
+.splitRows { display: flex; flex-direction: column; gap: var(--space-sm); }
+
+.splitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.splitLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.splitTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--hairline);
+}
+
+.numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
