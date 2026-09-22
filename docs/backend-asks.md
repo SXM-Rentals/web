@@ -1,12 +1,35 @@
 # What the website needs from the API
 
 Written while connecting `sxm-rentals-web` to
-`https://sxm-rentals-api.onrender.com/api/v1`. Every item below is something
-the website currently works around. None of them block it — it runs today —
-but each workaround is either slow, fragile, or a number that can drift out of
-agreement with the backend's own.
+`https://sxm-rentals-api.onrender.com/api/v1`, and updated after reading the
+backend's own code on 2026-09-21.
 
-They are in the order they cost the most.
+**One item blocks going live — the first one.** Everything after it is
+something the website works around. Those workarounds run today, but each is
+either slow, fragile, or a number that can drift out of agreement with the
+backend's own. They are in the order they cost the most.
+
+The blocking item, with exact instructions, went to the backend chat as
+`SXM_RENTALS_BACKEND_EMAIL_HANDOFF.md`.
+
+---
+
+## Blocking: send real emails
+
+**Today, in production, every email is dropped.** No provider is connected, so
+`src/lib/email.ts` logs the message as unsent and moves on.
+
+That makes sign-up impossible to finish. A visitor signs up and is told to
+check their inbox; the link never comes; signing in is refused with
+`email_not_verified`; and signing up again says the address is taken. They
+are stuck for good.
+
+**The fix:** a Resend sender, used in production when `RESEND_API_KEY` is set,
+and `APP_URL=https://www.sxmrentals.app` on Render so the emailed links open
+the website.
+
+**The website will not switch to real accounts on the live site until a real
+email has arrived.**
 
 ---
 
@@ -92,25 +115,20 @@ Individual payouts already do this correctly — `grossAmount`, `commission`,
 
 ---
 
-## 4. Confirm the session cookie is host-only
+## 4. ~~Confirm the session cookie is host-only~~ — answered: it is
 
-**A five-minute check that decides whether sign-in works at all.**
+Closed on 2026-09-21 by reading the backend's code rather than waiting on a
+login. `src/routes/auth/index.ts` sets the cookie with no `Domain`, and in
+production it is named `__Host-sxm_session` — a prefix browsers accept only on
+a cookie that is host-only, Secure and on path `/`. So a cookie set through the
+website's proxy belongs to the website's own address, which is exactly what
+sign-in needs.
 
-The site reaches the API through a same-origin rewrite, so the browser sees
-every request as going to the website's own address. That is what lets an
-httpOnly session cookie survive, and the rewrite is not optional — the API
-sends no `Access-Control-Allow-Origin` header and answers `OPTIONS` with a 404,
-so a direct browser request cannot work.
-
-For that to hold, the cookie `Set-Cookie` sends on login must be **host-only**
-— no `Domain` attribute at all.
-
-If it is set to `Domain=.onrender.com`, the browser will not store it against
-the website's address, and no amount of proxying fixes that. Sign-in, and
-every signed-in screen, would be blocked until it changes.
-
-Please confirm by checking the raw `Set-Cookie` header on a successful
-`POST /auth/login`.
+**A correction to what this ask used to say.** It claimed the API sends no
+`Access-Control-Allow-Origin` header. It does — for the addresses listed in its
+`CORS_ORIGINS`, which includes `https://www.sxmrentals.app`. The first check
+used an address that was not on the list. The proxy is still needed, but only
+for the cookie: see the note in `next.config.mjs`.
 
 ---
 
@@ -129,7 +147,40 @@ against it rather than against its own sample data.
 
 ---
 
+## 6. Accept accident history and a delivery fee on a car
+
+**Today:** the business's car form asks for both. `POST` and
+`PATCH /providers/me/vehicles` accept neither. A public car already *returns*
+`accidentHistory`, but nothing can set it.
+
+Accident history is the one that matters. The site tells customers it shows
+what the business declared, and that SXM Rentals has not checked it, so an
+empty list that only means "could not be saved" reads to a customer as "no
+accidents". Until this exists, the form says the two fields are not saved yet,
+rather than offering inputs that quietly go nowhere.
+
+---
+
+## 7. Record that the rental agreement was signed
+
+A booking returns `agreementSigned`, and the booking flow has a step where the
+customer signs. Nothing on the backend sets it, so that step says the signature
+is not recorded yet.
+
+---
+
+## 8. Photo upload for cars
+
+Every listing currently shows a placeholder where the photographs go. The
+business form already says so.
+
+---
+
 ## Smaller notes
+
+- **Emails link to `/sign-in`; the website's page is `/login`.** The website
+  redirects one to the other, so nothing breaks, but linking `/login` directly
+  saves a hop.
 
 - **`limit` and `offset` on `GET /vehicles` are accepted and ignored** — the
   whole catalogue comes back regardless. Worth either honouring them or
