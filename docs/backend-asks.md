@@ -176,6 +176,31 @@ business form already says so.
 
 ---
 
+## 9. Refunds when a booking is cancelled
+
+Cancelling sets the booking to `cancelled` and releases the deposit hold —
+and that is all. No refund is worked out or recorded, so nothing reaches the
+refunds queue in the admin panel either. While payments are off that costs
+nothing, because nothing was charged. The day payments go on, a customer who
+cancels is owed a refund that nothing creates.
+
+The website's cancel page used to invent a refund in the browser. It no
+longer does; it points to the Cancellation and Refund Policy instead. When
+the backend can work the amount out, the page should show it before the
+customer confirms.
+
+---
+
+## 10. Keep "never taken" apart from "released" on a cancelled deposit
+
+Cancelling marks the deposit `released` whether or not a hold was ever
+placed. The two mean different things to a customer — "the hold on your card
+has been lifted" against "nothing was ever held" — and after a cancellation
+the website cannot tell which, so it now says something true of both. Leaving
+a never-taken deposit as `not_taken` would let it say which.
+
+---
+
 ## Smaller notes
 
 - **Emails link to `/sign-in`; the website's page is `/login`.** The website

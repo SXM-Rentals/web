@@ -43,13 +43,24 @@ const KIND_ICON: Record<NotificationKind, 'checkmark-circle-outline' | 'card-out
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
-  // Marking things read only lasts for this visit.
-  //
-  // THE BACKEND CAN NOW REMEMBER IT — POST /notifications/:id/read and
-  // /notifications/read-all both exist. This screen is not wired to them yet;
-  // the signed-in screens are the next pass. Said plainly at the bottom rather
-  // than pretended otherwise.
+  // ---- MARKING THINGS READ ----
+  // Shown at once, then saved on the backend. If the backend refuses, the
+  // mark is taken back off, so the screen never shows as read something that
+  // will reappear as unread next time.
   const [readIds, setReadIds] = useState<string[]>([]);
+
+  const markOne = (id: string) => {
+    setReadIds((current) => [...current, id]);
+    apiClient
+      .markNotificationRead(id)
+      .catch(() => setReadIds((current) => current.filter((readId) => readId !== id)));
+  };
+
+  const markAll = (ids: string[]) => {
+    const before = readIds;
+    setReadIds(ids);
+    apiClient.markAllNotificationsRead().catch(() => setReadIds(before));
+  };
 
   const { data: notifications, loading, error, refresh } = useAsyncData(
     () => apiClient.listNotifications(),
@@ -103,7 +114,7 @@ export default function NotificationsPage() {
             label={t('acct.notif.markAll')}
             variant="outline"
             size="sm"
-            onClick={() => setReadIds(notifications.map((item) => item.id))}
+            onClick={() => markAll(notifications.map((item) => item.id))}
           />
         ) : null}
       </div>
@@ -142,7 +153,7 @@ export default function NotificationsPage() {
                 {!read ? (
                   <button
                     type="button"
-                    onClick={() => setReadIds((current) => [...current, item.id])}
+                    onClick={() => markOne(item.id)}
                     aria-label={`Mark "${item.title}" as read`}
                     title={t('acct.notif.markOne')}
                     style={{ color: 'var(--brand)', display: 'flex', flexShrink: 0 }}
@@ -156,13 +167,6 @@ export default function NotificationsPage() {
         })}
       </div>
 
-      <div className={styles.note}>
-        <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-        <Text variant="small" tone="ink3">
-          Marking things as read lasts only until this page is reloaded. Keeping
-          it is not connected yet.
-        </Text>
-      </div>
     </div>
   );
 }

@@ -14,10 +14,7 @@
 // empty state if it genuinely worked and there is nothing there.
 
 import React, { useMemo, useState } from 'react';
-import { apiClient } from '@/lib/api-client';
-import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
-import { findProvider } from '@/lib/mock/providers';
+import { useBookings, useCarName } from '@/hooks/useBookings';
 import { dateRange, daysBetween, money, relativeDay } from '@/lib/format';
 import {
   Button,
@@ -31,7 +28,7 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
-import type { Booking, BookingStatus } from '@/types';
+import type { Booking, BookingStatus, Provider, Vehicle } from '@/types';
 import styles from '../account.module.css';
 import { useTranslation } from '@/lib/i18n';
 
@@ -55,10 +52,9 @@ const DEPOSIT_LOOK: Record<string, { label: string; tone: 'neutral' | 'success' 
 export default function RentalsPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('upcoming');
-  const { data: bookings, loading, error, refresh } = useAsyncData(
-    () => apiClient.listBookings(),
-    [],
-  );
+  // The bookings, and the car and business each one is for. See
+  // hooks/useBookings.ts for why those are fetched alongside.
+  const { bookings, lookup, loading, error, refresh } = useBookings();
 
   // "Past" gathers both completed and cancelled, because from the customer's
   // point of view they are the same thing: rentals that are over.
@@ -124,7 +120,13 @@ export default function RentalsPage() {
     return (
       <div className={styles.stack}>
         {shown.map((booking) => (
-          <RentalCard key={booking.id} booking={booking} />
+          <RentalCard
+            key={booking.id}
+            booking={booking}
+            vehicle={lookup?.vehicle(booking.vehicleId)}
+            provider={lookup?.provider(booking.providerId)}
+            lookedUp={lookup !== null}
+          />
         ))}
       </div>
     );
@@ -162,10 +164,19 @@ export default function RentalsPage() {
 }
 
 // ---- ONE RENTAL, AS A CARD ----
-function RentalCard({ booking }: { booking: Booking }) {
+function RentalCard({
+  booking,
+  vehicle,
+  provider,
+  lookedUp,
+}: {
+  booking: Booking;
+  vehicle: Vehicle | undefined;
+  provider: Provider | undefined;
+  lookedUp: boolean;
+}) {
   const { t } = useTranslation();
-  const vehicle = findVehicle(booking.vehicleId);
-  const provider = findProvider(booking.providerId);
+  const carName = useCarName();
   const days = daysBetween(booking.startDate, booking.endDate);
   const status = STATUS_LOOK[booking.status];
   const deposit = DEPOSIT_LOOK[booking.depositStatus];
@@ -181,7 +192,7 @@ function RentalCard({ booking }: { booking: Booking }) {
           <div className={styles.rentalTop}>
             <div>
               <Text variant="label" as="h2" raw>
-                {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}
+                {carName(vehicle, lookedUp)}
               </Text>
               <Text variant="small" tone="ink3" raw>
                 {`${booking.reference}${provider ? ` · ${provider.businessName}` : ''}`}
@@ -218,11 +229,16 @@ function RentalCard({ booking }: { booking: Booking }) {
             ) : null}
           </div>
 
-          {/* The amount paid and the deposit are shown as two separate things,
-              never added together. The deposit is held and returned. */}
+          {/* The booking's total and the deposit are shown as two separate
+              things, never added together. The deposit is held and returned.
+
+              "Total", not "Paid": a booking from the backend says nothing about
+              whether money was actually taken, and while payments are not
+              switched on, none has been. "Paid" would be a claim this page
+              cannot check. */}
           <div className={styles.rentalMeta}>
             <Text variant="small" tone="ink2" as="span" raw>
-              {`Paid ${money(booking.totalDueToday)}`}
+              {`${t('acct.cancel.total')} ${money(booking.totalDueToday)}`}
             </Text>
             {booking.depositAmount > 0 ? (
               <StatusPill

@@ -20,7 +20,7 @@
 //   real. Until the last of them goes, the setting decides: on, and it is all
 //   the backend; off, and everything but accounts is sample data.
 //
-//   REWARDS, THE SPREADSHEET IMPORT, THE API CONNECTION DETAILS
+//   THE SPREADSHEET IMPORT, THE API CONNECTION DETAILS
 //   Nothing. These screens were built before the backend had anywhere for them
 //   to go, so they refuse in a way the screen can recognise and say "not
 //   connected yet" — rather than calling an address that answers 404, which
@@ -41,10 +41,6 @@
 import { mockVehicles, findVehicle } from './mock/vehicles';
 import { mockProviders, findProvider } from './mock/providers';
 import { reviewsForVehicle } from './mock/reviews';
-import { mockBookings, findBooking } from './mock/bookings';
-import { mockThreads, findThread } from './mock/messages';
-import { mockNotifications } from './mock/notifications';
-import { mockRewards } from './mock/rewards';
 import { legalDocuments, findLegalDocument } from './content/legal';
 import {
   businessSummary,
@@ -72,11 +68,27 @@ import type {
   LegalDocument,
   Provider,
   Review,
-  RewardsProfile,
   User,
   Vehicle,
   VehicleClass,
 } from '@/types';
+
+// ---- THE SHARED LOOKUP (see catalogueLookup) ----
+export type CatalogueLookup = {
+  vehicle: (id: string) => Vehicle | undefined;
+  provider: (id: string) => Provider | undefined;
+};
+
+const LOOKUP_MAX_AGE_MS = 5 * 60 * 1000;
+let lookupCache: {
+  fetchedAt: number;
+  maps: Promise<{ vehicles: Map<string, Vehicle>; providers: Map<string, Provider> }>;
+} | null = null;
+
+/** Forgets the shared lookup, so the next screen fetches afresh. Used by tests. */
+export function clearCatalogueLookup(): void {
+  lookupCache = null;
+}
 
 /**
  * A short made-up wait on the sample-data path only.
@@ -264,19 +276,64 @@ export const apiClient = {
     return request<Review[]>(`/vehicles/${encodeURIComponent(vehicleId)}/reviews`, options);
   },
 
+  // ==================== LOOKING THINGS UP BY ID ====================
+
+  /**
+   * Car and business details by id, for the screens that are handed only ids.
+   *
+   * ---- WHY THIS EXISTS ----
+   *
+   * A booking says `vehicleId` and `providerId`; a conversation says
+   * `providerId`. To draw either — "Kia Picanto from Harbour View Rentals" —
+   * the screen needs the car and the business themselves. With sample data
+   * that was an instant lookup in a file. Over the network it is a request,
+   * and one request per row would be slow and would spend the backend's
+   * 300-per-window allowance a list at a time.
+   *
+   * So the whole catalogue is fetched once — the backend returns all of it in
+   * one answer anyway — and kept for five minutes, shared by every screen that
+   * asks. The real fix is the backend putting a small summary of the car on
+   * the booking itself; it is ask #1 in docs/backend-asks.md, and when it
+   * lands this goes.
+   *
+   * ---- WHAT IT CANNOT FIND ----
+   *
+   * Only cars that are currently listed. One taken off the platform since it
+   * was booked is in neither the list nor the single-car address — both show
+   * listed cars only — so the screen says "a car that is no longer listed"
+   * rather than asking again for something that is not there.
+   */
+  async catalogueLookup(): Promise<CatalogueLookup> {
+    let entry = lookupCache;
+    if (!entry || Date.now() - entry.fetchedAt >= LOOKUP_MAX_AGE_MS) {
+      const maps = Promise.all([apiClient.listVehicles(), apiClient.listProviders()]).then(
+        ([vehicles, providers]) => ({
+          vehicles: new Map(vehicles.map((v) => [v.id, v])),
+          providers: new Map(providers.map((p) => [p.id, p])),
+        }),
+      );
+      const fresh = { fetchedAt: Date.now(), maps };
+      entry = fresh;
+      lookupCache = fresh;
+      // A failure is not kept: the next screen should try again, not inherit it.
+      maps.catch(() => {
+        if (lookupCache === fresh) lookupCache = null;
+      });
+    }
+    const { vehicles, providers } = await entry.maps;
+    return { vehicle: (id) => vehicles.get(id), provider: (id) => providers.get(id) };
+  },
+
   // ==================== BOOKINGS ====================
-  // NOT always live, despite what this used to say. While signing in is
-  // unconnected these read sample data like everything else — see the note in
-  // lib/api/source.ts. These are the first branches to delete once there is a
-  // real session to ask with.
+  // Always live. These are somebody's own reservations, and now that signing
+  // in is real there is somebody to ask about. A sample booking shown here is
+  // exactly how a demo gets mistaken for a real reservation.
 
   async listBookings(signal?: AbortSignal): Promise<Booking[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockBookings);
     return request<Booking[]>('/bookings', { signal, auth: true });
   },
 
   async getBooking(id: string, signal?: AbortSignal): Promise<Booking | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findBooking(id));
     return findOrUndefined(
       request<Booking>(`/bookings/${encodeURIComponent(id)}`, { signal, auth: true }),
     );
@@ -318,6 +375,12 @@ export const apiClient = {
     return request<Booking>('/bookings', { method: 'POST', body: draft, auth: true });
   },
 
+  /**
+   * Cancels a booking that has not started. Hands back the booking as it now
+   * stands. Fails with `cannot_cancel` once the rental has begun, and with
+   * `already_cancelled` if it was cancelled already — somewhere else, or by a
+   * second click.
+   */
   async cancelBooking(id: string): Promise<Booking> {
     return request<Booking>(`/bookings/${encodeURIComponent(id)}/cancel`, {
       method: 'POST',
@@ -326,24 +389,67 @@ export const apiClient = {
   },
 
   // ==================== MESSAGES ====================
+  // Always live, for the same reason as bookings.
 
   async listThreads(signal?: AbortSignal): Promise<ChatThread[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockThreads);
     return request<ChatThread[]>('/messages/threads', { signal, auth: true });
   },
 
   async getThread(id: string, signal?: AbortSignal): Promise<ChatThread | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findThread(id));
     return findOrUndefined(
       request<ChatThread>(`/messages/threads/${encodeURIComponent(id)}`, { signal, auth: true }),
     );
   },
 
+  /**
+   * Writes to a business — starting a conversation, or continuing the one
+   * already open with them, since the backend keeps one per business. Hands
+   * back that conversation with the new message in it. A booking or a car can
+   * be attached, so the business sees what the message is about.
+   */
+  async startThread(input: {
+    providerId: string;
+    body: string;
+    vehicleId?: string;
+    bookingId?: string;
+  }): Promise<ChatThread> {
+    return request<ChatThread>('/messages/threads', { method: 'POST', body: input, auth: true });
+  },
+
+  /**
+   * Sends a message and hands back the whole conversation as it now stands,
+   * the new message included — so the screen shows what the backend stored,
+   * not what it hoped it stored.
+   */
+  async sendMessage(threadId: string, body: string): Promise<ChatThread> {
+    return request<ChatThread>(`/messages/threads/${encodeURIComponent(threadId)}/messages`, {
+      method: 'POST',
+      body: { body },
+      auth: true,
+    });
+  },
+
+  /** Marks the business's messages in a conversation as read. */
+  async markThreadRead(threadId: string): Promise<void> {
+    await request(`/messages/threads/${encodeURIComponent(threadId)}/read`, {
+      method: 'POST',
+      auth: true,
+    });
+  },
+
   // ==================== NOTIFICATIONS ====================
+  // Always live, for the same reason as bookings.
 
   async listNotifications(signal?: AbortSignal): Promise<AppNotification[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockNotifications);
     return request<AppNotification[]>('/notifications', { signal, auth: true });
+  },
+
+  async markNotificationRead(id: string): Promise<void> {
+    await request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'POST', auth: true });
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    await request('/notifications/read-all', { method: 'POST', auth: true });
   },
 
   // ==================== ACCOUNTS ====================
@@ -515,11 +621,6 @@ export const apiClient = {
   // These screens exist and the backend has no address for them. They refuse
   // in a way the screen recognises, so it shows "not connected yet" rather
   // than a spinner that never stops or an error that looks like a fault.
-
-  async getRewards(): Promise<RewardsProfile> {
-    if (useSampleCatalogue()) return sampleDelay(mockRewards);
-    notImplemented('Rewards');
-  },
 
   async readImportFile(): Promise<ImportRow[]> {
     notImplemented('Spreadsheet import');

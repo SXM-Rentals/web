@@ -3,7 +3,7 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: One rental in full — the car, the dates, where to collect
-// it, what was paid, where the deposit has got to, and the signed agreement.
+// it, what it costs, where the deposit has got to, and the signed agreement.
 //
 // IT IS ALSO THE PAGE PEOPLE PRINT. A receipt and a signed agreement are things
 // somebody takes to a rental counter or files with an expense claim, so the
@@ -11,10 +11,7 @@
 // printed, leaving just the rental itself on the paper.
 
 import React, { use } from 'react';
-import { apiClient } from '@/lib/api-client';
-import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
-import { findProvider } from '@/lib/mock/providers';
+import { useBooking, useCarName } from '@/hooks/useBookings';
 import {
   dateRange,
   daysBetween,
@@ -42,6 +39,16 @@ import { useTranslation } from '@/lib/i18n';
 
 type PageProps = { params: Promise<{ id: string }> };
 
+// How the booking's own status is labelled — the same words as the rentals
+// list, so a cancelled rental reads as cancelled here too. Without this the
+// page of a cancelled booking looked exactly like a live one.
+const STATUS_LOOK: Record<string, { label: string; tone: 'neutral' | 'success' | 'danger' | 'brand' }> = {
+  upcoming: { label: 'UPCOMING', tone: 'brand' },
+  active: { label: 'OUT NOW', tone: 'success' },
+  completed: { label: 'COMPLETED', tone: 'neutral' },
+  cancelled: { label: 'CANCELLED', tone: 'danger' },
+};
+
 const DEPOSIT_EXPLAINER: Record<string, string> = {
   not_taken:
     'Nothing has been set aside yet. The hold is placed on your card shortly before you collect the car.',
@@ -58,10 +65,9 @@ export default function RentalDetailPage({ params }: PageProps) {
   // version of Next.js.
   const { id } = use(params);
 
-  const { data: booking, loading, error, refresh } = useAsyncData(
-    () => apiClient.getBooking(id),
-    [id],
-  );
+  // The booking, with its car and business — see hooks/useBookings.ts.
+  const { booking, vehicle, provider, lookedUp, loading, error, refresh } = useBooking(id);
+  const carName = useCarName();
 
   if (loading) {
     return (
@@ -92,8 +98,6 @@ export default function RentalDetailPage({ params }: PageProps) {
     );
   }
 
-  const vehicle = findVehicle(booking.vehicleId);
-  const provider = findProvider(booking.providerId);
   const days = daysBetween(booking.startDate, booking.endDate);
 
   const rows: { label: string; value: string }[] = [
@@ -124,11 +128,14 @@ export default function RentalDetailPage({ params }: PageProps) {
       <div className={styles.pageHead}>
         <div className={styles.headText}>
           <Text variant="h1" as="h1" raw>
-            {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Your rental'}
+            {carName(vehicle, lookedUp)}
           </Text>
           <Text variant="body" tone="ink2" raw>
             {`${booking.reference} · ${dateRange(booking.startDate, booking.endDate)}`}
           </Text>
+          <div>
+            <StatusPill label={STATUS_LOOK[booking.status].label} tone={STATUS_LOOK[booking.status].tone} />
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }} data-print="hide">
@@ -270,42 +277,67 @@ export default function RentalDetailPage({ params }: PageProps) {
               </Text>
             </div>
 
-            <div className={styles.infoRow}>
-              <Text variant="h3" as="span" raw>
-                {money(booking.depositAmount)}
-              </Text>
-              <StatusPill
-                label={
-                  {
-                    not_taken: 'NOT YET HELD',
-                    held: 'HELD',
-                    released: 'RETURNED',
-                    claimed: 'CLAIMED',
-                  }[booking.depositStatus]
-                }
-                tone={
-                  booking.depositStatus === 'released'
-                    ? 'success'
-                    : booking.depositStatus === 'claimed'
-                      ? 'warning'
-                      : booking.depositStatus === 'held'
-                        ? 'warning'
-                        : 'neutral'
-                }
-              />
-            </div>
+            {/* ---- A CANCELLED RENTAL'S DEPOSIT ----
+                The backend marks the deposit "released" when a booking is
+                cancelled, whether or not a hold was ever placed. So "returned —
+                the hold has been lifted" could describe a hold that never
+                existed. For a cancelled rental the panel says what is true
+                either way. (Filed in docs/backend-asks.md.) */}
+            {booking.status === 'cancelled' ? (
+              <>
+                <div className={styles.infoRow}>
+                  <Text variant="h3" as="span" raw>
+                    {money(booking.depositAmount)}
+                  </Text>
+                  <StatusPill label="NOT HELD" tone="neutral" />
+                </div>
+                <Divider style={{ marginBlock: 'var(--space-md)' }} />
+                <Text variant="small" tone="ink2">
+                  No deposit is held for a cancelled rental. If one was held before it was
+                  cancelled, the hold has been lifted — your bank may take a few working
+                  days to show the money as available again.
+                </Text>
+              </>
+            ) : (
+              <>
+                <div className={styles.infoRow}>
+                  <Text variant="h3" as="span" raw>
+                    {money(booking.depositAmount)}
+                  </Text>
+                  <StatusPill
+                    label={
+                      {
+                        not_taken: 'NOT YET HELD',
+                        held: 'HELD',
+                        released: 'RETURNED',
+                        claimed: 'CLAIMED',
+                      }[booking.depositStatus]
+                    }
+                    tone={
+                      booking.depositStatus === 'released'
+                        ? 'success'
+                        : booking.depositStatus === 'claimed'
+                          ? 'warning'
+                          : booking.depositStatus === 'held'
+                            ? 'warning'
+                            : 'neutral'
+                    }
+                  />
+                </div>
 
-            <Divider style={{ marginBlock: 'var(--space-md)' }} />
+                <Divider style={{ marginBlock: 'var(--space-md)' }} />
 
-            <Text variant="small" tone="ink2">
-              {DEPOSIT_EXPLAINER[booking.depositStatus]}
-            </Text>
+                <Text variant="small" tone="ink2">
+                  {DEPOSIT_EXPLAINER[booking.depositStatus]}
+                </Text>
+              </>
+            )}
           </Card>
 
           {/* The bill. The deposit is passed separately and is never inside the
               total — that rule lives in PriceBreakdown. */}
           <PriceBreakdown
-            title={t('acct.rental.whatYouPaid')}
+            title={t('acct.rental.price')}
             lines={booking.lines}
             depositAmount={booking.depositAmount}
             depositHeld={booking.depositStatus === 'held'}

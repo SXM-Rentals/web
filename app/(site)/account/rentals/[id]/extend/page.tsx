@@ -2,22 +2,37 @@
 
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// WHAT THIS FILE DOES: Keeping a car for longer than originally booked.
+// WHAT THIS FILE DOES: Asking to keep a car for longer than originally booked.
 //
-// LIKE CANCELLING, THE COST IS SHOWN BEFORE ANYTHING IS CONFIRMED. Extra days,
-// what they come to, and whether the deposit changes are all on screen above the
-// button. An extension that quietly charges an unexpected amount is exactly the
-// kind of surprise that ends up as a card dispute.
+// ---- HOW AN EXTENSION ACTUALLY HAPPENS ----
 //
-// IT ALSO CHECKS THE CAR IS ACTUALLY FREE for the extra days. A car already
-// booked by somebody else from Friday cannot be kept until Sunday, and finding
-// that out at the counter is far worse than finding it out here.
+// The backend has no "extend this booking" address. What it does have is
+// messaging between a customer and the business, with the booking attached.
+// So choosing a new return date here sends the business a real message
+// asking for it, in the conversation they already share, and the business
+// replies there.
+//
+// That is what the old version of this page CLAIMED to do — "the business has
+// been asked… they will confirm through SXM Rentals messages" — while
+// actually sending nothing. Now the sentence is true.
+//
+// ---- THE COST IS AN ESTIMATE, AND SAYS SO ----
+//
+// Extra days are priced here from the car's daily rate, so nobody asks for an
+// extension without an idea of what it comes to. It is shown as an estimate,
+// not "to pay": nothing is charged on this page, and the business confirms the
+// price in its reply. There is no price on the button for the same reason.
+//
+// DAYS THE CAR IS ALREADY PROMISED ELSEWHERE are greyed out on the calendar,
+// from the car's public record. If that record cannot be found — the car has
+// been taken off the platform, or the lookup failed — the request can still
+// be sent; the business knows its own calendar.
 
 import React, { use, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { apiClient } from '@/lib/api-client';
-import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { isApiError } from '@/lib/api/errors';
+import { useBooking, useCarName } from '@/hooks/useBookings';
 import { dateRange, longDate, money } from '@/lib/format';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import {
@@ -42,40 +57,36 @@ export default function ExtendRentalPage({ params }: PageProps) {
 
   const [newEnd, setNewEnd] = useState<string | undefined>();
   const [working, setWorking] = useState(false);
-  const [done, setDone] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  // The conversation the request went into, once sent.
+  const [sentThreadId, setSentThreadId] = useState<string | null>(null);
 
-  const { data: booking, loading, error, refresh } = useAsyncData(
-    () => apiClient.getBooking(id),
-    [id],
-  );
+  const { booking, vehicle, lookedUp, loading, error, refresh } = useBooking(id);
+  const carName = useCarName();
 
-  const vehicle = booking ? findVehicle(booking.vehicleId) : undefined;
-
-  // How many extra days, and what they cost.
+  // How many extra days — and, where the car's daily rate is known, roughly
+  // what they come to.
   const extra = useMemo(() => {
-    if (!booking || !newEnd || !vehicle) return null;
-
+    if (!booking || !newEnd) return null;
     const days = dayjs(newEnd).diff(dayjs(booking.endDate), 'day');
     if (days <= 0) return null;
-
-    return { days, cost: days * vehicle.dailyRate };
+    return { days, estimate: vehicle ? days * vehicle.dailyRate : null };
   }, [booking, newEnd, vehicle]);
 
   // Days the car is already promised to someone else, plus everything up to and
   // including the current end date — which is not an extension.
   const blockedDates = useMemo(() => {
-    if (!booking || !vehicle) return [];
+    if (!booking) return [];
 
     const upToCurrentEnd: string[] = [];
     let cursor = dayjs(booking.startDate);
     const end = dayjs(booking.endDate);
-
     while (cursor.isBefore(end) || cursor.isSame(end, 'day')) {
       upToCurrentEnd.push(cursor.format('YYYY-MM-DD'));
       cursor = cursor.add(1, 'day');
     }
 
-    return [...vehicle.unavailableDates, ...upToCurrentEnd];
+    return [...(vehicle?.unavailableDates ?? []), ...upToCurrentEnd];
   }, [booking, vehicle]);
 
   if (loading) {
@@ -89,7 +100,7 @@ export default function ExtendRentalPage({ params }: PageProps) {
 
   if (error) return <ErrorState message={error} onRetry={refresh} />;
 
-  if (!booking || !vehicle) {
+  if (!booking) {
     return (
       <EmptyState
         title={t('acct.rental.notFound')}
@@ -113,7 +124,8 @@ export default function ExtendRentalPage({ params }: PageProps) {
     );
   }
 
-  if (done) {
+  // ---- SENT ----
+  if (sentThreadId) {
     return (
       <Card padded className={styles.stack}>
         <Icon name="checkmark-circle-outline" size={34} color="var(--success)" />
@@ -121,17 +133,42 @@ export default function ExtendRentalPage({ params }: PageProps) {
           {t('acct.extend.requested')}
         </Text>
         <Text variant="body" tone="ink2" raw>
-          {`The business has been asked to keep the car until ${longDate(newEnd!)}. They will confirm through SXM Rentals messages.`}
-        </Text>
-        <Text variant="small" tone="ink3" raw>
-          {t('acct.extend.demoNote')}
+          {t('acct.extend.sentBody')}
         </Text>
         <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-          <Button label={t('acct.extend.back')} href={`/account/rentals/${booking.id}`} size="md" />
+          <Button label={t('acct.extend.openThread')} href={`/account/messages/${sentThreadId}`} size="md" />
+          <Button
+            label={t('acct.extend.back')}
+            href={`/account/rentals/${booking.id}`}
+            variant="outline"
+            size="md"
+          />
         </div>
       </Card>
     );
   }
+
+  const request = async () => {
+    if (!newEnd) return;
+    setWorking(true);
+    setProblem(null);
+    try {
+      const body = t('acct.extend.message')
+        .replace('{date}', longDate(newEnd))
+        .replace('{current}', longDate(booking.endDate))
+        .replace('{reference}', booking.reference);
+      const thread = await apiClient.startThread({
+        providerId: booking.providerId,
+        bookingId: booking.id,
+        body,
+      });
+      setSentThreadId(thread.id);
+    } catch (caught) {
+      setProblem(isApiError(caught) ? caught.message : 'Something went wrong. Please try again.');
+    } finally {
+      setWorking(false);
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -149,10 +186,7 @@ export default function ExtendRentalPage({ params }: PageProps) {
           {t('acct.extend.title')}
         </Text>
         <Text variant="body" tone="ink2" raw>
-          {`${vehicle.make} ${vehicle.model} · currently ${dateRange(
-            booking.startDate,
-            booking.endDate,
-          )}`}
+          {`${carName(vehicle, lookedUp)} · currently ${dateRange(booking.startDate, booking.endDate)}`}
         </Text>
       </div>
 
@@ -175,7 +209,7 @@ export default function ExtendRentalPage({ params }: PageProps) {
         />
       </Card>
 
-      {/* ---- WHAT IT COSTS, BEFORE CONFIRMING ---- */}
+      {/* ---- WHAT IT WOULD COST, THEN THE REQUEST ---- */}
       {extra ? (
         <Card padded>
           <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-lg)' }} raw>
@@ -192,35 +226,57 @@ export default function ExtendRentalPage({ params }: PageProps) {
               </Text>
             </div>
 
-            <div className={styles.infoRow}>
-              <Text variant="body" tone="ink2" as="span" raw>
-                {`${money(vehicle.dailyRate)} per day`}
-              </Text>
-              <Text variant="body" as="span" raw>
-                {money(extra.cost)}
-              </Text>
-            </div>
+            {vehicle && extra.estimate !== null ? (
+              <>
+                <div className={styles.infoRow}>
+                  <Text variant="body" tone="ink2" as="span" raw>
+                    {`${money(vehicle.dailyRate)} per day`}
+                  </Text>
+                  <Text variant="body" as="span" raw>
+                    {money(extra.estimate)}
+                  </Text>
+                </div>
 
-            <Divider />
+                <Divider />
 
-            <div className={styles.infoRow}>
-              <Text variant="h3" as="span" raw>
-                {t('acct.extend.toPay')}
-              </Text>
-              <Text variant="h3" as="span" raw>
-                {money(extra.cost)}
-              </Text>
-            </div>
+                <div className={styles.infoRow}>
+                  <Text variant="h3" as="span" raw>
+                    {t('acct.extend.estimate')}
+                  </Text>
+                  <Text variant="h3" as="span" raw>
+                    {money(extra.estimate)}
+                  </Text>
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          <div className={styles.note} style={{ marginTop: 'var(--space-md)' }}>
+            <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
+            <Text variant="small" tone="ink3" raw>
+              {t('acct.extend.estimateNote')}
+            </Text>
           </div>
 
           {/* The deposit does not change when a rental is extended. Saying so
               stops people expecting a second hold on their card. */}
-          <div className={styles.note} style={{ marginTop: 'var(--space-md)' }}>
-            <Icon name="shield-outline" size={15} color="var(--ink3)" />
-            <Text variant="small" tone="ink3" raw>
-              {`The ${money(booking.depositAmount)} deposit does not change. No second hold is placed on your card.`}
-            </Text>
-          </div>
+          {booking.depositAmount > 0 ? (
+            <div className={styles.note}>
+              <Icon name="shield-outline" size={15} color="var(--ink3)" />
+              <Text variant="small" tone="ink3" raw>
+                {`The ${money(booking.depositAmount)} deposit does not change. No second hold is placed on your card.`}
+              </Text>
+            </div>
+          ) : null}
+
+          {problem ? (
+            <div className={styles.note} role="alert">
+              <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
+              <Text variant="small" tone="ink2" raw>
+                {problem}
+              </Text>
+            </div>
+          ) : null}
 
           <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginTop: 'var(--space-lg)' }}>
             <Button
@@ -229,19 +285,7 @@ export default function ExtendRentalPage({ params }: PageProps) {
               variant="outline"
               size="md"
             />
-            <Button
-              label={t('acct.extend.request')}
-              size="md"
-              loading={working}
-              priceLabel={money(extra.cost)}
-              onClick={() => {
-                setWorking(true);
-                window.setTimeout(() => {
-                  setWorking(false);
-                  setDone(true);
-                }, 600);
-              }}
-            />
+            <Button label={t('acct.extend.request')} size="md" loading={working} onClick={request} />
           </div>
         </Card>
       ) : (
@@ -249,7 +293,7 @@ export default function ExtendRentalPage({ params }: PageProps) {
           <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
           <Text variant="small" tone="ink3">
             Choose a return date after {longDate(booking.endDate)} to see what the extra
-            days cost.
+            days would cost.
           </Text>
         </div>
       )}

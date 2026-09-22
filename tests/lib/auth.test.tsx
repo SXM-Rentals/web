@@ -20,6 +20,11 @@ import { SessionProvider, useSession } from '@/lib/auth';
 import { safeNextPath } from '@/lib/utils';
 import type { User } from '@/types';
 import { fakeBackend as backend, refusal } from '../fakeBackend';
+// Pages are imported here, once, rather than inside each test: loading a page
+// module is slow the first time, and inside a test that time counts against
+// the test's limit — enough, with every test file running at once, to make
+// a test fail at random.
+import LoginPage from '@/app/(auth)/login/page';
 
 // ---- next/navigation, which only exists inside a running Next.js app ----
 const push = vi.fn();
@@ -186,7 +191,6 @@ describe('signing in, up and out', () => {
 
 describe('the sign-in page', () => {
   async function openLoginPage() {
-    const { default: LoginPage } = await import('@/app/(auth)/login/page');
     render(
       <SessionProvider>
         <LoginPage />

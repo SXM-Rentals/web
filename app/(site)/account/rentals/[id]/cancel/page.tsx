@@ -2,25 +2,36 @@
 
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// WHAT THIS FILE DOES: Cancelling a rental.
+// WHAT THIS FILE DOES: Cancelling a rental — for real, through the backend.
 //
-// THE RULE THIS PAGE EXISTS TO HOLD: the refund is worked out and shown BEFORE
-// anything is confirmed. Nobody should ever cancel and then discover what it
-// cost them. The amount, the reason for it, and what happens to the deposit are
-// all on screen above the button, not on a page afterwards.
+// ---- WHAT THIS PAGE NO LONGER DOES, AND WHY ----
 //
-// The refund is worked out from how close to the start of the rental the
-// cancellation is — the closer it gets, the less comes back, because the
-// business has by then turned away other bookings for those dates.
+// It used to work out a refund in the browser, from bands its own comment
+// called "a first-pass version" still to be written by an attorney, and then
+// tell the customer "$57 will go back to the card you paid with". On a demo
+// that was harmless. On a real account it is a financial promise with nothing
+// behind it:
+//
+//   - the backend has no refund logic at all. Cancelling sets the booking to
+//     cancelled and releases the deposit hold, and that is everything;
+//   - payments are not switched on yet, so nothing has been charged to refund;
+//   - the refund policy itself is still placeholder text.
+//
+// So the page says what actually happens — the booking is cancelled and the
+// deposit hold released — and points to the policy for refunds, rather than
+// quoting an amount nobody will pay. When refunds exist on the backend, the
+// amount belongs here again, worked out there and shown before confirming.
+//
+// It also used to ask why, promising the answer was "shared with SXM
+// Rentals". The backend has nowhere to receive it, so the box is gone rather
+// than collecting words that go nowhere.
 
-import React, { use, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { use, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
-import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { isApiError } from '@/lib/api/errors';
+import { useBooking, useCarName } from '@/hooks/useBookings';
 import { dateRange, money } from '@/lib/format';
-import dayjs from 'dayjs';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import {
   Button,
@@ -31,66 +42,26 @@ import {
   ErrorState,
   Icon,
   Skeleton,
-  TextArea,
   Text,
 } from '@/components/ui';
+import type { Booking } from '@/types';
 import styles from '../../../account.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 type PageProps = { params: Promise<{ id: string }> };
 
-// ---- WORKING OUT WHAT COMES BACK ----
-// A first-pass version of the Cancellation and Refund Policy. The real bands
-// have to be agreed and written by an attorney; these show the shape of it.
-function refundFor(startDate: string, paid: number) {
-  const daysUntil = dayjs(startDate).startOf('day').diff(dayjs().startOf('day'), 'day');
-
-  if (daysUntil >= 7) {
-    return {
-      share: 1,
-      amount: paid,
-      band: 'Seven days or more before collection',
-      reason: 'Cancelled early enough for the business to rent the car to somebody else.',
-    };
-  }
-
-  if (daysUntil >= 2) {
-    return {
-      share: 0.5,
-      amount: Math.round(paid * 0.5),
-      band: 'Two to six days before collection',
-      reason: 'Close enough that the business has probably turned other bookings away.',
-    };
-  }
-
-  return {
-    share: 0,
-    amount: 0,
-    band: 'Less than two days before collection',
-    reason:
-      'This close to the start the car has been held for you and cannot realistically be re-let.',
-  };
-}
-
 export default function CancelRentalPage({ params }: PageProps) {
   const { t } = useTranslation();
   const { id } = use(params);
-  const router = useRouter();
 
-  const [reason, setReason] = useState('');
   const [understood, setUnderstood] = useState(false);
   const [working, setWorking] = useState(false);
-  const [done, setDone] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  // The booking as the backend returned it after cancelling.
+  const [cancelled, setCancelled] = useState<Booking | null>(null);
 
-  const { data: booking, loading, error, refresh } = useAsyncData(
-    () => apiClient.getBooking(id),
-    [id],
-  );
-
-  const refund = useMemo(
-    () => (booking ? refundFor(booking.startDate, booking.totalDueToday) : null),
-    [booking],
-  );
+  const { booking, vehicle, lookedUp, loading, error, refresh } = useBooking(id);
+  const carName = useCarName();
 
   if (loading) {
     return (
@@ -115,6 +86,27 @@ export default function CancelRentalPage({ params }: PageProps) {
     );
   }
 
+  // ---- DONE ----
+  if (cancelled) {
+    return (
+      <Card padded className={styles.stack}>
+        <Icon name="checkmark-circle-outline" size={34} color="var(--success)" />
+        <Text variant="h2" as="h1" raw>
+          {t('acct.cancel.done')}
+        </Text>
+        {/* The deposit as it stood BEFORE cancelling. Afterwards the backend
+            reports it "released" even if no hold was ever placed, which would
+            turn "never taken" into "the hold is released". */}
+        <DepositLine booking={booking} />
+        <RefundPolicyLine />
+        <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+          <Button label={t('acct.cancel.backToRentals')} href="/account/rentals" size="md" />
+          <Button label={t('acct.cancel.findAnother')} href="/search" variant="outline" size="md" />
+        </div>
+      </Card>
+    );
+  }
+
   // Only a rental that has not started can be cancelled. One that is already out
   // is a different conversation and needs the business, not a button.
   if (booking.status !== 'upcoming') {
@@ -133,37 +125,24 @@ export default function CancelRentalPage({ params }: PageProps) {
     );
   }
 
-  const vehicle = findVehicle(booking.vehicleId);
-
-  if (done) {
-    return (
-      <Card padded className={styles.stack}>
-        <Icon name="checkmark-circle-outline" size={34} color="var(--success)" />
-        <Text variant="h2" as="h1" raw>
-          {t('acct.cancel.done')}
-        </Text>
-        <Text variant="body" tone="ink2" raw>
-          {refund && refund.amount > 0
-            ? `${money(refund.amount)} will go back to the card you paid with. Banks usually take a few working days to show it.`
-            : 'No refund is due on this cancellation, for the reason shown before you confirmed.'}
-        </Text>
-        <Text variant="small" tone="ink3" raw>
-          {t('acct.cancel.demoNote')}
-        </Text>
-        <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-          <Button label={t('acct.cancel.backToRentals')} href="/account/rentals" size="md" />
-          <Button label={t('acct.cancel.findAnother')} href="/search" variant="outline" size="md" />
-        </div>
-      </Card>
-    );
-  }
-
-  const confirm = () => {
+  const confirm = async () => {
     setWorking(true);
-    window.setTimeout(() => {
+    setProblem(null);
+    try {
+      setCancelled(await apiClient.cancelBooking(booking.id));
+    } catch (caught) {
+      // Cancelled already — somewhere else, or by a second click — is not a
+      // failure from where the customer stands. Show the page as done.
+      if (isApiError(caught) && caught.code === 'already_cancelled') {
+        setCancelled({ ...booking, status: 'cancelled' });
+      } else {
+        // `cannot_cancel` (the rental started in the meantime) and anything
+        // else: the backend's own sentence says what happened.
+        setProblem(isApiError(caught) ? caught.message : 'Something went wrong. Please try again.');
+      }
+    } finally {
       setWorking(false);
-      setDone(true);
-    }, 600);
+    }
   };
 
   return (
@@ -182,12 +161,11 @@ export default function CancelRentalPage({ params }: PageProps) {
           {t('acct.cancel.title')}
         </Text>
         <Text variant="body" tone="ink2" raw>
-          {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Your car'} ·{' '}
-          {dateRange(booking.startDate, booking.endDate)}
+          {`${carName(vehicle, lookedUp)} · ${dateRange(booking.startDate, booking.endDate)}`}
         </Text>
       </div>
 
-      {/* ---- WHAT YOU GET BACK, BEFORE ANYTHING IS CONFIRMED ---- */}
+      {/* ---- WHAT HAPPENS TO THE MONEY, BEFORE ANYTHING IS CONFIRMED ---- */}
       <Card padded>
         <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-lg)' }} raw>
           {t('acct.cancel.whatBack')}
@@ -196,97 +174,37 @@ export default function CancelRentalPage({ params }: PageProps) {
         <div className={styles.infoRows}>
           <div className={styles.infoRow}>
             <Text variant="body" tone="ink2" as="span" raw>
-              {t('acct.cancel.youPaid')}
+              {t('acct.cancel.total')}
             </Text>
             <Text variant="body" as="span" raw>
               {money(booking.totalDueToday)}
             </Text>
           </div>
-
-          <div className={styles.infoRow}>
-            <Text variant="body" tone="ink2" as="span" raw>
-              {t('acct.cancel.band')}
-            </Text>
-            <Text variant="body" as="span" className={styles.infoValue} raw>
-              {refund!.band}
-            </Text>
-          </div>
-
-          <Divider />
-
-          <div className={styles.infoRow}>
-            <Text variant="h3" as="span">
-              Refund
-            </Text>
-            <Text
-              variant="h3"
-              as="span"
-              tone={refund!.amount > 0 ? 'success' : 'danger'}
-              raw
-            >
-              {money(refund!.amount)}
-            </Text>
-          </div>
         </div>
 
-        <div className={styles.note} style={{ marginTop: 'var(--space-md)' }}>
-          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3">
-            {refund!.reason}
-          </Text>
+        <Divider />
+
+        <div style={{ display: 'grid', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
+          <DepositLine booking={booking} />
+          <RefundPolicyLine />
         </div>
-
-        {/* The deposit is separate from the refund and always comes back in
-            full on a cancellation — no commission is taken from it and it was
-            never revenue in the first place. */}
-        {booking.depositAmount > 0 ? (
-          <div className={styles.note}>
-            <Icon name="shield-outline" size={15} color="var(--ink3)" />
-            <Text variant="small" tone="ink3" raw>
-              {booking.depositStatus === 'held'
-                ? `The ${money(booking.depositAmount)} deposit hold is released in full. It was never a charge.`
-                : `The ${money(booking.depositAmount)} deposit was never taken, so there is nothing to return.`}
-            </Text>
-          </div>
-        ) : null}
-
-        <div className={styles.note}>
-          <Icon name="document-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3">
-            Worked out under the{' '}
-            <Link href="/legal/cancellation-refund" style={{ color: 'var(--brand)', fontWeight: 600 }}>
-              Cancellation and Refund Policy
-            </Link>
-            .
-          </Text>
-        </div>
-      </Card>
-
-      {/* ---- WHY ---- */}
-      <Card>
-        <TextArea
-          label={t('acct.cancel.why')}
-          hint="Optional, and only shared with SXM Rentals. It helps us see where the process is going wrong."
-          placeholder={t('acct.cancel.whyPlaceholder')}
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-          maxLength={400}
-          showCount
-        />
       </Card>
 
       <Card>
         <Checkbox
           checked={understood}
           onChange={setUnderstood}
-          label={
-            refund!.amount > 0
-              ? `I understand that ${money(refund!.amount)} of the ${money(
-                  booking.totalDueToday,
-                )} I paid will be refunded, and that this cannot be undone.`
-              : `I understand that no refund is due on this cancellation, and that this cannot be undone.`
-          }
+          label={t('acct.cancel.understand')}
         />
+
+        {problem ? (
+          <div className={styles.note} role="alert" style={{ marginTop: 'var(--space-md)' }}>
+            <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
+            <Text variant="small" tone="ink2" raw>
+              {problem}
+            </Text>
+          </div>
+        ) : null}
 
         <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginTop: 'var(--space-lg)' }}>
           <Button
@@ -305,6 +223,46 @@ export default function CancelRentalPage({ params }: PageProps) {
           />
         </div>
       </Card>
+    </div>
+  );
+}
+
+// ---- THE DEPOSIT ----
+// Separate from any refund, always. It was never a charge, so on a
+// cancellation the hold simply goes — the backend releases it.
+function DepositLine({ booking }: { booking: Booking }) {
+  const { t } = useTranslation();
+  // A claimed deposit is a dispute, not something this page can summarise in
+  // a line — and a rental that can still be cancelled cannot have one yet.
+  if (booking.depositAmount <= 0 || booking.depositStatus === 'claimed') return null;
+
+  const sentence =
+    booking.depositStatus === 'not_taken'
+      ? t('acct.cancel.depositNotTaken')
+      : t('acct.cancel.depositReleased');
+
+  return (
+    <div className={styles.note}>
+      <Icon name="shield-outline" size={15} color="var(--ink3)" />
+      <Text variant="small" tone="ink3" raw>
+        {sentence.replace('{amount}', money(booking.depositAmount))}
+      </Text>
+    </div>
+  );
+}
+
+// ---- REFUNDS ----
+// A pointer to the policy, not an amount. See the note at the top of the file.
+function RefundPolicyLine() {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.note}>
+      <Icon name="document-outline" size={15} color="var(--ink3)" />
+      <Link href="/legal/cancellation-refund" style={{ color: 'var(--brand)', fontWeight: 600 }}>
+        <Text variant="small" as="span" tone="brand" raw>
+          {t('acct.cancel.refundPolicy')}
+        </Text>
+      </Link>
     </div>
   );
 }

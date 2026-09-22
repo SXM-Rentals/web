@@ -174,6 +174,18 @@ export const accountPages = {
     fr: 'Quelles locations afficher',
     es: 'Qué alquileres mostrar',
   },
+  'acct.rentals.carUnknown': {
+    en: 'Your rental car',
+    nl: 'Uw huurauto',
+    fr: 'Votre voiture de location',
+    es: 'Su coche de alquiler',
+  },
+  'acct.rentals.carUnlisted': {
+    en: 'A car that is no longer listed',
+    nl: 'Een auto die niet meer wordt aangeboden',
+    fr: 'Une voiture qui n’est plus proposée',
+    es: 'Un coche que ya no se ofrece',
+  },
   'acct.rentals.noneTitle': {
     en: 'Nothing booked yet',
     nl: 'Nog niets geboekt',
@@ -328,11 +340,11 @@ export const accountPages = {
     fr: 'Imprimer le Contrat',
     es: 'Imprimir el Contrato',
   },
-  'acct.rental.whatYouPaid': {
-    en: 'What you paid',
-    nl: 'Wat u heeft betaald',
-    fr: 'Ce que vous avez payé',
-    es: 'Lo que ha pagado',
+  'acct.rental.price': {
+    en: 'What the rental costs',
+    nl: 'Wat de huur kost',
+    fr: 'Ce que coûte la location',
+    es: 'Lo que cuesta el alquiler',
   },
   'acct.rental.viewCar': {
     en: 'View the Car',
@@ -385,22 +397,46 @@ export const accountPages = {
     es: 'Los días en que el coche ya está comprometido con otra persona aparecen en gris y no se pueden elegir.',
   },
   'acct.extend.cost': {
-    en: 'What the Extension Costs',
-    nl: 'Wat de verlenging kost',
-    fr: 'Ce que coûte la prolongation',
-    es: 'Lo que cuesta la ampliación',
+    en: 'What the Extension Would Cost',
+    nl: 'Wat de Verlenging Zou Kosten',
+    fr: 'Ce Que Coûterait la Prolongation',
+    es: 'Lo Que Costaría la Ampliación',
+  },
+  'acct.extend.estimate': {
+    en: 'Estimate',
+    nl: 'Schatting',
+    fr: 'Estimation',
+    es: 'Estimación',
+  },
+  'acct.extend.estimateNote': {
+    en: 'Worked out from the car’s daily rate. Nothing is charged here — the business confirms the price when they reply.',
+    nl: 'Berekend op basis van de dagprijs van de auto. Hier wordt niets in rekening gebracht — het bedrijf bevestigt de prijs in zijn antwoord.',
+    fr: 'Calculé d’après le tarif journalier de la voiture. Rien n’est débité ici — l’entreprise confirme le prix dans sa réponse.',
+    es: 'Calculado a partir de la tarifa diaria del coche. Aquí no se cobra nada: la empresa confirma el precio al responder.',
+  },
+  'acct.extend.message': {
+    en: 'Hello — could I keep the car until {date} instead of {current}? My booking reference is {reference}.',
+    nl: 'Hallo — zou ik de auto tot {date} mogen houden in plaats van tot {current}? Mijn boekingsreferentie is {reference}.',
+    fr: 'Bonjour — pourrais-je garder la voiture jusqu’au {date} au lieu du {current} ? Ma référence de réservation est {reference}.',
+    es: 'Hola: ¿podría quedarme el coche hasta el {date} en lugar del {current}? Mi referencia de reserva es {reference}.',
+  },
+  'acct.extend.sentBody': {
+    en: 'Your request is with the business, in your messages. They will reply there and confirm the price for the extra days.',
+    nl: 'Uw verzoek ligt bij het bedrijf, in uw berichten. Het bedrijf antwoordt daar en bevestigt de prijs voor de extra dagen.',
+    fr: 'Votre demande est entre les mains de l’entreprise, dans vos messages. Elle vous répondra là-bas et confirmera le prix des jours supplémentaires.',
+    es: 'Su solicitud ya está con la empresa, en sus mensajes. Le responderá allí y confirmará el precio de los días extra.',
+  },
+  'acct.extend.openThread': {
+    en: 'Open the Conversation',
+    nl: 'Open het Gesprek',
+    fr: 'Ouvrir la Conversation',
+    es: 'Abrir la Conversación',
   },
   'acct.extend.extraDays': {
     en: 'Extra days',
     nl: 'Extra dagen',
     fr: 'Jours supplémentaires',
     es: 'Días adicionales',
-  },
-  'acct.extend.toPay': {
-    en: 'To pay',
-    nl: 'Te betalen',
-    fr: 'À payer',
-    es: 'A pagar',
   },
   'acct.extend.request': {
     en: 'Request the Extension',
@@ -413,12 +449,6 @@ export const accountPages = {
     nl: 'Verlenging aangevraagd',
     fr: 'Prolongation demandée',
     es: 'Ampliación solicitada',
-  },
-  'acct.extend.demoNote': {
-    en: 'This is a demo — nothing has actually been extended and no money has moved.',
-    nl: 'Dit is een demo — er is niets daadwerkelijk verlengd en er is geen geld verplaatst.',
-    fr: 'Ceci est une démonstration — rien n’a réellement été prolongé et aucun argent n’a bougé.',
-    es: 'Esto es una demostración: no se ha ampliado nada de verdad ni se ha movido dinero.',
   },
   'acct.extend.back': {
     en: 'Back to the Rental',
@@ -441,34 +471,40 @@ export const accountPages = {
     es: 'Cancelar este alquiler',
   },
   'acct.cancel.whatBack': {
-    en: 'What You Get Back',
-    nl: 'Wat u terugkrijgt',
-    fr: 'Ce que vous récupérez',
-    es: 'Lo que se le devuelve',
+    en: 'What Happens to the Money',
+    nl: 'Wat Er met het Geld Gebeurt',
+    fr: 'Ce Qu’il Advient de l’Argent',
+    es: 'Qué Pasa con el Dinero',
   },
-  'acct.cancel.youPaid': {
-    en: 'You paid',
-    nl: 'U heeft betaald',
-    fr: 'Vous avez payé',
-    es: 'Usted pagó',
+  'acct.cancel.total': {
+    en: 'Booking total',
+    nl: 'Totaal van de boeking',
+    fr: 'Total de la réservation',
+    es: 'Total de la reserva',
   },
-  'acct.cancel.band': {
-    en: 'Cancellation band',
-    nl: 'Annuleringsstaffel',
-    fr: 'Palier d’annulation',
-    es: 'Tramo de cancelación',
+  'acct.cancel.refundPolicy': {
+    en: 'Any refund follows the Cancellation and Refund Policy.',
+    nl: 'Een eventuele terugbetaling volgt het Annulerings- en Terugbetalingsbeleid.',
+    fr: 'Tout remboursement suit la Politique d’Annulation et de Remboursement.',
+    es: 'Cualquier reembolso sigue la Política de Cancelación y Reembolso.',
   },
-  'acct.cancel.why': {
-    en: 'Why Are You Cancelling?',
-    nl: 'Waarom annuleert u?',
-    fr: 'Pourquoi annulez-vous ?',
-    es: '¿Por qué cancela?',
+  'acct.cancel.depositReleased': {
+    en: 'The {amount} deposit hold is released in full. It was never a charge.',
+    nl: 'De borg van {amount} wordt volledig vrijgegeven. Die is nooit in rekening gebracht.',
+    fr: 'La caution de {amount} est entièrement libérée. Elle n’a jamais été débitée.',
+    es: 'La retención del depósito de {amount} se libera por completo. Nunca fue un cargo.',
   },
-  'acct.cancel.whyPlaceholder': {
-    en: 'Change of plans, found something else, flight cancelled…',
-    nl: 'Plannen gewijzigd, iets anders gevonden, vlucht geannuleerd…',
-    fr: 'Changement de programme, trouvé autre chose, vol annulé…',
-    es: 'Cambio de planes, he encontrado otra cosa, vuelo cancelado…',
+  'acct.cancel.depositNotTaken': {
+    en: 'The {amount} deposit was never taken, so there is nothing to return.',
+    nl: 'De borg van {amount} is nooit ingehouden, dus er valt niets terug te geven.',
+    fr: 'La caution de {amount} n’a jamais été prélevée, il n’y a donc rien à rendre.',
+    es: 'El depósito de {amount} nunca se retuvo, así que no hay nada que devolver.',
+  },
+  'acct.cancel.understand': {
+    en: 'I understand that cancelling cannot be undone.',
+    nl: 'Ik begrijp dat annuleren niet ongedaan kan worden gemaakt.',
+    fr: 'Je comprends que cette annulation est définitive.',
+    es: 'Entiendo que la cancelación no se puede deshacer.',
   },
   'acct.cancel.keep': {
     en: 'Keep This Rental',
@@ -487,12 +523,6 @@ export const accountPages = {
     nl: 'Huur geannuleerd',
     fr: 'Location annulée',
     es: 'Alquiler cancelado',
-  },
-  'acct.cancel.demoNote': {
-    en: 'This is a demo — nothing has actually been cancelled and no money has moved.',
-    nl: 'Dit is een demo — er is niets daadwerkelijk geannuleerd en er is geen geld verplaatst.',
-    fr: 'Ceci est une démonstration — rien n’a réellement été annulé et aucun argent n’a bougé.',
-    es: 'Esto es una demostración: no se ha cancelado nada de verdad ni se ha movido dinero.',
   },
   'acct.cancel.backToRentals': {
     en: 'Back to Your Rentals',
@@ -600,6 +630,12 @@ export const accountPages = {
     fr: 'Cette liste est conservée dans ce navigateur, pas sur votre compte : elle n’apparaîtra pas sur un autre ordinateur et sera perdue si vous effacez les données du site.',
     es: 'Esta lista se guarda en este navegador, no en su cuenta, así que no aparecerá en otro ordenador y se pierde si borra los datos del sitio.',
   },
+  'acct.saved.someGone': {
+    en: 'Some cars you saved are no longer listed, so they are not shown.',
+    nl: 'Sommige auto’s die u heeft bewaard worden niet meer aangeboden en worden daarom niet getoond.',
+    fr: 'Certaines voitures que vous avez enregistrées ne sont plus proposées, elles ne sont donc pas affichées.',
+    es: 'Algunos coches que guardó ya no se ofrecen, así que no se muestran.',
+  },
 
   // ---- NOTIFICATIONS ----
   'acct.notif.emptyTitle': {
@@ -704,71 +740,11 @@ export const accountPages = {
     fr: 'Des points à chaque location, et des niveaux à mesure qu’ils s’accumulent.',
     es: 'Puntos con cada alquiler, y niveles a medida que se acumulan.',
   },
-  'acct.rewards.notLive': {
-    en: 'The rewards scheme is not live yet. The points below are a preview of how it will work — nothing can be redeemed, and the numbers are not final.',
-    nl: 'Het voordelenprogramma is nog niet actief. De punten hieronder zijn een voorproefje van hoe het gaat werken — er valt niets in te wisselen en de getallen zijn niet definitief.',
-    fr: 'Le programme d’avantages n’est pas encore actif. Les points ci-dessous sont un aperçu de son fonctionnement — rien n’est échangeable et les chiffres ne sont pas définitifs.',
-    es: 'El programa de recompensas todavía no está activo. Los puntos de abajo son un adelanto de cómo funcionará: no se puede canjear nada y las cifras no son definitivas.',
-  },
-  'acct.rewards.yourPoints': {
-    en: 'Your Points',
-    nl: 'Uw punten',
-    fr: 'Vos points',
-    es: 'Sus puntos',
-  },
-  'acct.rewards.theTiers': {
-    en: 'The tiers',
-    nl: 'De niveaus',
-    fr: 'Les niveaux',
-    es: 'Los niveles',
-  },
-  'acct.rewards.youAreHere': {
-    en: 'YOU ARE HERE',
-    nl: 'U BENT HIER',
-    fr: 'VOUS ÊTES ICI',
-    es: 'USTED ESTÁ AQUÍ',
-  },
-  'acct.rewards.islanderTitle': {
-    en: 'Islander Status',
-    nl: 'Islander-status',
-    fr: 'Statut Islander',
-    es: 'Estado Islander',
-  },
-  'acct.rewards.islanderNote': {
-    en: 'Islander is for verified residents of Sint Maarten and Saint-Martin. It is',
-    nl: 'Islander is voor geverifieerde inwoners van Sint Maarten en Saint-Martin. Het is',
-    fr: 'Islander est réservé aux résidents vérifiés de Saint-Martin et Sint Maarten. C’est',
-    es: 'Islander es para residentes verificados de Sint Maarten y Saint-Martin. Es',
-  },
-  'acct.rewards.touristNote': {
-    en: 'Your account is set to Tourist. Residents choose Local when they sign up and prove it with a local ID or residency document.',
-    nl: 'Uw account staat op Bezoeker. Inwoners kiezen bij het aanmelden voor Lokaal en tonen dat aan met een lokaal ID of verblijfsdocument.',
-    fr: 'Votre compte est réglé sur Visiteur. Les résidents choisissent Local à l’inscription et le prouvent avec une pièce d’identité locale ou un justificatif de domicile.',
-    es: 'Su cuenta está configurada como Visitante. Los residentes eligen Local al registrarse y lo acreditan con una identificación local o un justificante de residencia.',
-  },
-  'acct.rewards.howEarned': {
-    en: 'How Points Are Earned',
-    nl: 'Hoe punten worden verdiend',
-    fr: 'Comment les points sont gagnés',
-    es: 'Cómo se ganan los puntos',
-  },
-  'acct.rewards.couldInclude': {
-    en: 'What Rewards Could Include',
-    nl: 'Wat voordelen zouden kunnen zijn',
-    fr: 'Ce que les avantages pourraient inclure',
-    es: 'Qué podrían incluir las recompensas',
-  },
-  'acct.rewards.examplesNote': {
-    en: 'Examples of what the scheme could offer, not a promise. Most of these depend on restaurants, hotels and activity operators joining as partners.',
-    nl: 'Voorbeelden van wat het programma zou kunnen bieden, geen belofte. De meeste hangen ervan af of restaurants, hotels en activiteitenaanbieders zich als partner aansluiten.',
-    fr: 'Des exemples de ce que le programme pourrait offrir, pas une promesse. La plupart dépendent de l’adhésion de restaurants, d’hôtels et d’organisateurs d’activités comme partenaires.',
-    es: 'Ejemplos de lo que podría ofrecer el programa, no una promesa. La mayoría dependen de que restaurantes, hoteles y empresas de actividades se sumen como socios.',
-  },
-  'acct.rewards.soFar': {
-    en: 'Your Points so Far',
-    nl: 'Uw punten tot nu toe',
-    fr: 'Vos points à ce jour',
-    es: 'Sus puntos hasta ahora',
+  'acct.rewards.comingBody': {
+    en: 'The scheme is not live yet, so no points are being earned. Once it is, your points and tier will be shown here.',
+    nl: 'De regeling is nog niet actief, dus er worden nog geen punten verdiend. Zodra dat zo is, ziet u hier uw punten en niveau.',
+    fr: 'Le programme n’est pas encore lancé, aucun point n’est donc cumulé. Dès qu’il le sera, vos points et votre niveau s’afficheront ici.',
+    es: 'El programa aún no está activo, así que no se acumulan puntos. Cuando lo esté, sus puntos y su nivel aparecerán aquí.',
   },
 
   // ---- SETTINGS ----

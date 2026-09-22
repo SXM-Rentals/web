@@ -161,12 +161,6 @@ export const shared = {
     fr: 'Envoyer',
     es: 'Enviar',
   },
-  'messages.demoNote': {
-    en: 'Demo mode — replies you write here are not sent anywhere and disappear when the page is reloaded.',
-    nl: 'Demomodus — antwoorden die u hier schrijft worden nergens verzonden en verdwijnen zodra de pagina opnieuw wordt geladen.',
-    fr: 'Mode démo — les réponses écrites ici ne sont envoyées nulle part et disparaissent au rechargement de la page.',
-    es: 'Modo demo: las respuestas que escriba aquí no se envían a ningún sitio y desaparecen al recargar la página.',
-  },
 
   // ---- SMALL SHARED CONTROLS ----
   'shared.close': {
