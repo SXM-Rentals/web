@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cx } from '@/lib/utils';
 import { useSession } from '@/lib/auth';
+import { useSignOut } from '@/hooks/useSignOut';
 import { useBusiness } from '@/lib/business';
 import { useFavourites } from '@/lib/favourites';
 import { useSidebar } from '@/lib/sidebar';
@@ -57,7 +58,8 @@ const NAV_LINKS: { href: string; label: TranslationKey }[] = [
 
 export function TopBar() {
   const pathname = usePathname();
-  const { user, isSignedIn, signOut } = useSession();
+  const { user, isSignedIn } = useSession();
+  const signOut = useSignOut();
   const { hasBusiness } = useBusiness();
   const { count: savedCount } = useFavourites();
   const { expanded, drawerOpen, toggle } = useSidebar();

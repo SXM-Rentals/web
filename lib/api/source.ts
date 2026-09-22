@@ -21,23 +21,18 @@
 // switch like this earns its keep for about a fortnight and then quietly
 // becomes a second code path nobody tests.
 //
-// ---- IT APPLIES TO EVERYTHING, NOT JUST THE CATALOGUE ----
+// ---- WHAT IT COVERS — MORE THAN THE NAME SAYS, AND LESS EACH WEEK ----
 //
-// Worth being exact about, because the name says "catalogue" and an earlier
-// version of this note claimed bookings and messages were always live. They
-// are not. With the flag off, every screen on the site reads sample data,
-// including somebody's bookings, their messages and the business dashboard.
+// Worth being exact about, because the name says "catalogue". With the flag
+// off, everything except accounts reads sample data: the cars, and also
+// somebody's bookings, their messages and the business dashboard.
 //
-// That is deliberate for now and it is not where this ends up. Signing in is
-// not connected yet, so a booking screen asking the backend for "my
-// bookings" has no session to ask with, and every account page would show a
-// failure instead of a demo.
+// Accounts are never sample data. Signing in, signing up, and "who is signed
+// in" always go to the backend, whatever this says — a made-up session is how
+// every visitor used to end up signed in as the same demo person.
 //
-// WHEN SIGNING IN IS REAL, the signed-in reads in lib/api-client.ts lose
-// their sample branch first — there is no sample version of somebody's own
-// booking worth keeping, and pretending otherwise is how a demo gets
-// mistaken for a real reservation. The catalogue is the last thing to switch,
-// because it is the only part with nothing to lose.
+// The rest is being moved off the sample data screen by screen. When the last
+// screen is done, this file, the setting and lib/mock/ are deleted together.
 
 export function useLiveCatalogue(): boolean {
   return process.env.NEXT_PUBLIC_LIVE_CATALOGUE === 'true';

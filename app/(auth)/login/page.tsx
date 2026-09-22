@@ -2,54 +2,94 @@
 
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// WHAT THIS FILE DOES: Signing in — by email and password, or with Apple or
-// Google.
+// WHAT THIS FILE DOES: Signing in with an email address and password, against
+// the real backend.
+//
+// ---- THE BUG THIS FIXES ----
+//
+// The pretend version sent everybody straight on to their account, whatever
+// they typed. Wired to a real backend unchanged, a wrong password would have
+// done the same: the sign-in fails, nothing catches it, and the page moves on
+// to /account as if it had worked. Now a failure stays on this page and says
+// what went wrong.
+//
+// ---- THREE REFUSALS, THREE DIFFERENT ANSWERS ----
+//
+//   Wrong email or password — say so, and let them try again. Deliberately it
+//   does not say WHICH was wrong: that would tell a stranger which addresses
+//   have accounts here.
+//
+//   Never confirmed their email — say so, and offer a fresh link right here,
+//   because the old one may have expired or be buried in spam.
+//
+//   Too many attempts — the backend locks an account for a while after a run
+//   of wrong passwords. Say to wait, rather than invite more guesses.
 //
 // IT REMEMBERS WHERE SOMEONE WAS GOING. Arriving here from a booking carries a
-// "next" note in the address, and signing in sends them straight back to that
-// booking rather than dropping them on the homepage to find their way again.
-//
-// APPLE SITS ALONGSIDE GOOGLE, NOT BELOW IT. Apple's App Store rules require
-// that any app offering a third-party sign-in also offers Sign in with Apple as
-// an equally prominent option. The website does not have to follow App Store
-// rules, but the two products should behave the same way, and it costs nothing.
-//
-// THIS IS A PRETEND SIGN-IN. No password is checked and any email works. Real
-// sign-in is a backend job.
+// "next" note in the address, and signing in returns them to that booking.
+// Only a page on this site is accepted as "next" — see safeNextPath in
+// lib/utils.ts for why that check is not optional.
 
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/lib/auth';
-import { Button, Card, Icon, Input, PasswordInput, Text } from '@/components/ui';
+import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
+import { safeNextPath } from '@/lib/utils';
+import { Button, Icon, Input, PasswordInput, Text } from '@/components/ui';
 import styles from '../auth.module.css';
 import { useTranslation } from '@/lib/i18n';
+import { SocialSignIn } from '../SocialSignIn';
+import { authErrorMessage, withEmail } from '../authErrors';
 
 function LoginForm() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useSearchParams();
-  const { signIn, signInWithApple, signInWithGoogle } = useSession();
+  const { signIn } = useSession();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [working, setWorking] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  // Set when the account exists but its email address was never confirmed.
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
-  // Where to go afterwards. Defaults to the account if they came here directly.
-  const next = params.get('next') ?? '/account';
+  const next = safeNextPath(params.get('next'));
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setWorking(true);
-    await signIn(email);
-    router.push(next);
+    setProblem(null);
+    setUnconfirmed(false);
+    setResent(false);
+
+    try {
+      await signIn(email, password);
+      // `working` stays on: the page is about to change, and switching the
+      // button back for a moment first would read as a second chance to click.
+      router.push(next);
+    } catch (caught) {
+      setProblem(authErrorMessage(caught, t));
+      setUnconfirmed(isApiError(caught) && caught.code === 'email_not_verified');
+      setWorking(false);
+    }
   };
 
-  const withProvider = async (provider: 'apple' | 'google') => {
-    setWorking(true);
-    if (provider === 'apple') await signInWithApple();
-    else await signInWithGoogle();
-    router.push(next);
+  const resend = async () => {
+    setResending(true);
+    try {
+      await apiClient.resendVerification(email);
+      setResent(true);
+      setProblem(null);
+    } catch (caught) {
+      setProblem(authErrorMessage(caught, t));
+    } finally {
+      setResending(false);
+    }
   };
 
   return (
@@ -63,31 +103,7 @@ function LoginForm() {
         </Text>
       </div>
 
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.socialButton}
-          onClick={() => withProvider('apple')}
-        >
-          <Icon name="logo-apple" size={20} />
-          {t('authp.login.withApple')}
-        </button>
-
-        <button
-          type="button"
-          className={styles.socialButton}
-          onClick={() => withProvider('google')}
-        >
-          <Icon name="logo-google" size={19} />
-          {t('authp.login.withGoogle')}
-        </button>
-      </div>
-
-      <div className={styles.divider}>
-        <Text variant="small" tone="ink3" as="span" raw>
-          {t('auth.orDivider')}
-        </Text>
-      </div>
+      <SocialSignIn />
 
       {/* A real form, so pressing Enter submits it and password managers
           recognise it for what it is. */}
@@ -113,6 +129,38 @@ function LoginForm() {
           required
         />
 
+        {/* role="alert", so a screen reader says it out loud the moment it
+            appears, instead of leaving somebody wondering why nothing
+            happened. */}
+        {problem ? (
+          <div className={styles.reasonBox} role="alert">
+            <Icon name="alert-circle-outline" size={19} color="var(--danger)" />
+            <div style={{ display: 'grid', gap: 'var(--space-md)' }}>
+              <Text variant="small" tone="ink2" raw>
+                {problem}
+              </Text>
+              {unconfirmed ? (
+                <Button
+                  label={t('authp.login.sendNewLink')}
+                  variant="outline"
+                  size="sm"
+                  loading={resending}
+                  onClick={resend}
+                />
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {resent ? (
+          <div className={styles.note} role="status">
+            <Icon name="checkmark-circle-outline" size={15} color="var(--success)" />
+            <Text variant="small" tone="ink2" raw>
+              {withEmail(t('authp.login.newLinkSent'), email)}
+            </Text>
+          </div>
+        ) : null}
+
         <Button label={t('auth.signIn')} type="submit" fullWidth size="lg" loading={working} />
       </form>
 
@@ -123,15 +171,6 @@ function LoginForm() {
           </Text>
         </Link>
       </div>
-
-      <Card>
-        <div className={styles.note}>
-          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3" raw>
-            {t('authp.login.demoNote')}
-          </Text>
-        </div>
-      </Card>
 
       <div className={styles.footNote}>
         <Text variant="small" tone="ink2" as="span">

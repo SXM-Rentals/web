@@ -10,25 +10,15 @@
 //
 // ---- WHERE EACH ANSWER COMES FROM ----
 //
-//   EVERYTHING EXCEPT THE FOUR CASES BELOW
+//   ACCOUNTS — signing in and out, who is signed in, email links
+//   Always the backend. There is no sample version of a session worth keeping.
+//
+//   EVERYTHING ELSE, EXCEPT THE CASES BELOW
 //   The backend, or the sample data in lib/mock/, depending on one setting —
-//   see lib/api/source.ts, which also says when to delete that switch.
-//
-//   The setting is currently OFF, so today the whole site runs on sample
-//   data. Two reasons, and they are different reasons:
-//
-//     The catalogue, because the live database is empty. Switching it over
-//     would not make the site more real, it would make every page show its
-//     "nothing here" state.
-//
-//     Bookings, messages and the business dashboard, because signing in is
-//     not connected yet. Those reads need a session to be about anybody in
-//     particular, and there is not one to send.
-//
-//   The second group loses its sample branch first, as soon as signing in is
-//   real. There is no sample version of somebody's own booking worth keeping,
-//   and pretending otherwise is how a demo gets mistaken for a real
-//   reservation.
+//   see lib/api/source.ts. That switch, the sample branches and lib/mock/
+//   itself are all being removed, screen by screen, now that signing in is
+//   real. Until the last of them goes, the setting decides: on, and it is all
+//   the backend; off, and everything but accounts is sample data.
 //
 //   REWARDS, THE SPREADSHEET IMPORT, THE API CONNECTION DETAILS
 //   Nothing. These screens were built before the backend had anywhere for them
@@ -56,7 +46,6 @@ import { mockThreads, findThread } from './mock/messages';
 import { mockNotifications } from './mock/notifications';
 import { mockRewards } from './mock/rewards';
 import { legalDocuments, findLegalDocument } from './content/legal';
-import { mockUser } from './mock/user';
 import {
   businessSummary,
   findBusinessThread,
@@ -358,11 +347,86 @@ export const apiClient = {
     return request<AppNotification[]>('/notifications', { signal, auth: true });
   },
 
-  // ==================== THE SIGNED-IN CUSTOMER ====================
+  // ==================== ACCOUNTS ====================
+  // Always live, whatever the catalogue switch says. There is no sample
+  // version of signing in worth keeping: a made-up session is exactly how
+  // every visitor ended up "signed in" as the same demo person.
+  //
+  // THE SESSION ITSELF IS NEVER SEEN HERE. Signing in sets an httpOnly cookie
+  // that page scripts cannot read; it rides along on every request through the
+  // proxy in next.config.mjs. The only way to learn whether somebody is signed
+  // in is to ask — which is what getCurrentUser does.
 
+  /** Who is signed in. Fails with `unauthorized` when nobody is. */
   async getCurrentUser(signal?: AbortSignal): Promise<User> {
-    if (useSampleCatalogue()) return sampleDelay(mockUser);
     return request<User>('/customers/me', { signal, auth: true });
+  },
+
+  /**
+   * Signs in and hands back the person.
+   *
+   * Fails with `invalid_credentials` for a wrong email or password — never
+   * `unauthorized`, which means something else entirely — and with
+   * `email_not_verified` for somebody who never opened their confirmation link.
+   */
+  async login(email: string, password: string): Promise<User> {
+    const { user } = await request<{ user: User }>('/auth/login', {
+      method: 'POST',
+      // "web" is what makes the backend answer with a cookie rather than
+      // handing the session code back in the response, where a script could
+      // read it. It is also the backend's default; said out loud anyway.
+      body: { email, password, client: 'web' },
+      auth: true,
+    });
+    return user;
+  },
+
+  /**
+   * Creates an account. Does NOT sign anybody in.
+   *
+   * The backend emails a confirmation link and refuses to sign the person in
+   * until it has been opened. It also gives the same answer whether or not the
+   * address was already registered, so this cannot be used to find out who
+   * has an account here.
+   */
+  async signup(details: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    accountType: 'local' | 'tourist';
+  }): Promise<void> {
+    await request('/auth/signup', { method: 'POST', body: details });
+  },
+
+  async logout(): Promise<void> {
+    await request('/auth/logout', { method: 'POST', auth: true });
+  },
+
+  /** Opens the link from the confirmation email. */
+  async verifyEmail(token: string): Promise<void> {
+    await request('/auth/verify-email', { method: 'POST', body: { token } });
+  },
+
+  async resendVerification(email: string): Promise<void> {
+    await request('/auth/verify-email/resend', { method: 'POST', body: { email } });
+  },
+
+  /** Same answer whether or not the address has an account — see above. */
+  async forgotPassword(email: string): Promise<void> {
+    await request('/auth/password/forgot', { method: 'POST', body: { email } });
+  },
+
+  /**
+   * Sets a new password from the emailed link. The backend signs the person
+   * out everywhere at the same moment, so they sign in again afterwards.
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await request('/auth/password/reset', {
+      method: 'POST',
+      // The backend calls this field newPassword, not password.
+      body: { token, newPassword },
+    });
   },
 
   // ==================== THE BUSINESS SIDE ====================

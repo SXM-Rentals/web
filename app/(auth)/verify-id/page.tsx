@@ -59,7 +59,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 export default function VerifyIdPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user, markVerificationStep } = useSession();
+  const { user } = useSession();
 
   const [slot, setSlot] = useState<Slot>('license');
   const [mode, setMode] = useState<'upload' | 'camera'>('upload');
@@ -112,7 +112,9 @@ export default function VerifyIdPage() {
   const hasFiles = files[slot].length > 0;
 
   const confirm = () => {
-    markVerificationStep(slot);
+    // Nothing is marked as done: there is no backend for the identity check,
+    // so nothing was sent, and the real account must not claim otherwise.
+    // See the NotConnectedNotice at the top of this page.
 
     // Move on to whichever document has not been done yet, or back to the
     // summary once both are in.

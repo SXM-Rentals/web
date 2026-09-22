@@ -135,7 +135,7 @@ export default function OtpPage() {
           loading={working}
           onClick={() => {
             setWorking(true);
-            window.setTimeout(() => router.push('/account-type'), 500);
+            window.setTimeout(() => router.push('/signup'), 500);
           }}
         />
         <Button label={t('authp.otp.resend')} variant="ghost" size="md" fullWidth />

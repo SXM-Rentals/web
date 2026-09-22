@@ -54,11 +54,35 @@ export const authPages = {
     fr: 'Mot de passe oublié ?',
     es: '¿Ha olvidado su contraseña?',
   },
-  'authp.login.demoNote': {
-    en: 'Demo mode — no password is checked and any email address will work. Real sign-in arrives with the backend.',
-    nl: 'Demomodus — er wordt geen wachtwoord gecontroleerd en elk e-mailadres werkt. Echt inloggen komt met de backend.',
-    fr: 'Mode démo — aucun mot de passe n’est vérifié et n’importe quelle adresse fonctionne. La vraie connexion arrivera avec le backend.',
-    es: 'Modo demo: no se comprueba ninguna contraseña y sirve cualquier correo. El inicio de sesión real llegará con el backend.',
+  'authp.login.wrongPassword': {
+    en: 'That email address and password do not match. Check both and try again.',
+    nl: 'Dat e-mailadres en wachtwoord horen niet bij elkaar. Controleer beide en probeer het opnieuw.',
+    fr: 'Cette adresse e-mail et ce mot de passe ne correspondent pas. Vérifiez les deux et réessayez.',
+    es: 'Ese correo electrónico y esa contraseña no coinciden. Compruebe ambos e inténtelo de nuevo.',
+  },
+  'authp.login.notConfirmed': {
+    en: 'Please confirm your email address first — open the link we sent when you signed up.',
+    nl: 'Bevestig eerst uw e-mailadres — open de link die we u stuurden toen u zich aanmeldde.',
+    fr: 'Veuillez d’abord confirmer votre adresse e-mail — ouvrez le lien envoyé lors de votre inscription.',
+    es: 'Confirme primero su correo electrónico: abra el enlace que le enviamos al registrarse.',
+  },
+  'authp.login.sendNewLink': {
+    en: 'Send a New Link',
+    nl: 'Stuur een Nieuwe Link',
+    fr: 'Envoyer un Nouveau Lien',
+    es: 'Enviar un Enlace Nuevo',
+  },
+  'authp.login.newLinkSent': {
+    en: 'A new link is on its way to {email}.',
+    nl: 'Er is een nieuwe link onderweg naar {email}.',
+    fr: 'Un nouveau lien est en route vers {email}.',
+    es: 'Hay un enlace nuevo en camino a {email}.',
+  },
+  'authp.login.tooMany': {
+    en: 'Too many attempts. Please wait a few minutes before trying again.',
+    nl: 'Te veel pogingen. Wacht een paar minuten voordat u het opnieuw probeert.',
+    fr: 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.',
+    es: 'Demasiados intentos. Espere unos minutos antes de volver a intentarlo.',
   },
 
   // ---- CREATING AN ACCOUNT ----
@@ -92,11 +116,35 @@ export const authPages = {
     fr: 'Créer un Compte',
     es: 'Crear Cuenta',
   },
-  'authp.signup.demoNote': {
-    en: 'Demo mode — nothing is really created, and no email is sent.',
-    nl: 'Demomodus — er wordt niets echt aangemaakt en er wordt geen e-mail verzonden.',
-    fr: 'Mode démo — rien n’est réellement créé, et aucun e-mail n’est envoyé.',
-    es: 'Modo demo: no se crea nada de verdad y no se envía ningún correo.',
+  'authp.signup.passwordHint': {
+    en: 'At least 12 characters. A few ordinary words strung together is easier to remember than a jumble.',
+    nl: 'Minstens 12 tekens. Een paar gewone woorden achter elkaar onthoudt u makkelijker dan een wirwar.',
+    fr: 'Au moins 12 caractères. Quelques mots ordinaires mis bout à bout se retiennent mieux qu’un fouillis.',
+    es: 'Al menos 12 caracteres. Unas cuantas palabras corrientes seguidas se recuerdan mejor que un revoltijo.',
+  },
+  'authp.signup.passwordTooShort': {
+    en: 'Passwords need at least 12 characters.',
+    nl: 'Wachtwoorden moeten minstens 12 tekens lang zijn.',
+    fr: 'Les mots de passe doivent comporter au moins 12 caractères.',
+    es: 'Las contraseñas necesitan al menos 12 caracteres.',
+  },
+  'authp.signup.passwordBreached': {
+    en: 'This password has appeared in a known data breach, so it is not safe to use. Please choose a different one.',
+    nl: 'Dit wachtwoord is uitgelekt bij een bekend datalek en is dus niet veilig. Kies een ander wachtwoord.',
+    fr: 'Ce mot de passe figure dans une fuite de données connue, il n’est donc pas sûr. Veuillez en choisir un autre.',
+    es: 'Esta contraseña ha aparecido en una filtración de datos conocida, así que no es segura. Elija otra, por favor.',
+  },
+  'authp.signup.sentBody': {
+    en: 'We sent a link to {email}. Open it to confirm your address, then sign in.',
+    nl: 'We hebben een link gestuurd naar {email}. Open die om uw adres te bevestigen en log daarna in.',
+    fr: 'Nous avons envoyé un lien à {email}. Ouvrez-le pour confirmer votre adresse, puis connectez-vous.',
+    es: 'Hemos enviado un enlace a {email}. Ábralo para confirmar su dirección y luego inicie sesión.',
+  },
+  'authp.signup.spamNote': {
+    en: 'Nothing after a few minutes? Look in the spam folder, check the address above for a typo, or send the link again.',
+    nl: 'Na een paar minuten nog niets? Kijk in de map ongewenste e-mail, controleer het adres hierboven op een typefout, of stuur de link opnieuw.',
+    fr: 'Rien après quelques minutes ? Regardez dans les indésirables, vérifiez l’adresse ci-dessus, ou renvoyez le lien.',
+    es: '¿Nada después de unos minutos? Mire en la carpeta de spam, compruebe que la dirección de arriba no tenga una errata o vuelva a enviar el enlace.',
   },
 
   // ---- RESETTING A PASSWORD ----
@@ -124,11 +172,17 @@ export const authPages = {
     fr: 'Vérifiez votre boîte de réception',
     es: 'Revise su bandeja de entrada',
   },
+  'authp.reset.sentBody': {
+    en: 'If there is an account for {email}, a link to set a new password is on its way. It works for 30 minutes.',
+    nl: 'Als er een account bestaat voor {email}, is er een link onderweg om een nieuw wachtwoord in te stellen. Die werkt 30 minuten.',
+    fr: 'S’il existe un compte pour {email}, un lien pour définir un nouveau mot de passe est en route. Il fonctionne pendant 30 minutes.',
+    es: 'Si existe una cuenta para {email}, va de camino un enlace para poner una contraseña nueva. Funciona durante 30 minutos.',
+  },
   'authp.reset.spamNote': {
-    en: 'Nothing in the inbox? Look in the spam folder, and check the address above for a typo. Demo mode — no email has actually been sent.',
-    nl: 'Niets in de inbox? Kijk in de map ongewenste e-mail en controleer het adres hierboven op een typefout. Demomodus — er is geen e-mail verstuurd.',
-    fr: 'Rien dans la boîte de réception ? Regardez dans les indésirables, et vérifiez l’adresse ci-dessus. Mode démo — aucun e-mail n’a réellement été envoyé.',
-    es: '¿No hay nada en la bandeja? Mire en la carpeta de spam y compruebe que la dirección de arriba no tenga una errata. Modo demo: no se ha enviado ningún correo.',
+    en: 'Nothing in the inbox? Look in the spam folder, and check the address above for a typo.',
+    nl: 'Niets in de inbox? Kijk in de map ongewenste e-mail en controleer het adres hierboven op een typefout.',
+    fr: 'Rien dans la boîte de réception ? Regardez dans les indésirables, et vérifiez l’adresse ci-dessus.',
+    es: '¿No hay nada en la bandeja? Mire en la carpeta de spam y compruebe que la dirección de arriba no tenga una errata.',
   },
   'authp.reset.backToSignIn': {
     en: 'Back to Sign In',
@@ -141,6 +195,112 @@ export const authPages = {
     nl: 'Een Ander Adres Proberen',
     fr: 'Essayer une Autre Adresse',
     es: 'Probar Otra Dirección',
+  },
+
+  // ---- OPENING THE CONFIRMATION LINK (/verify-email) ----
+  'authp.verify.working': {
+    en: 'Confirming your email address…',
+    nl: 'Uw e-mailadres wordt bevestigd…',
+    fr: 'Confirmation de votre adresse e-mail…',
+    es: 'Confirmando su correo electrónico…',
+  },
+  'authp.verify.doneTitle': {
+    en: 'Your email address is confirmed',
+    nl: 'Uw e-mailadres is bevestigd',
+    fr: 'Votre adresse e-mail est confirmée',
+    es: 'Su correo electrónico está confirmado',
+  },
+  'authp.verify.doneBody': {
+    en: 'Thank you. You can sign in now.',
+    nl: 'Dank u. U kunt nu inloggen.',
+    fr: 'Merci. Vous pouvez maintenant vous connecter.',
+    es: 'Gracias. Ya puede iniciar sesión.',
+  },
+  'authp.verify.expiredTitle': {
+    en: 'This link no longer works',
+    nl: 'Deze link werkt niet meer',
+    fr: 'Ce lien ne fonctionne plus',
+    es: 'Este enlace ya no funciona',
+  },
+  'authp.verify.expiredBody': {
+    en: 'Each link works once, for 24 hours, and only the newest one works if you asked for more than one. Enter your email address and we will send a fresh one.',
+    nl: 'Elke link werkt één keer, 24 uur lang, en alleen de nieuwste werkt als u er meer dan één heeft aangevraagd. Vul uw e-mailadres in en wij sturen een nieuwe.',
+    fr: 'Chaque lien ne fonctionne qu’une fois, pendant 24 heures, et seul le plus récent fonctionne si vous en avez demandé plusieurs. Saisissez votre adresse e-mail et nous vous en enverrons un nouveau.',
+    es: 'Cada enlace funciona una sola vez, durante 24 horas, y solo el más reciente si pidió más de uno. Escriba su correo electrónico y le enviaremos uno nuevo.',
+  },
+  'authp.verify.incompleteTitle': {
+    en: 'This link is incomplete',
+    nl: 'Deze link is onvolledig',
+    fr: 'Ce lien est incomplet',
+    es: 'Este enlace está incompleto',
+  },
+  'authp.verify.incompleteBody': {
+    en: 'Part of the link seems to be missing. Try opening it straight from the email, or copying the whole address.',
+    nl: 'Er lijkt een deel van de link te ontbreken. Open hem rechtstreeks vanuit de e-mail, of kopieer het hele adres.',
+    fr: 'Une partie du lien semble manquer. Ouvrez-le directement depuis l’e-mail, ou copiez l’adresse en entier.',
+    es: 'Parece que falta parte del enlace. Ábralo directamente desde el correo o copie la dirección completa.',
+  },
+
+  // ---- CHOOSING A NEW PASSWORD FROM THE EMAILED LINK (/reset-password) ----
+  'authp.newpw.title': {
+    en: 'Choose a new password',
+    nl: 'Kies een nieuw wachtwoord',
+    fr: 'Choisissez un nouveau mot de passe',
+    es: 'Elija una contraseña nueva',
+  },
+  'authp.newpw.subtitle': {
+    en: 'Once it is changed you will be signed out everywhere, and can sign in again with the new one.',
+    nl: 'Zodra het is gewijzigd, wordt u overal uitgelogd en kunt u opnieuw inloggen met het nieuwe.',
+    fr: 'Une fois modifié, vous serez déconnecté partout, et pourrez vous reconnecter avec le nouveau.',
+    es: 'Una vez cambiada, se cerrará su sesión en todas partes y podrá volver a entrar con la nueva.',
+  },
+  'authp.newpw.newLabel': {
+    en: 'New password',
+    nl: 'Nieuw wachtwoord',
+    fr: 'Nouveau mot de passe',
+    es: 'Contraseña nueva',
+  },
+  'authp.newpw.confirmLabel': {
+    en: 'Type it again',
+    nl: 'Typ het nog eens',
+    fr: 'Saisissez-le à nouveau',
+    es: 'Escríbala de nuevo',
+  },
+  'authp.newpw.mismatch': {
+    en: 'The two passwords do not match.',
+    nl: 'De twee wachtwoorden komen niet overeen.',
+    fr: 'Les deux mots de passe ne correspondent pas.',
+    es: 'Las dos contraseñas no coinciden.',
+  },
+  'authp.newpw.save': {
+    en: 'Save New Password',
+    nl: 'Nieuw Wachtwoord Opslaan',
+    fr: 'Enregistrer le Nouveau Mot de Passe',
+    es: 'Guardar la Contraseña Nueva',
+  },
+  'authp.newpw.doneTitle': {
+    en: 'Your password has been changed',
+    nl: 'Uw wachtwoord is gewijzigd',
+    fr: 'Votre mot de passe a été modifié',
+    es: 'Su contraseña se ha cambiado',
+  },
+  'authp.newpw.doneBody': {
+    en: 'You have been signed out everywhere. Sign in with your new password.',
+    nl: 'U bent overal uitgelogd. Log in met uw nieuwe wachtwoord.',
+    fr: 'Vous avez été déconnecté partout. Connectez-vous avec votre nouveau mot de passe.',
+    es: 'Se ha cerrado su sesión en todas partes. Inicie sesión con su contraseña nueva.',
+  },
+  'authp.newpw.expiredBody': {
+    en: 'Each link works once, for 30 minutes, and only the newest one works if you asked for more than one. Ask for a new link and use it straight away.',
+    nl: 'Elke link werkt één keer, 30 minuten lang, en alleen de nieuwste werkt als u er meer dan één heeft aangevraagd. Vraag een nieuwe link aan en gebruik die meteen.',
+    fr: 'Chaque lien ne fonctionne qu’une fois, pendant 30 minutes, et seul le plus récent fonctionne si vous en avez demandé plusieurs. Demandez un nouveau lien et utilisez-le tout de suite.',
+    es: 'Cada enlace funciona una sola vez, durante 30 minutos, y solo el más reciente si pidió más de uno. Pida un enlace nuevo y úselo enseguida.',
+  },
+  'authp.newpw.askAgain': {
+    en: 'Ask for a New Link',
+    nl: 'Vraag een Nieuwe Link aan',
+    fr: 'Demander un Nouveau Lien',
+    es: 'Pedir un Enlace Nuevo',
   },
 
   // ---- PHONE NUMBER ----
@@ -249,12 +409,6 @@ export const authPages = {
     nl: 'Hier op vakantie of voor werk, en u rijdt tijdens uw verblijf op het eiland.',
     fr: 'Ici en vacances ou pour le travail, et vous conduirez pendant votre séjour.',
     es: 'Aquí de vacaciones o por trabajo, y conducirá mientras esté en la isla.',
-  },
-  'authp.type.whatWeAsk': {
-    en: 'WHAT WE WILL ASK FOR',
-    nl: 'WAT WIJ ZULLEN VRAGEN',
-    fr: 'CE QUE NOUS DEMANDERONS',
-    es: 'LO QUE LE PEDIREMOS',
   },
   'authp.type.islanderNote': {
     en: 'Residents get Islander status once their documents are accepted. It recognises living here — it is not a reward tier, cannot be earned by renting, and gives no discount on its own.',

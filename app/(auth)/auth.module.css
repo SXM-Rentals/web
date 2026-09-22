@@ -87,7 +87,16 @@
 }
 
 @media (hover: hover) {
-  .socialButton:hover { background: var(--tile); border-color: var(--ink3); }
+  .socialButton:hover:not(:disabled) { background: var(--tile); border-color: var(--ink3); }
+}
+
+/* Apple and Google sign-in are not offered by the backend yet. The buttons stay
+   where people expect them, visibly switched off and labelled "coming soon",
+   rather than vanishing or pretending to work. */
+.socialButton:disabled {
+  cursor: not-allowed;
+  color: var(--ink3);
+  background: var(--tile);
 }
 
 /* A line with the word "or" through the middle of it. */

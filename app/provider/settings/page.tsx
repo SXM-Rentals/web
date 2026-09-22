@@ -27,7 +27,7 @@
 import React, { useState } from 'react';
 import { useTheme, type ThemePreference } from '@/lib/theme/ThemeProvider';
 import { useTranslation, languageOptions, type Language } from '@/lib/i18n';
-import { useSession } from '@/lib/auth';
+import { useSignOut } from '@/hooks/useSignOut';
 import {
   Button,
   Card,
@@ -44,7 +44,7 @@ import styles from '@/app/provider/provider.module.css';
 export default function ProviderSettingsPage() {
   const { t, language, setLanguage } = useTranslation();
   const { preference, setPreference } = useTheme();
-  const { signOut } = useSession();
+  const signOut = useSignOut();
 
   // Remembered only for this visit, and the page says so.
   const [newBooking, setNewBooking] = useState(true);

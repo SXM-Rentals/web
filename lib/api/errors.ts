@@ -29,17 +29,31 @@
  */
 export type ApiErrorCode =
   // ---- FROM THE BACKEND ----
+  // The list the backend can actually send, read from its code on 2026-09-21.
+  // A code missing from here still arrives intact — it is passed through as
+  // sent — but it has to be listed before a screen can check for it.
   | 'unauthorized' // not signed in
   | 'invalid_credentials' // signed in attempt, wrong password — NOT the same thing
-  | 'email_not_verified'
+  | 'email_not_verified' // signed up, never opened the confirmation link
+  | 'invalid_or_expired_link' // a confirmation or reset link that is used up or too old
+  | 'password_breached' // that password appears in a known data breach
+  | 'forbidden' // refused outright — including a change sent from a site not on the backend's list
   | 'not_found'
   | 'invalid_input' // a form problem; see fieldErrors
   | 'rate_limited'
-  | 'vehicle_unavailable'
+  | 'not_a_provider' // signed in, but not linked to a rental business
+  | 'already_a_provider' // tried to register a second business
+  | 'vehicle_unavailable' // booked by somebody else in the meantime
+  | 'vehicle_has_bookings' // a car with bookings cannot simply be removed
+  | 'invalid_dates'
+  | 'below_minimum_days'
+  | 'above_maximum_days'
+  | 'delivery_unavailable'
+  | 'cannot_cancel' // the rental has already started
+  | 'already_cancelled'
+  | 'empty_message'
   | 'payments_unavailable' // Stripe is not connected yet
-  | 'not_a_provider'
   | 'route_not_found' // a bug in our code, not something a person did
-  | 'password_breached'
   // ---- MADE UP HERE ----
   | 'offline' // the request never left, or nothing answered
   | 'timeout' // it left and nothing came back in time

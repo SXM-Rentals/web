@@ -8,21 +8,24 @@
 // IT HANDLES ALL FOUR ANSWERS: waiting, accepted, refused with a reason, and
 // "we need one more thing". The refused one is the one that matters most.
 //
-// A REFUSAL ALWAYS SHOWS THE REASON. Being told no without being told why is the
-// single most frustrating thing an identity check can do — the person cannot
-// tell whether to try again, try something different, or give up, so they write
-// to support, and support has to look it up. The reason is nearly always small
-// and easy to fix: a blurred photo, a document out of date, a name that does not
-// match. Saying which one costs nothing and saves everybody the exchange.
+// A REFUSAL SHOWS THE REASON THE BACKEND GAVE. Being told no without being told
+// why is the single most frustrating thing an identity check can do — the
+// person cannot tell whether to try again, try something different, or give
+// up. The reason is nearly always small and easy to fix: a blurred photo, a
+// document out of date. When the backend recorded one, it is shown word for
+// word. When it did not, nothing is invented to fill the gap — this page used
+// to show a made-up reason there, which on a real account would have been a
+// false statement about somebody's documents.
 //
-// The buttons along the bottom switch between the four answers. They exist so
-// every state can be seen while the site is being built, and would not survive
-// into a real version.
+// THE STATUS IS THE REAL ONE, from the signed-in account. What this page cannot
+// do is send anything: the identity check has no backend yet, so its "send for
+// checking" button is switched off, and the notice at the top says so. The
+// row of demo buttons that used to switch between the answers is gone.
 
 import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/lib/auth';
-import { cx } from '@/lib/utils';
+import { cx, safeNextPath } from '@/lib/utils';
 import { Button, Card, Icon, StatusPill, Text } from '@/components/ui';
 import type { VerificationStatus } from '@/types';
 import styles from '../auth.module.css';
@@ -82,18 +85,13 @@ const STATE: Record<
   },
 };
 
-// Stand-in wording for a refusal, so the reason box can be seen working. In a
-// real version this comes from whichever identity service is used.
-const DEMO_REASON =
-  'The photograph of your driving licence was too blurred to read the expiry date. Take another in good light, with the whole card flat in the frame and no glare across it.';
-
 function VerifyStatus() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useSearchParams();
-  const { user, setVerificationStatus } = useSession();
+  const { user } = useSession();
 
-  const next = params.get('next') ?? '/account';
+  const next = safeNextPath(params.get('next'));
   const status = user?.verification.status ?? 'unstarted';
   const state = STATE[status];
 
@@ -144,7 +142,7 @@ function VerifyStatus() {
       </div>
 
       {/* ---- THE REASON, WHENEVER IT WAS REFUSED ---- */}
-      {status === 'rejected' ? (
+      {status === 'rejected' && user?.verification.reason ? (
         <div className={styles.reasonBox}>
           <Icon name="alert-circle-outline" size={19} color="var(--danger)" />
           <div>
@@ -152,7 +150,7 @@ function VerifyStatus() {
               {t('authp.status.whyNot')}
             </Text>
             <Text variant="small" tone="ink2" raw>
-              {user?.verification.reason ?? DEMO_REASON}
+              {user.verification.reason}
             </Text>
           </div>
         </div>
@@ -207,39 +205,14 @@ function VerifyStatus() {
             href={nextStep.href}
           />
         ) : (
-          <Button
-            label={t('authp.status.sendForChecking')}
-            fullWidth
-            size="lg"
-            onClick={() => setVerificationStatus('pending')}
-          />
+          // Switched off, not hidden: the check is not connected yet, and
+          // the notice at the top of the page says so.
+          <Button label={t('authp.status.sendForChecking')} fullWidth size="lg" disabled />
         )}
 
         <Button label={t('authp.status.doLater')} variant="ghost" size="md" fullWidth href="/search" />
       </div>
 
-      {/* ---- DEVELOPMENT ONLY ----
-          Switches between the four answers so each can be looked at. This block
-          does not belong in a real version. */}
-      <Card>
-        <Text variant="caption" tone="ink3" as="p" style={{ marginBottom: 'var(--space-sm)' }}>
-          DEMO — SWITCH BETWEEN THE FOUR ANSWERS
-        </Text>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
-          {(['unstarted', 'pending', 'approved', 'rejected', 'resubmit'] as VerificationStatus[]).map(
-            (option) => (
-              <Button
-                key={option}
-                label={option}
-                variant={status === option ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setVerificationStatus(option)}
-              />
-            ),
-          )}
-        </div>
-      </Card>
     </div>
   );
 }

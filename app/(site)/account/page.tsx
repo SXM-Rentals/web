@@ -16,6 +16,7 @@
 
 import React from 'react';
 import { useSession } from '@/lib/auth';
+import { useSignOut } from '@/hooks/useSignOut';
 import { useBusiness } from '@/lib/business';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
@@ -88,7 +89,8 @@ const VERIFICATION: Record<
 
 export default function AccountPage() {
   const { t } = useTranslation();
-  const { user, signOut } = useSession();
+  const { user } = useSession();
+  const signOut = useSignOut();
   const { hasBusiness } = useBusiness();
 
   const { data: bookings, loading } = useAsyncData(() => apiClient.listBookings(), []);
@@ -256,7 +258,7 @@ export default function AccountPage() {
           />
         )}
 
-        <ListRow title="Sign out" icon="log-out-outline" danger onClick={() => signOut()} />
+        <ListRow title={t('web.menu.signOut')} icon="log-out-outline" danger onClick={() => signOut()} />
       </Card>
     </div>
   );

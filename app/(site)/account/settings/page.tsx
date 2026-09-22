@@ -13,7 +13,7 @@
 import React, { useState } from 'react';
 import { useTheme, type ThemePreference } from '@/lib/theme/ThemeProvider';
 import { useTranslation, languageOptions } from '@/lib/i18n';
-import { useSession } from '@/lib/auth';
+import { useSignOut } from '@/hooks/useSignOut';
 import {
   Button,
   Card,
@@ -30,7 +30,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { preference, setPreference } = useTheme();
   const { language } = useTranslation();
-  const { signOut } = useSession();
+  const signOut = useSignOut();
 
   // These are remembered only for this visit, and the page says so.
   const [emailAlerts, setEmailAlerts] = useState(true);

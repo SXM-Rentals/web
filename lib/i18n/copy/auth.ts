@@ -51,6 +51,18 @@ export const auth = {
     fr: 'Se déconnecter',
     es: 'Cerrar sesión',
   },
+  'auth.signOutFailedTitle': {
+    en: 'You are still signed in',
+    nl: 'U bent nog ingelogd',
+    fr: 'Vous êtes toujours connecté',
+    es: 'Sigue con la sesión iniciada',
+  },
+  'auth.signOutFailedBody': {
+    en: 'We could not reach the server to sign you out. Check your connection and try again.',
+    nl: 'We konden de server niet bereiken om u uit te loggen. Controleer uw verbinding en probeer het opnieuw.',
+    fr: 'Impossible de joindre le serveur pour vous déconnecter. Vérifiez votre connexion et réessayez.',
+    es: 'No pudimos contactar con el servidor para cerrar su sesión. Compruebe su conexión e inténtelo de nuevo.',
+  },
   'auth.welcomeBack': {
     en: 'Welcome back',
     nl: 'Welkom terug',

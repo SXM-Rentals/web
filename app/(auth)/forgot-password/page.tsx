@@ -8,19 +8,26 @@
 // account with that email" is helpful to the person who mistyped it, and equally
 // helpful to somebody working through a list of addresses to find out which ones
 // have accounts here. The wording below tells the honest user everything they
-// need — check your inbox — without confirming anything to anyone else.
+// need — check your inbox — without confirming anything to anyone else. The
+// backend answers the same way, so there is nothing to give it away either.
+//
+// The link it sends works for 30 minutes, once. Opening it lands on
+// app/(auth)/reset-password, where the new password is chosen.
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api-client';
 import { Button, Card, Icon, Input, Text } from '@/components/ui';
 import styles from '../auth.module.css';
 import { useTranslation } from '@/lib/i18n';
+import { authErrorMessage, withEmail } from '../authErrors';
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [working, setWorking] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   if (sent) {
     return (
@@ -36,7 +43,7 @@ export default function ForgotPasswordPage() {
             {t('authp.reset.checkInbox')}
           </Text>
           <Text variant="body" tone="ink2" align="center" raw>
-            {`If there is an account for ${email}, a link to set a new password is on its way. It is only valid for an hour.`}
+            {withEmail(t('authp.reset.sentBody'), email)}
           </Text>
         </div>
 
@@ -76,13 +83,20 @@ export default function ForgotPasswordPage() {
 
       <form
         className={styles.form}
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           setWorking(true);
-          window.setTimeout(() => {
-            setWorking(false);
+          setProblem(null);
+          try {
+            await apiClient.forgotPassword(email);
             setSent(true);
-          }, 500);
+          } catch (caught) {
+            // Never "no such account" — the backend does not say, by design.
+            // Only a real failure lands here: offline, asleep, too many tries.
+            setProblem(authErrorMessage(caught, t));
+          } finally {
+            setWorking(false);
+          }
         }}
       >
         <Input
@@ -95,6 +109,15 @@ export default function ForgotPasswordPage() {
           onChange={(event) => setEmail(event.target.value)}
           required
         />
+
+        {problem ? (
+          <div className={styles.reasonBox} role="alert">
+            <Icon name="alert-circle-outline" size={19} color="var(--danger)" />
+            <Text variant="small" tone="ink2" raw>
+              {problem}
+            </Text>
+          </div>
+        ) : null}
 
         <Button
           label={t('authp.reset.send')}

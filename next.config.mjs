@@ -2,9 +2,9 @@
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: The settings Next.js reads when it builds and runs the
 // site. Three things: React's "strict mode", which double-checks components
-// during development and warns about common mistakes; one redirect, for a
-// link the backend's emails use; and the rule below that passes API requests
-// through to the backend.
+// during development and warns about common mistakes; two redirects, for a
+// link the backend's emails use and a page that was folded into another; and
+// the rule below that passes API requests through to the backend.
 //
 // ---- WHY THE WEBSITE PROXIES THE API INSTEAD OF CALLING IT DIRECTLY ----
 //
@@ -64,7 +64,14 @@ const nextConfig = {
   // email lands on "not found" — a bad moment to look broken. Permanent,
   // because those links are already in people's inboxes.
   async redirects() {
-    return [{ source: '/sign-in', destination: '/login', permanent: true }];
+    return [
+      { source: '/sign-in', destination: '/login', permanent: true },
+      // The "do you live here?" question used to be its own page after
+      // sign-up. It is now asked on the sign-up form, because the backend
+      // needs it when the account is created and cannot change it afterwards.
+      // Old links land on the form, with their ?next= carried across.
+      { source: '/account-type', destination: '/signup', permanent: true },
+    ];
   },
 
   async rewrites() {

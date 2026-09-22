@@ -31,7 +31,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession } from '@/lib/auth';
-import { Button, Card, Icon, Skeleton, Text } from '@/components/ui';
+import { Button, Card, ErrorState, Icon, Skeleton, Text } from '@/components/ui';
 import styles from './RequireSignIn.module.css';
 import { useTranslation } from '@/lib/i18n';
 
@@ -44,7 +44,7 @@ export function RequireSignIn({
   title?: string;
   body?: string;
 }) {
-  const { isSignedIn, loading } = useSession();
+  const { isSignedIn, loading, error, retry } = useSession();
   const { t } = useTranslation();
   const pathname = usePathname();
 
@@ -58,6 +58,14 @@ export function RequireSignIn({
         <Skeleton height={140} radius="var(--radius-lg)" />
       </div>
     );
+  }
+
+  // ---- COULD NOT TELL — NOT THE SAME AS SIGNED OUT ----
+  // The backend was asleep or unreachable when we asked who this is. Showing
+  // the sign-in form here would tell somebody who IS signed in that they are
+  // not, and they would sign in again for nothing. Offer to ask again instead.
+  if (error) {
+    return <ErrorState message={error} onRetry={retry} />;
   }
 
   if (!isSignedIn) {

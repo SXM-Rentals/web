@@ -17,7 +17,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/lib/auth';
 import { Button, Card, Icon, Text } from '@/components/ui';
 import styles from '../auth.module.css';
 import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
@@ -28,7 +27,6 @@ type CameraState = 'idle' | 'starting' | 'live' | 'captured' | 'denied' | 'missi
 export default function VerifySelfiePage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { markVerificationStep } = useSession();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -162,10 +160,8 @@ export default function VerifySelfiePage() {
               label={t('authp.selfie.use')}
               fullWidth
               size="lg"
-              onClick={() => {
-                markVerificationStep('selfie');
-                router.push('/verify-id');
-              }}
+              // Moves on without marking anything done — nothing was sent.
+              onClick={() => router.push('/verify-id')}
             />
             <Button
               label={t('authp.selfie.retake')}

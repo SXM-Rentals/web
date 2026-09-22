@@ -2,128 +2,167 @@
 
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// WHAT THIS FILE DOES: Keeps track of whether someone is signed in, which
-// account they are using, and how far through the identity check they have got.
+// WHAT THIS FILE DOES: Keeps track of whether someone is signed in and who they
+// are, and signs them in, up and out — against the real backend.
 //
-// IMPORTANT: this is a PRETEND sign-in. No password is checked, nothing is sent
-// anywhere, and any email address works. It exists so the site can move between
-// the signed-out pages and the signed-in pages while we build the look of it.
-// Real sign-in is a backend job and comes later.
+// ---- THE SESSION ITSELF NEVER PASSES THROUGH HERE ----
 //
-// THE BIG DIFFERENCE FROM THE PHONE APP: on the phone, someone signs in before
-// they can browse properly. On the web they do not. Anyone can look at the
-// homepage, search, and every car page while completely signed out — the first
-// thing that needs an account is starting a booking. Most people arrive here
-// from a search engine and will simply leave if asked to register first, so the
-// funnel is kept open as long as possible.
+// Signing in sets an httpOnly cookie, which page scripts cannot read by
+// design, so this file never sees or stores the session. The browser sends
+// the cookie with every request on its own, through the proxy in
+// next.config.mjs. The only way to learn whether somebody is signed in is to
+// ask the backend who they are, which is what happens when the site opens.
 //
-// The biometric sign-in from the phone app (Face ID, fingerprint) is not here.
-// A browser cannot offer it.
+// ---- "WE COULD NOT FIND OUT" IS NOT "SIGNED OUT" ----
+//
+// The most important distinction in this file. The backend sleeps when it has
+// been quiet, and the first request after that can fail or take most of a
+// minute. If that failure were read as "nobody is signed in", everybody who
+// opened the site at a quiet moment would be told to sign in again — and
+// would, and would wonder why the site keeps forgetting them.
+//
+// So there are three answers, not two. Signed in. Signed out, which only an
+// `unauthorized` answer from the backend can establish. And "could not tell",
+// which keeps `user` empty but sets `error`, so a page can offer to try again
+// instead of a sign-in form. See components/layout/RequireSignIn.tsx.
+//
+// ---- WHY BROWSING NEEDS NO ACCOUNT ----
+//
+// On the phone app, somebody signs in before they can browse properly. On the
+// web they do not. Anyone can look at the homepage, search, and every car page
+// completely signed out — the first thing that needs an account is starting a
+// booking. Most people arrive here from a search engine and will simply leave
+// if asked to register first, so the funnel is kept open as long as possible.
+//
+// Signing in with Apple or Google, and the phone app's Face ID, are not here:
+// the backend does not offer the first two yet, and a browser cannot offer the
+// third.
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
 import storage from '@/lib/storage';
-import { mockUser, mockLocalUser, mockUsersByVerification } from '@/lib/mock/user';
-import type { AccountType, User, VerificationStatus } from '@/types';
+import type { AccountType, User } from '@/types';
+
+export type SignUpDetails = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  // Asked for at sign-up because the backend has nowhere to change it later.
+  accountType: AccountType;
+};
 
 type SessionValue = {
   user: User | null;
   isSignedIn: boolean;
-  // True until we have read back whether someone was signed in last time. Pages
-  // use it to avoid flashing "sign in" at somebody who already is.
+  /** True until the first answer about who is signed in has come back. */
   loading: boolean;
+  /**
+   * Set when we could not find out who is signed in — the backend asleep, the
+   * connection down. Not the same as signed out, and never treated as it.
+   */
+  error: string | null;
+  /** Asks again, after `error`. */
+  retry: () => void;
 
-  // Pretend sign-in and sign-up. They simply set the current person and return.
-  signIn: (emailOrPhone: string) => Promise<void>;
-  signInWithApple: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signUp: (details: { firstName: string; lastName: string; email: string }) => Promise<void>;
-  signOut: () => Promise<void>;
-
-  // Choosing Local or Tourist changes which documents we ask for later.
-  setAccountType: (t: AccountType) => void;
-
-  // Used by the verification pages to move between the different states so each
-  // one can be seen and checked during development.
-  setVerificationStatus: (s: VerificationStatus) => void;
-  markVerificationStep: (step: 'selfie' | 'license' | 'identityDoc') => void;
+  /**
+   * Signs in. Throws the backend's own error on failure — the page decides
+   * what to say about a wrong password, an unconfirmed email, too many tries.
+   */
+  signIn: (email: string, password: string) => Promise<void>;
+  /** Creates the account. Does not sign in: the email has to be confirmed first. */
+  signUp: (details: SignUpDetails) => Promise<void>;
+  /**
+   * Signs out, and reports whether it worked. Never throws.
+   *
+   * On failure the person STAYS signed in here, because they still are on the
+   * backend — clearing the screen while the session carried on working would
+   * tell them they were safely signed out when they were not. The caller says
+   * so and lets them try again.
+   */
+  signOut: () => Promise<boolean>;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
 
-const SIGNED_IN_KEY = 'sxm.demo-signed-in';
+// The key the old pretend sign-in left in the browser. Nothing reads it now;
+// it is cleared once so it does not linger forever.
+const OLD_DEMO_KEY = 'sxm.demo-signed-in';
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // Bumped to ask again.
+  const [attempt, setAttempt] = useState(0);
 
-  // ---- REMEMBER THAT SOMEONE WAS SIGNED IN ----
-  // So refreshing the page during testing does not throw you back out to the
-  // welcome screen every time.
   useEffect(() => {
-    storage.getItem(SIGNED_IN_KEY).then((flag) => {
-      if (flag === 'yes') setUser(mockUser);
-      setLoading(false);
+    storage.removeItem(OLD_DEMO_KEY).catch(() => {});
+  }, []);
+
+  // ---- WHO IS SIGNED IN? ----
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    apiClient.getCurrentUser(controller.signal).then(
+      (me) => {
+        setUser(me);
+        setLoading(false);
+      },
+      (caught: unknown) => {
+        // Cancelled because the page moved on. Nothing happened, so nothing
+        // is recorded.
+        if (controller.signal.aborted || (isApiError(caught) && caught.code === 'aborted')) return;
+
+        if (isApiError(caught) && caught.code === 'unauthorized') {
+          // The one answer that means signed out.
+          setUser(null);
+        } else {
+          // Anything else means we do not know. See the note at the top.
+          setUser(null);
+          setError(
+            isApiError(caught)
+              ? caught.message
+              : 'We could not check whether you are signed in. Please try again.',
+          );
+        }
+        setLoading(false);
+      },
+    );
+
+    return () => controller.abort();
+  }, [attempt]);
+
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const me = await apiClient.login(email.trim(), password);
+    setUser(me);
+    setError(null);
+  }, []);
+
+  const signUp = useCallback(async (details: SignUpDetails) => {
+    await apiClient.signup({
+      ...details,
+      firstName: details.firstName.trim(),
+      lastName: details.lastName.trim(),
+      email: details.email.trim(),
     });
   }, []);
-
-  const signIn = useCallback(async (_emailOrPhone: string) => {
-    setUser(mockUser);
-    await storage.setItem(SIGNED_IN_KEY, 'yes');
-  }, []);
-
-  const signInWithApple = useCallback(async () => signIn('apple'), [signIn]);
-  const signInWithGoogle = useCallback(async () => signIn('google'), [signIn]);
-
-  const signUp = useCallback(
-    async (details: { firstName: string; lastName: string; email: string }) => {
-      // A brand new person has not been through the identity check yet, so they
-      // start at the very beginning of that process.
-      setUser({
-        ...mockUsersByVerification.unstarted,
-        firstName: details.firstName || mockUser.firstName,
-        lastName: details.lastName || mockUser.lastName,
-        email: details.email || mockUser.email,
-      });
-      await storage.setItem(SIGNED_IN_KEY, 'yes');
-    },
-    [],
-  );
 
   const signOut = useCallback(async () => {
+    try {
+      await apiClient.logout();
+    } catch (caught) {
+      // Already signed out on the backend's side, so the goal is met.
+      // Anything else and the session may well still be alive.
+      if (!(isApiError(caught) && caught.code === 'unauthorized')) return false;
+    }
     setUser(null);
-    await storage.removeItem(SIGNED_IN_KEY);
-  }, []);
-
-  const setAccountType = useCallback((accountType: AccountType) => {
-    setUser((current) => {
-      const base = current ?? mockUsersByVerification.unstarted;
-      // A resident gets the Islander flag; a visitor does not.
-      return accountType === 'local'
-        ? { ...base, ...mockLocalUser, accountType, verification: base.verification }
-        : { ...base, accountType, isIslander: false };
-    });
-  }, []);
-
-  const setVerificationStatus = useCallback((status: VerificationStatus) => {
-    setUser((current) =>
-      current ? { ...current, verification: { ...current.verification, status } } : current,
-    );
-  }, []);
-
-  const markVerificationStep = useCallback((step: 'selfie' | 'license' | 'identityDoc') => {
-    setUser((current) => {
-      if (!current) return current;
-      const key =
-        step === 'selfie' ? 'selfieDone' : step === 'license' ? 'licenseDone' : 'identityDocDone';
-      return { ...current, verification: { ...current.verification, [key]: true } };
-    });
+    return true;
   }, []);
 
   const value = useMemo<SessionValue>(
@@ -131,27 +170,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       user,
       isSignedIn: user !== null,
       loading,
+      error,
+      retry,
       signIn,
-      signInWithApple,
-      signInWithGoogle,
       signUp,
       signOut,
-      setAccountType,
-      setVerificationStatus,
-      markVerificationStep,
     }),
-    [
-      user,
-      loading,
-      signIn,
-      signInWithApple,
-      signInWithGoogle,
-      signUp,
-      signOut,
-      setAccountType,
-      setVerificationStatus,
-      markVerificationStep,
-    ],
+    [user, loading, error, retry, signIn, signUp, signOut],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
