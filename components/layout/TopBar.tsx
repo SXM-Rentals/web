@@ -60,7 +60,7 @@ export function TopBar() {
   const pathname = usePathname();
   const { user, isSignedIn } = useSession();
   const signOut = useSignOut();
-  const { hasBusiness } = useBusiness();
+  const { hasBusiness, loading: businessLoading } = useBusiness();
   const { count: savedCount } = useFavourites();
   const { expanded, drawerOpen, toggle } = useSidebar();
   const { t } = useTranslation();
@@ -304,7 +304,7 @@ export function TopBar() {
                       href="/account/support"
                     />
 
-                    {hasBusiness ? (
+                    {businessLoading ? null : hasBusiness ? (
                       <>
                         <hr className={styles.menuDivider} />
                         <ListRow

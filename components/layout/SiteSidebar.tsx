@@ -103,7 +103,7 @@ export function SiteSidebar() {
   const pathname = usePathname();
   const { expanded, drawerOpen, closeDrawer } = useSidebar();
   const { isSignedIn } = useSession();
-  const { hasBusiness } = useBusiness();
+  const { hasBusiness, loading: businessLoading } = useBusiness();
   const { count: savedCount } = useFavourites();
   const { t } = useTranslation();
 
@@ -215,18 +215,22 @@ export function SiteSidebar() {
           })}
 
           {/* ---- ACROSS TO THE BUSINESS SIDE ----
-              Pinned to the bottom, and only shown to somebody who actually runs
-              a rental business. */}
+              Pinned to the bottom. "Business dashboard" for somebody who runs a
+              rental business, "List your vehicles" for everybody else — and
+              neither until the site knows which, so an owner never sees the
+              wrong one flash past first. */}
           <div className={styles.foot}>
-            <Link
-              href={hasBusiness ? '/provider' : '/provider/apply'}
-              className={styles.navLink}
-              title={hasBusiness ? businessLabel : listLabel}
-              aria-label={hasBusiness ? businessLabel : listLabel}
-            >
-              <Icon name="storefront-outline" size={18} />
-              <span className={styles.label}>{hasBusiness ? businessLabel : listLabel}</span>
-            </Link>
+            {businessLoading ? null : (
+              <Link
+                href={hasBusiness ? '/provider' : '/provider/apply'}
+                className={styles.navLink}
+                title={hasBusiness ? businessLabel : listLabel}
+                aria-label={hasBusiness ? businessLabel : listLabel}
+              >
+                <Icon name="storefront-outline" size={18} />
+                <span className={styles.label}>{hasBusiness ? businessLabel : listLabel}</span>
+              </Link>
+            )}
           </div>
         </nav>
       </aside>

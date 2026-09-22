@@ -2,8 +2,9 @@
 
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// WHAT THIS FILE DOES: Keeps track of whether the signed-in person also runs a
-// rental business, and gives them the link across to their dashboard.
+// WHAT THIS FILE DOES: Finds out whether the signed-in person runs a rental
+// business on SXM Rentals, and holds that business's record — the private half
+// the dashboard needs, and the public half customers see.
 //
 // WHY THE SITE HAS TWO SIDES: renting a car and running a rental company are
 // completely different jobs, needing different pages and different navigation.
@@ -16,45 +17,111 @@
 // and the business dashboard at /provider, each with its own navigation. The
 // address bar already says which side you are on, so there is no mode to track.
 //
-// Most people never see the business side at all. The dashboard link only
-// appears for someone whose business has been approved.
+// ---- WHERE THE ANSWER COMES FROM ----
 //
-// NOTE: this is pretend. Whether someone "has an approved business" is a fixed
-// value below, so the dashboard can be looked at during development. In the
-// finished site the answer comes from the server.
+// The backend. It used to be a fixed "yes" here, which put a made-up business
+// and its made-up payouts in front of everybody who signed in. Now the site
+// asks for the signed-in person's business, and the backend either returns it
+// or answers `not_a_provider` — the one answer that means "no business".
+//
+// Anything else — the backend asleep, the connection down — is "could not
+// tell", not "no business". Same rule, same reason, as lib/auth.tsx: telling a
+// business owner they have no business because a server was waking up would
+// send them to register it a second time.
+//
+// A business that has applied but not yet been approved still HAS a business.
+// The backend lets it into the dashboard straight away to add its cars; what
+// waits for approval is each car appearing in search.
 
-import React, { createContext, useContext, useMemo } from 'react';
-import { mockBusinessProfile, SIGNED_IN_PROVIDER_ID } from '@/lib/mock/business';
-import { findProvider } from '@/lib/mock/providers';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
+import { useSession } from '@/lib/auth';
 import type { BusinessProfile, Provider } from '@/types';
 
 type BusinessValue = {
-  // Whether this person has a business that has been approved. Controls whether
-  // the dashboard link appears anywhere.
+  /** Whether the signed-in person runs a business here, approved or not yet. */
   hasBusiness: boolean;
+  /** True until the answer is known. Nothing is decided while it is. */
+  loading: boolean;
+  /** Set when we could not find out. Not the same as "no business". */
+  error: string | null;
+  /** Asks again — after `error`, or after registering a business. */
+  refresh: () => void;
 
-  // The public half of their business record — name, rating, description.
+  // The public half of the record — name, rating, description.
   provider: Provider | undefined;
   // The private half — registration, locations, API connection.
-  profile: BusinessProfile;
+  profile: BusinessProfile | undefined;
 };
 
 const BusinessContext = createContext<BusinessValue | null>(null);
 
-// Set to false to see the site as an ordinary customer with no business — the
-// dashboard link disappears everywhere.
-const DEMO_HAS_APPROVED_BUSINESS = true;
-
 export function BusinessProvider({ children }: { children: React.ReactNode }) {
-  const provider = findProvider(SIGNED_IN_PROVIDER_ID);
+  const { user, loading: sessionLoading } = useSession();
+  const [profile, setProfile] = useState<BusinessProfile | undefined>(undefined);
+  const [provider, setProvider] = useState<Provider | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  // Asked again whenever a different person signs in, or nobody is.
+  const userId = user?.id ?? null;
+
+  useEffect(() => {
+    if (sessionLoading) return; // not known yet who to ask about
+
+    setProfile(undefined);
+    setProvider(undefined);
+    setError(null);
+
+    // Nobody signed in: no business, and nothing to ask.
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+
+    (async () => {
+      try {
+        const mine = await apiClient.getBusinessProfile(controller.signal);
+        // The public half. Missing it costs the name in the dashboard's
+        // header, not the dashboard, so a failure here is not fatal.
+        const publicRecord = await apiClient
+          .getProvider(mine.providerId, { signal: controller.signal })
+          .catch(() => undefined);
+        // Somebody else signed in, or out, while this was on its way. Their
+        // answer is not this person's.
+        if (controller.signal.aborted) return;
+        setProfile(mine);
+        setProvider(publicRecord);
+      } catch (caught) {
+        if (controller.signal.aborted || (isApiError(caught) && caught.code === 'aborted')) return;
+        if (!(isApiError(caught) && caught.code === 'not_a_provider')) {
+          setError(isApiError(caught) ? caught.message : 'We could not check for a business. Please try again.');
+        }
+        // `not_a_provider` needs nothing: no profile is the answer.
+      }
+      setLoading(false);
+    })();
+
+    return () => controller.abort();
+  }, [userId, sessionLoading, attempt]);
+
+  const refresh = useCallback(() => setAttempt((n) => n + 1), []);
 
   const value = useMemo<BusinessValue>(
     () => ({
-      hasBusiness: DEMO_HAS_APPROVED_BUSINESS,
+      hasBusiness: profile !== undefined,
+      loading: sessionLoading || loading,
+      error,
+      refresh,
       provider,
-      profile: mockBusinessProfile,
+      profile,
     }),
-    [provider],
+    [profile, provider, sessionLoading, loading, error, refresh],
   );
 
   return <BusinessContext.Provider value={value}>{children}</BusinessContext.Provider>;
@@ -68,4 +135,23 @@ export function useBusiness(): BusinessValue {
     throw new Error('useBusiness must be used inside BusinessProvider (check app/layout.tsx)');
   }
   return ctx;
+}
+
+/**
+ * The business, for a dashboard page — where it is guaranteed to exist.
+ *
+ * Every page under /provider except the application form sits behind the gate
+ * in components/business/ProviderShell.tsx, which shows nothing until a
+ * business has been found. So these pages can rely on the record being there,
+ * and this says so in the types instead of every page checking again.
+ *
+ * Used anywhere else, it fails loudly — a page outside the gate asking for a
+ * business that may not exist is a mistake worth finding at once.
+ */
+export function useOwnBusiness(): { profile: BusinessProfile; provider: Provider | undefined } {
+  const { profile, provider } = useBusiness();
+  if (!profile) {
+    throw new Error('useOwnBusiness is only for dashboard pages behind ProviderShell’s gate.');
+  }
+  return { profile, provider };
 }

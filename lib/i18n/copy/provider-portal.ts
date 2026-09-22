@@ -1197,6 +1197,38 @@ export const providerPortal = {
     fr: 'Envoyer la Candidature',
     es: 'Enviar Solicitud',
   },
+
+  // ---- THE DASHBOARD'S GATE (components/business/ProviderShell.tsx) ----
+  'pp.gate.signInTitle': {
+    en: 'Sign in to your business dashboard',
+    nl: 'Log in op uw bedrijfsdashboard',
+    fr: 'Connectez-vous à votre tableau de bord professionnel',
+    es: 'Inicie sesión en el panel de su empresa',
+  },
+  'pp.gate.signInBody': {
+    en: 'This is where a rental business manages its cars, bookings and payouts. Sign in with the account the business was registered under.',
+    nl: 'Hier beheert een verhuurbedrijf zijn auto’s, boekingen en uitbetalingen. Log in met het account waaronder het bedrijf is geregistreerd.',
+    fr: 'C’est ici qu’une entreprise de location gère ses voitures, ses réservations et ses versements. Connectez-vous avec le compte sous lequel l’entreprise a été enregistrée.',
+    es: 'Aquí es donde una empresa de alquiler gestiona sus coches, reservas y pagos. Inicie sesión con la cuenta con la que se registró la empresa.',
+  },
+  'pp.gate.noBusinessTitle': {
+    en: 'This account has no rental business yet',
+    nl: 'Dit account heeft nog geen verhuurbedrijf',
+    fr: 'Ce compte n’a pas encore d’entreprise de location',
+    es: 'Esta cuenta aún no tiene una empresa de alquiler',
+  },
+  'pp.gate.noBusinessBody': {
+    en: 'Register your business to list cars on SXM Rentals. It takes a few minutes, and there is no charge to join.',
+    nl: 'Registreer uw bedrijf om auto’s aan te bieden op SXM Rentals. Het duurt een paar minuten en aanmelden is gratis.',
+    fr: 'Enregistrez votre entreprise pour proposer des voitures sur SXM Rentals. Cela prend quelques minutes, et l’inscription est gratuite.',
+    es: 'Registre su empresa para ofrecer coches en SXM Rentals. Solo lleva unos minutos y unirse es gratis.',
+  },
+  'pp.gate.register': {
+    en: 'Register Your Business',
+    nl: 'Registreer Uw Bedrijf',
+    fr: 'Enregistrer Votre Entreprise',
+    es: 'Registrar Su Empresa',
+  },
   'pp.apply.received': {
     en: 'Application received',
     nl: 'Aanvraag ontvangen',

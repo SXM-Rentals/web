@@ -91,7 +91,7 @@ export default function AccountPage() {
   const { t } = useTranslation();
   const { user } = useSession();
   const signOut = useSignOut();
-  const { hasBusiness } = useBusiness();
+  const { hasBusiness, loading: businessLoading } = useBusiness();
 
   const { data: bookings, loading } = useAsyncData(() => apiClient.listBookings(), []);
 
@@ -242,7 +242,9 @@ export default function AccountPage() {
         <ListRow title={t('profile.settings')} subtitle={t('acct.row.settings')} icon="settings-outline" href="/account/settings" />
         <ListRow title={t('acct.support.title')} subtitle={t('acct.row.support')} icon="help-circle-outline" href="/account/support" />
 
-        {hasBusiness ? (
+        {/* Neither row until the site knows which applies, so a business
+            owner never sees "List your vehicles" flash past first. */}
+        {businessLoading ? null : hasBusiness ? (
           <ListRow
             title={t('web.nav.businessDashboard')}
             subtitle={t('acct.row.dashboard')}

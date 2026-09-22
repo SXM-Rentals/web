@@ -19,6 +19,7 @@ import { render, screen, fireEvent, waitFor, act } from '../render';
 import { SessionProvider, useSession } from '@/lib/auth';
 import { safeNextPath } from '@/lib/utils';
 import type { User } from '@/types';
+import { fakeBackend as backend, refusal } from '../fakeBackend';
 
 // ---- next/navigation, which only exists inside a running Next.js app ----
 const push = vi.fn();
@@ -40,33 +41,6 @@ const SOMEONE: User = {
   isIslander: false,
   memberSince: '2026-09-21T00:00:00.000Z',
 } as User;
-
-// ---- a stand-in backend, answering by address ----
-type Answer = { status: number; body?: unknown };
-function backend(routes: Record<string, Answer | (() => Answer)>) {
-  const calls: string[] = [];
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (url: string, init?: RequestInit) => {
-      const path = String(url).replace(/^.*\/api\/v1/, '').split('?')[0];
-      const key = `${init?.method ?? 'GET'} ${path}`;
-      calls.push(key);
-      const route = routes[key];
-      if (!route) throw new Error(`The test backend has no answer for ${key}`);
-      const { status, body } = typeof route === 'function' ? route() : route;
-      return new Response(status === 204 || body === undefined ? null : JSON.stringify(body), {
-        status,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }),
-  );
-  return calls;
-}
-
-const refusal = (status: number, code: string, message = 'Refused.') => ({
-  status,
-  body: { error: { code, message, requestId: 'req-test' } },
-});
 
 // Renders a component that hands the session out to the test.
 function withSession() {

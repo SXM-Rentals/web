@@ -51,7 +51,6 @@ import {
   findBusinessThread,
   findProviderBooking,
   mockBusinessThreads,
-  mockBusinessProfile,
   mockPayouts,
   mockProviderBookings,
   mockVehiclePerformance,
@@ -441,8 +440,13 @@ export const apiClient = {
     });
   },
 
+  /**
+   * The signed-in person's own business. Always live, like accounts: it is
+   * how the site decides whether somebody has a business at all (see
+   * lib/business.tsx), and a sample answer made everybody the owner of the
+   * same made-up one. Fails with `not_a_provider` when they have none.
+   */
   async getBusinessProfile(signal?: AbortSignal): Promise<BusinessProfile> {
-    if (useSampleCatalogue()) return sampleDelay(mockBusinessProfile);
     return request<BusinessProfile>('/providers/me', { signal, auth: true });
   },
 

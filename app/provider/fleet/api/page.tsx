@@ -17,7 +17,7 @@
 import React, { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { useBusiness } from '@/lib/business';
+import { useOwnBusiness } from '@/lib/business';
 import { longDate } from '@/lib/format';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import {
@@ -100,7 +100,7 @@ function CopyRow({
 
 export default function FleetApiPage() {
   const { t } = useTranslation();
-  const { profile } = useBusiness();
+  const { profile } = useOwnBusiness();
   const { data: connection, loading, error, refresh } = useAsyncData(
     () => apiClient.getApiConnection(),
     [],

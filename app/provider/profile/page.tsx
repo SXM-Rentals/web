@@ -25,7 +25,7 @@
 // onto a customer-facing page by accident: they were never handed to it.
 
 import React, { useState } from 'react';
-import { useBusiness } from '@/lib/business';
+import { useOwnBusiness } from '@/lib/business';
 import { longDate, sideLabels } from '@/lib/format';
 import {
   Button,
@@ -43,7 +43,7 @@ import { useTranslation } from '@/lib/i18n';
 
 export default function ProviderSettingsPage() {
   const { t } = useTranslation();
-  const { provider, profile } = useBusiness();
+  const { provider, profile } = useOwnBusiness();
 
   const [businessName, setBusinessName] = useState(provider?.businessName ?? '');
   const [description, setDescription] = useState(provider?.description ?? '');
