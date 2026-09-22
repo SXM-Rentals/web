@@ -26,15 +26,119 @@ import type { Vehicle, Provider, LegalDocument } from '@/types';
 
 // ---- WHERE THE SITE LIVES ----
 //
-// Search engines need absolute addresses — "/vehicles/v1" means nothing without
-// knowing which site it is on. During development that is localhost; once there
-// is a real domain, set NEXT_PUBLIC_SITE_URL and nothing else needs changing.
+// Search engines need absolute addresses — "/vehicles/v1" means nothing
+// without knowing which site it is on. This constant is where that comes
+// from: every absolute link the site produces is built from it.
 //
-// The domain below is a placeholder and is deliberately the only place it is
-// written down. It is used, and reachable, only through this constant.
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-).replace(/\/$/, ''); // a trailing slash here would double up in every link
+// ---- WHY THE FALLBACK DEPENDS ON WHERE THIS IS RUNNING ----
+//
+// It used to fall back to localhost everywhere, and that was a quiet trap. If
+// NEXT_PUBLIC_SITE_URL is ever missing on the deployed site — forgotten in
+// the hosting settings, lost in a new environment — the live site publishes a
+// sitemap of fifty-two "http://localhost:3000/..." addresses and puts a
+// canonical link on every page pointing at a machine nobody can reach.
+//
+// Nothing looks broken when that happens. The site works perfectly and is
+// simply uncrawlable, and the way it is usually discovered is by noticing,
+// weeks later, that none of it is in Google.
+//
+// So the two cases fall back differently, and each one fails toward the
+// answer that is harmless where it applies:
+//
+//   Deployed  — the real address. Wrong only if the domain changes, which is
+//               a thing somebody does on purpose and would notice.
+//   Local     — localhost, so links in a development build actually open.
+//               A canonical pointing at localhost costs nothing here, because
+//               nothing crawls a laptop.
+//
+// Setting NEXT_PUBLIC_SITE_URL still overrides both, and it still should be
+// set in the hosting settings rather than relied on from here. This is the
+// floor, not the plan.
+//
+// ---- WHY www.sxmrentals.app, AND NOT ONE OF THE OTHER TWO ----
+//
+// The site answers at three addresses: www.sxmrentals.app, sxmrentals.app
+// and sxm-rentals.vercel.app. That is exactly why this has to name one of
+// them. Three addresses serving the same pages are three copies to a search
+// engine, and the ranking is split between them unless every page says which
+// one is real. This line is that statement.
+//
+// The www form is the owner's choice. The bare sxmrentals.app redirects to it
+// — set in Vercel, under Settings → Domains — and the two have to agree. A
+// canonical naming an address that redirects somewhere else sends a search
+// engine in a circle. The Vercel address keeps working for anybody who has
+// it; it just never gets the credit.
+//
+// IF THIS EVER CHANGES, change three things together: the line below, the
+// variable in Vercel, and the redirect. The contact email in lib/social.ts
+// stays on the bare domain, which is right — email addresses do not take www.
+const FALLBACK_SITE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://www.sxmrentals.app'
+    : 'http://localhost:3000';
+
+/**
+ * Reads NEXT_PUBLIC_SITE_URL, and refuses a value that cannot be right.
+ *
+ * ---- WHY THIS CHECKS, RATHER THAN TRUSTING THE SETTING ----
+ *
+ * It is one web address — the one a search engine should treat as the real
+ * site. It is very easy to reasonably put more than one there: the site
+ * genuinely does answer at two addresses, and the settings box does not say
+ * it only takes one. That happened. The value was
+ *
+ *     https://sxm-rentals.vercel.app, https://sxmrentals.app
+ *
+ * and the layout builds its metadata with `new URL(SITE_URL)`, which throws
+ * on that. So the deploy failed with nothing more than "Invalid URL" deep in
+ * a stack trace — true, and no help at all to somebody looking at a settings
+ * page.
+ *
+ * So it is checked here, first, and the refusal says in plain words what is
+ * wrong and where to fix it. It still stops the deploy, on purpose: a wrong
+ * address is not something to guess past. Vercel keeps the previous version
+ * of the site live when a deploy fails, so stopping costs nothing but time.
+ *
+ * Both addresses keep working regardless. That is decided by the domains
+ * list in Vercel, not by this setting.
+ *
+ * Blank counts as unset. A setting saved with an empty value is a string, not
+ * a missing one, and an empty site address is never right.
+ */
+function readSiteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!configured) return FALLBACK_SITE_URL;
+
+  const refuse = (): never => {
+    throw new Error(
+      `NEXT_PUBLIC_SITE_URL must be one web address, such as https://www.sxmrentals.app.\n` +
+        `It is currently set to: "${configured}"\n` +
+        `Change it to the single address search engines should treat as the real site — ` +
+        `in Vercel, under Settings → Environment Variables — and redeploy. ` +
+        `Every address listed under Settings → Domains keeps working either way.`,
+    );
+  };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(configured);
+  } catch {
+    return refuse();
+  }
+
+  // Just the site: no page on the end, no query. Anything after the address
+  // would be glued onto the front of every link the site produces.
+  if (!/^https?:$/.test(parsed.protocol) || parsed.pathname !== '/' || parsed.search || parsed.hash) {
+    return refuse();
+  }
+
+  // The origin rather than the text as typed, so "HTTPS://SxmRentals.app/"
+  // and "https://sxmrentals.app" come out identical, with no trailing slash
+  // to double up in every link.
+  return parsed.origin;
+}
+
+export const SITE_URL = readSiteUrl();
 
 export const SITE_NAME = 'SXM Rentals';
 
@@ -203,7 +307,7 @@ export function jsonLdLegalDocument(document: LegalDocument): JsonLd {
 }
 
 // The trail of links back to the homepage, as a search engine reads it. This is
-// what produces "sxmrentals.com › Find a car › Jeep Wrangler" in a result
+// what produces "sxmrentals.app › Find a car › Jeep Wrangler" in a result
 // instead of the bare address.
 export function jsonLdBreadcrumbs(trail: { label: string; href?: string }[]): JsonLd {
   return {

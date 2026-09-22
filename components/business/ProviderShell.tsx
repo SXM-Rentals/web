@@ -12,7 +12,7 @@
 // same shape as signing up on the customer side.
 //
 // The alternative was to put the application form somewhere outside /provider
-// entirely, but its address is worth keeping: "sxmrentals.com/provider/apply" is
+// entirely, but its address is worth keeping: "sxmrentals.app/provider/apply" is
 // a thing you can say to a rental company over the phone.
 
 import React from 'react';

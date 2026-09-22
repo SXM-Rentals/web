@@ -34,4 +34,19 @@ export const SOCIAL_LINKS: SocialLink[] = [
 // Email is not a social account — it is a way to reach the business directly —
 // so it sits alongside the list above rather than inside it. It has no brand
 // mark either; the envelope from our own icon set is right for it.
-export const CONTACT_EMAIL = 'hello@sxmrentals.com';
+//
+// ---- IT USED TO BE hello@sxmrentals.com, AND THAT WAS DANGEROUS ----
+//
+// sxmrentals.com is registered and live, and it is not this site's domain.
+// Nothing on the site showed this address yet, which is the only reason no
+// harm was done. The first "contact us" link would have sent customers'
+// messages — booking references, questions about a deposit — toward a domain
+// we do not control, whose owner would start receiving them the day they
+// switched on email.
+//
+// sxmrentals.app is the site's own domain. IT DOES NOT RECEIVE MAIL YET:
+// nothing arrives until forwarding is set up for it at Namecheap, which
+// offers it free with the domain. Until then a message sent here bounces back
+// to its sender — the safe way for it to be wrong. Do not link to it from a
+// page until a test message has actually arrived.
+export const CONTACT_EMAIL = 'hello@sxmrentals.app';
