@@ -48,6 +48,7 @@ import { NavigationProvider } from '@/lib/navigation';
 import { SidebarProvider } from '@/lib/sidebar';
 import { ToastProvider } from '@/components/ui';
 import { SkipLink } from '@/components/layout/SkipLink';
+import { WarmUp } from '@/components/layout/WarmUp';
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/seo';
 
 // ---- WHAT SEARCH ENGINES AND SHARED LINKS SHOW ----
@@ -156,6 +157,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 provider that holds them — placed here, first, so it is still the
                 first thing Tab reaches. */}
             <SkipLink />
+
+            {/* Draws nothing. Wakes the backend the moment a page opens, so
+                the first thing somebody actually waits for is not the thing
+                that has to start the server. See WarmUp.tsx. */}
+            <WarmUp />
 
             <SessionProvider>
               <BusinessProvider>

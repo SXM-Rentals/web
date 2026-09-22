@@ -29,7 +29,7 @@ import {
   Text,
   TextArea,
 } from '@/components/ui';
-import { COMMISSION_RATE } from '@/lib/mock/business';
+import { COMMISSION_RATE } from '@/lib/constants';
 import styles from '../provider.module.css';
 import authStyles from '@/app/(auth)/auth.module.css';
 import { useTranslation } from '@/lib/i18n';

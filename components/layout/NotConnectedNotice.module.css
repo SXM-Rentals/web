@@ -1,0 +1,29 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the notice that sits above a screen whose
+   backend does not exist yet. */
+
+.notice {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-start;
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  border-radius: var(--radius-lg);
+  /* Dashed, like the "coming soon" block in components/ui/Feedback.module.css,
+     so the two read as the same kind of thing rather than two conventions. */
+  border: 1px dashed var(--hairline);
+  background: var(--tile);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}

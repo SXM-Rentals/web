@@ -12,7 +12,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { apiClient } from '@/lib/api-client';
 import { BookingTripStep } from '@/components/booking/BookingTripStep';
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -23,9 +23,27 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// ---- NEVER CACHED, UNLIKE EVERY OTHER PAGE THAT SHOWS A CAR ----
+//
+// A car's public page is rebuilt every five minutes, because a price arriving
+// five minutes late costs nothing to somebody browsing. These four pages are
+// where that stops being true: the number on them is the number about to be
+// charged. Showing a rate from a cached copy, taken before the business
+// changed it, means quoting a price and then taking a different one.
+//
+// It also covers availability. A car cached as free is a car two people can
+// start booking at once.
+//
+// The cost is a fetch per visit, on four pages nobody lands on cold — they
+// arrive here from a car page, so the backend is already awake. These pages
+// are also already noindex, so there is no search cost to not caching them.
+export const dynamic = 'force-dynamic';
+
 export default async function BookingTripPage({ params }: PageProps) {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const vehicle = await apiClient.getVehicle(id);
+  // Only a car the backend has actually said does not exist gets a 404.
+  // A cold server throws instead, and app/error.tsx offers to try again.
   if (!vehicle) notFound();
 
   return <BookingTripStep vehicle={vehicle} />;

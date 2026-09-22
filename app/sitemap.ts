@@ -24,14 +24,68 @@
 
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
-import { mockVehicles } from '@/lib/mock/vehicles';
-import { mockProviders } from '@/lib/mock/providers';
-import { legalDocuments } from '@/lib/mock/legal';
+import { apiClient } from '@/lib/api-client';
+import { legalDocuments } from '@/lib/content/legal';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  // Everything shares one timestamp because there is no backend yet to say when
-  // a given car was last edited. Once there is, each entry should carry its own.
+// Rebuilt at most once an hour. A car being added is not urgent enough to ask
+// the backend on every crawl, and a crawler does not read this often anyway.
+//
+// This one is real, unlike the ones removed from the car and business pages:
+// sitemap.xml has no [id] in its address, so Next.js can and does cache it.
+//
+// Written out as a number rather than as a named constant because Next.js
+// reads this line without running it, and rejects anything it cannot read as
+// a plain value. The 3600 below has to match it by hand for that reason.
+export const revalidate = 3600;
+const SITEMAP_MAX_AGE_SECONDS = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Everything shares one timestamp because the backend does not yet report
+  // when a given car was last edited. Once it does, each entry should carry
+  // its own — a crawler uses it to decide what to re-read.
   const now = new Date();
+
+  // ---- WHAT HAPPENS WHEN THE BACKEND DOES NOT ANSWER ----
+  //
+  // This is the one place in the app where failing loudly is the right
+  // behaviour, and it is worth saying why.
+  //
+  // A sitemap that lists four fixed pages, replacing one that listed forty
+  // cars, does not read to a search engine as "the server was briefly down".
+  // It reads as "those forty pages have been deleted", and they start dropping
+  // out of the index. The damage takes weeks to undo and nothing in the app
+  // looks wrong while it happens.
+  //
+  // So in production a failed request fails the build. A deploy that does not
+  // happen is a nuisance; a deploy that quietly un-publishes the catalogue is
+  // not. Locally and in previews it carries on with a loud log, because
+  // blocking somebody's work over a sitemap would be absurd.
+  //
+  // An EMPTY list is different from a FAILED one, and is fine. An empty answer
+  // is the backend telling the truth — today there genuinely are no cars.
+  const [vehicleResult, providerResult] = await Promise.allSettled([
+    // An hour, matching this file's own revalidate. A sitemap is read by
+    // crawlers, not people, and pulling the whole catalogue twice for one
+    // file would be the most expensive request on the site.
+    apiClient.listVehicles({}, { revalidate: SITEMAP_MAX_AGE_SECONDS }),
+    apiClient.listProviders({ revalidate: SITEMAP_MAX_AGE_SECONDS }),
+  ]);
+
+  const failed = [vehicleResult, providerResult].filter((r) => r.status === 'rejected');
+  if (failed.length > 0) {
+    const reasons = failed.map((r) => (r as PromiseRejectedResult).reason);
+    if (process.env.VERCEL_ENV === 'production') {
+      throw new Error(
+        'Refusing to publish a sitemap without the catalogue: the backend did not answer. ' +
+          'Publishing four pages in place of the full list would read as a mass deletion. ' +
+          String(reasons[0]),
+      );
+    }
+    console.warn('[sitemap] the backend did not answer; listing the fixed pages only', reasons[0]);
+  }
+
+  const allVehicles = vehicleResult.status === 'fulfilled' ? vehicleResult.value : [];
+  const allProviders = providerResult.status === 'fulfilled' ? providerResult.value : [];
 
   // ---- THE PAGES THAT EXIST WHATEVER THE DATA SAYS ----
   //
@@ -54,7 +108,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // ---- ONE ENTRY PER CAR ----
   // The pages that most need to be found, and the reason this file is generated.
-  const vehicles: MetadataRoute.Sitemap = mockVehicles.map((vehicle) => ({
+  const vehicles: MetadataRoute.Sitemap = allVehicles.map((vehicle) => ({
     url: `${SITE_URL}/vehicles/${vehicle.id}`,
     lastModified: now,
     // A car's price and availability move often enough to be worth re-checking
@@ -65,7 +119,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // A car's reviews are their own page, and a page of genuine written reviews is
   // worth finding on its own.
-  const vehicleReviews: MetadataRoute.Sitemap = mockVehicles
+  const vehicleReviews: MetadataRoute.Sitemap = allVehicles
     .filter((vehicle) => vehicle.reviewCount > 0)
     .map((vehicle) => ({
       url: `${SITE_URL}/vehicles/${vehicle.id}/reviews`,
@@ -77,7 +131,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // ---- ONE ENTRY PER RENTAL BUSINESS ----
   // Somebody who has heard a business's name and is checking whether it is real
   // should find this page.
-  const providers: MetadataRoute.Sitemap = mockProviders.map((provider) => ({
+  const providers: MetadataRoute.Sitemap = allProviders.map((provider) => ({
     url: `${SITE_URL}/providers/${provider.id}`,
     lastModified: now,
     changeFrequency: 'weekly',

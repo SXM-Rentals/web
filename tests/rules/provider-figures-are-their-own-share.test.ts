@@ -16,7 +16,8 @@
 // It is the customer's money in both directions.
 
 import { describe, expect, it } from 'vitest';
-import { mockPayouts, mockProviderBookings, COMMISSION_RATE } from '@/lib/mock/business';
+import { mockPayouts, mockProviderBookings } from '@/lib/mock/business';
+import { COMMISSION_RATE } from '@/lib/constants';
 
 describe('Rule 3 — provider figures are always their own share', () => {
   it('shows gross, commission and net together on every payout', () => {

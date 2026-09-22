@@ -1,6 +1,15 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// MOCK DATA — sample content for UI development. No backend is connected.
+// SAMPLE DATA — not what the site shows by default any more.
+//
+// The backend is connected. Everything here is the fallback the catalogue
+// switch in lib/api/source.ts turns on, kept because the live database is
+// still empty and an empty site is harder to work on than a full one.
+//
+// THIS WHOLE FOLDER IS FOR DELETING. Nothing real may live in it — see
+// lib/constants.ts and lib/content/legal.ts, both of which were moved out
+// for exactly that reason. Do not delete it before every screen reads
+// through lib/api-client.ts, or the site breaks all at once.
 // WHAT THIS FILE DOES: Made-up figures for the rental business the demo signs
 // in as — Simpson Bay Auto. This is what fills the business dashboard: earnings,
 // payouts, how each car is performing, and the bookings across their fleet.
@@ -30,8 +39,6 @@ import type {
 // public and private halves describe the same company.
 export const SIGNED_IN_PROVIDER_ID = 'p1';
 
-// The share of each booking SXM Rentals keeps, from the Overview document.
-export const COMMISSION_RATE = 0.3;
 
 // ---- THE PRIVATE HALF OF THE BUSINESS RECORD ----
 export const mockBusinessProfile: BusinessProfile = {
@@ -364,9 +371,9 @@ export const mockImportRows: ImportRow[] = [
 // The made-up connection details shown on the API setup screen.
 export const mockApiConnection = {
   apiKey: 'sxm_live_8f2b41d9c7e04a6b93razz',
-  pushEndpoint: 'https://api.sxmrentals.com/v1/providers/p1/inventory',
+  pushEndpoint: 'https://api.sxmrentals.app/v1/providers/p1/inventory',
   bookingsWebhook: 'https://your-system.example.com/sxm/bookings',
-  docsUrl: 'https://developers.sxmrentals.com',
+  docsUrl: 'https://developers.sxmrentals.app',
 };
 
 export function findProviderBooking(id: string): ProviderBooking | undefined {

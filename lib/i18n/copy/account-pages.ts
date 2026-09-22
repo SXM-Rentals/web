@@ -924,11 +924,14 @@ export const accountPages = {
     fr: 'Envoyez-nous un message',
     es: 'Envíenos un mensaje',
   },
+  // Still says nothing was sent, because nothing was: there is no support
+  // address on the API. The reason changed, though — it is no longer "there is
+  // no backend", so the sentence no longer says that.
   'acct.support.thanks': {
-    en: 'Thanks — in the finished site this would reach the support team, who reply by email. Nothing has actually been sent, because there is no backend yet.',
-    nl: 'Bedankt — in de definitieve site zou dit bij het supportteam terechtkomen, dat per e-mail antwoordt. Er is niets echt verstuurd, omdat er nog geen backend is.',
-    fr: 'Merci — sur le site final, ce message parviendrait à l’équipe d’assistance, qui répond par e-mail. Rien n’a réellement été envoyé, car il n’y a pas encore de backend.',
-    es: 'Gracias: en el sitio final esto llegaría al equipo de soporte, que responde por correo. No se ha enviado nada de verdad, porque todavía no hay backend.',
+    en: 'Thanks — in the finished site this would reach the support team, who reply by email. Nothing has actually been sent: this form is not connected yet.',
+    nl: 'Bedankt — in de definitieve site zou dit bij het supportteam terechtkomen, dat per e-mail antwoordt. Er is niets echt verstuurd: dit formulier is nog niet aangesloten.',
+    fr: 'Merci — sur le site final, ce message parviendrait à l’équipe d’assistance, qui répond par e-mail. Rien n’a réellement été envoyé : ce formulaire n’est pas encore connecté.',
+    es: 'Gracias: en el sitio final esto llegaría al equipo de soporte, que responde por correo. No se ha enviado nada de verdad: este formulario aún no está conectado.',
   },
   'acct.support.aboutLabel': {
     en: 'What Is It About?',

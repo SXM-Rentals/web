@@ -44,7 +44,11 @@ export function MessagesView({ threadId }: { threadId?: string }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [draft, setDraft] = useState('');
-  // Messages typed during this visit. There is no backend, so they live only
+  // Messages typed during this visit.
+  //
+  // THE BACKEND CAN NOW TAKE THESE — POST /messages/threads/:id/messages
+  // exists. This screen is not wired to it yet; sending, and the rest of the
+  // signed-in screens, are the next pass. Until then a message lives only
   // here — which is said plainly underneath rather than pretending otherwise.
   const [sent, setSent] = useState<ChatMessage[]>([]);
 

@@ -26,6 +26,7 @@ import { cx } from '@/lib/utils';
 import { Button, Card, Icon, StatusPill, Text } from '@/components/ui';
 import type { VerificationStatus } from '@/types';
 import styles from '../auth.module.css';
+import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
 
 const STATE: Record<
@@ -129,6 +130,8 @@ function VerifyStatus() {
           <Icon name={state.icon} size={38} />
         </span>
       </div>
+
+      <NotConnectedNotice what="The identity check" />
 
       <div className={styles.head} style={{ textAlign: 'center', alignItems: 'center' }}>
         <StatusPill label={state.pill} tone={state.pillTone} />

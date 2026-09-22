@@ -14,6 +14,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, Icon, Input, Text, SegmentedControl } from '@/components/ui';
 import styles from '../auth.module.css';
+import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
 
 const CODES = [
@@ -35,6 +36,8 @@ export default function PhonePage() {
 
   return (
     <>
+      <NotConnectedNotice what="Confirming a phone number by text" />
+
       <div className={styles.head}>
         <Text variant="h1" as="h1" raw>
           {t('authp.phone.title')}

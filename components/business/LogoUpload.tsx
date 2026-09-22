@@ -10,9 +10,10 @@
 // deliberate rather than broken, and adding a logo later changes what is inside
 // the circle without moving anything around it.
 //
-// NOTHING IS UPLOADED ANYWHERE. There is no backend and no file storage, so the
-// picture is shown straight from the visitor's own computer using a temporary
-// address the browser creates for it. That address is released again whenever
+// NOTHING IS UPLOADED ANYWHERE. There is a backend now, but it has nowhere to
+// put a file — no upload address and no file storage — so the picture is shown
+// straight from the visitor's own computer using a temporary address the
+// browser creates for it. That address is released again whenever
 // the picture is replaced or removed — a browser holds the whole file in memory
 // for as long as one exists, so leaving them behind quietly leaks memory every
 // time somebody tries another logo.

@@ -14,8 +14,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findProvider } from '@/lib/mock/providers';
-import { mockVehicles } from '@/lib/mock/vehicles';
+import { providerPageData } from './data';
 import { longDate, sideLabels } from '@/lib/format';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Avatar, Card, EmptyState, Icon, StarRow, StatusPill, Text } from '@/components/ui';
@@ -28,9 +27,14 @@ import { T } from '@/components/i18n/T';
 
 type PageProps = { params: Promise<{ id: string }> };
 
+// No `export const revalidate` here on purpose — on a page with an [id] in
+// its address it does nothing. The caching is at the fetch, in ./data.ts.
+// The long version of why is on app/(site)/vehicles/[id]/page.tsx.
+
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const provider = findProvider(id);
+  const { provider } = await providerPageData(id);
   if (!provider) return { title: 'Rental business not found' };
 
   return {
@@ -44,11 +48,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProviderPage({ params }: PageProps) {
   const { id } = await params;
-  const provider = findProvider(id);
-  if (!provider) notFound();
+  const { provider, fleet } = await providerPageData(id);
 
-  // Every car this business has listed.
-  const fleet = mockVehicles.filter((vehicle) => vehicle.providerId === provider.id);
+  // Only a business the backend has actually said does not exist gets a 404.
+  // A cold server throws instead and app/error.tsx offers to try again —
+  // answering 404 for that deindexes a business that is still trading.
+  if (!provider) notFound();
 
   return (
     <div className="container">

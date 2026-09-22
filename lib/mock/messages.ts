@@ -1,6 +1,15 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// MOCK DATA — sample content for UI development. No backend is connected.
+// SAMPLE DATA — not what the site shows by default any more.
+//
+// The backend is connected. Everything here is the fallback the catalogue
+// switch in lib/api/source.ts turns on, kept because the live database is
+// still empty and an empty site is harder to work on than a full one.
+//
+// THIS WHOLE FOLDER IS FOR DELETING. Nothing real may live in it — see
+// lib/constants.ts and lib/content/legal.ts, both of which were moved out
+// for exactly that reason. Do not delete it before every screen reads
+// through lib/api-client.ts, or the site breaks all at once.
 // WHAT THIS FILE DOES: Made-up conversations between the customer and the
 // rental businesses, filling the Messages tab and the chat screen. Nothing is
 // sent or received — typing a message here only updates what is on screen.

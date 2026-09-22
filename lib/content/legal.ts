@@ -1,14 +1,24 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-// MOCK DATA — sample content for UI development. No backend is connected.
 // WHAT THIS FILE DOES: The list of all 19 policy documents SXM Rentals needs
 // before launch, taken from the Overview document, grouped into the three
 // groups it describes.
 //
+// ---- WHY THIS LIVES IN lib/content/ AND NOT lib/mock/ ----
+//
+// It used to sit in lib/mock/, next to the made-up cars, and that was going to
+// end badly. lib/mock/ is deleted once every screen reads from the backend.
+// This is not sample data waiting to be replaced by a real version — it is the
+// real thing, and it is never coming from the backend. There is no /legal
+// endpoint on the API and there is not going to be one: these are nineteen
+// fixed documents, not records that change. Deleting a folder of sample data
+// should not be able to take the terms of service with it.
+//
 // IMPORTANT: the headings below are real — they are what each document has to
 // cover. The wording underneath is a placeholder. A local lawyer still has to
 // write and approve the actual text, because this platform handles payments,
-// identity documents and operates across two legal jurisdictions.
+// identity documents and operates across two legal jurisdictions. Replacing
+// that wording is an edit to this file, not a backend job.
 
 import type { LegalDocument } from '@/types';
 

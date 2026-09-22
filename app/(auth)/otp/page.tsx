@@ -22,6 +22,7 @@ import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, Icon, Text } from '@/components/ui';
 import styles from '../auth.module.css';
+import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
 
 const LENGTH = 6;
@@ -90,6 +91,8 @@ export default function OtpPage() {
 
   return (
     <>
+      <NotConnectedNotice what="Sending and checking a code by text" />
+
       <div className={styles.head}>
         <Text variant="h1" as="h1" raw>
           {t('authp.otp.title')}

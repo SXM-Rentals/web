@@ -10,7 +10,7 @@
 // weeks later as pages that will not rank. These are exactly the sort of
 // mistakes a test catches and a person does not.
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import sitemap from '@/app/sitemap';
 import robots from '@/app/robots';
 import {
@@ -23,7 +23,7 @@ import {
 } from '@/lib/seo';
 import { mockVehicles } from '@/lib/mock/vehicles';
 import { mockProviders } from '@/lib/mock/providers';
-import { legalDocuments } from '@/lib/mock/legal';
+import { legalDocuments } from '@/lib/content/legal';
 
 describe('canonical addresses', () => {
   it('builds a full address from a path', () => {
@@ -49,8 +49,22 @@ describe('canonical addresses', () => {
 });
 
 describe('the sitemap', () => {
-  const entries = sitemap();
-  const urls = entries.map((entry) => entry.url);
+  // ---- WHY THIS IS NOW AWAITED ----
+  //
+  // The sitemap used to read the sample data straight out of a file, so it
+  // could be built on the spot. It now asks the api-client, which means it is
+  // a promise even when the answer comes from the sample data.
+  //
+  // The catalogue switch is off in tests, so api-client hands back the same
+  // sample cars these assertions were always written against — nothing about
+  // what is being checked has changed, only when it is available.
+  let entries: Awaited<ReturnType<typeof sitemap>>;
+  let urls: string[];
+
+  beforeAll(async () => {
+    entries = await sitemap();
+    urls = entries.map((entry) => entry.url);
+  });
 
   it('lists the homepage, the search page and the legal index', () => {
     expect(urls).toContain(SITE_URL);

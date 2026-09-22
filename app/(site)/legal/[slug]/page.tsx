@@ -15,7 +15,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { legalDocuments, findLegalDocument, legalTierLabels } from '@/lib/mock/legal';
+import { legalDocuments, findLegalDocument, legalTierLabels } from '@/lib/content/legal';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button, Icon, StatusPill, Text } from '@/components/ui';
 import { JsonLd } from '@/components/seo/JsonLd';

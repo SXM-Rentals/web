@@ -165,8 +165,12 @@ export function SearchView() {
   // ---- FETCH THE CARS ----
   // Re-runs whenever any filter changes, which is what makes the results update
   // live rather than needing an "Apply" button.
-  const { data: vehicles, loading, error, refresh } = useAsyncData(
-    () =>
+  const { data: vehicles, loading, slow, error, refresh } = useAsyncData(
+    // The signal is passed straight through, so a search that has been
+    // superseded is actually cancelled rather than left running. Typing
+    // "jeep" sends four requests; three of them are abandoned before they
+    // finish, and this is what stops them arriving afterwards.
+    (signal) =>
       apiClient.listVehicles({
         search: filters.q || undefined,
         classes: filters.classes.length ? filters.classes : undefined,
@@ -178,7 +182,7 @@ export function SearchView() {
         deliveryOnly: filters.deliveryOnly || undefined,
         side: filters.side,
         sort: filters.sort,
-      }),
+      }, { signal }),
     [
       filters.q,
       filters.classes.join(','),
@@ -243,15 +247,32 @@ export function SearchView() {
   const renderResults = () => {
     if (loading) {
       return (
-        <div className={styles.grid}>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div key={index} className={styles.skeletonCard}>
-              <Skeleton height={150} radius="var(--radius-lg)" />
-              <Skeleton width="70%" />
-              <Skeleton width="45%" height={13} />
+        <>
+          {/* ---- WHEN IT IS TAKING A WHILE ----
+              The backend is on a free plan and stops after a quiet spell; the
+              first request after that can take most of a minute while it
+              starts up. Measured at thirteen seconds on an ordinary morning.
+              Thirteen seconds of grey blocks and nothing else is
+              indistinguishable from a broken page, and people leave. One
+              sentence is the whole difference. */}
+          {slow ? (
+            <div className={styles.wakingUp} role="status">
+              <Text variant="small" tone="ink2" raw>
+                {t('search.wakingUp')}
+              </Text>
             </div>
-          ))}
-        </div>
+          ) : null}
+
+          <div className={styles.grid}>
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className={styles.skeletonCard}>
+                <Skeleton height={150} radius="var(--radius-lg)" />
+                <Skeleton width="70%" />
+                <Skeleton width="45%" height={13} />
+              </div>
+            ))}
+          </div>
+        </>
       );
     }
 

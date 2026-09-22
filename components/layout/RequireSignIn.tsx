@@ -15,9 +15,18 @@
 //   3. It explains why. "Sign in to see your rentals" is a reason; a bare sign-in
 //      form appearing where a page should be is not.
 //
-// This is only a front-of-house courtesy, not security. There is no backend yet,
-// and when there is one, the real protection has to be there — a check in the
-// browser can always be bypassed by whoever is holding the browser.
+// ---- THIS IS A COURTESY, NOT SECURITY, AND THAT MATTERS MORE NOW ----
+//
+// Every check here happens in the browser, and a check in the browser can
+// always be bypassed by whoever is holding the browser. That was a theoretical
+// point while the data was made up. It is not any more: the pages behind this
+// now ask the backend for somebody's real bookings and messages.
+//
+// What makes that safe is that the backend does its own checking. The session
+// lives in a cookie the browser cannot read, every private request is sent
+// with it, and the backend answers 401 to anyone it does not recognise —
+// whatever this component decided. So removing this would leak nothing; it
+// would only replace a clear explanation with a row of failed requests.
 
 import React from 'react';
 import { usePathname } from 'next/navigation';

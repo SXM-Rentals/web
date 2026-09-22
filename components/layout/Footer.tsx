@@ -15,7 +15,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { legalDocuments, legalTierLabels } from '@/lib/mock/legal';
+import { legalDocuments, legalTierLabels } from '@/lib/content/legal';
 import type { LegalDocument } from '@/types';
 import { Logo, Text } from '@/components/ui';
 import { FooterSocial } from './FooterSocial';

@@ -151,23 +151,37 @@ export function HomeContent({ previewVehicles }: { previewVehicles: Vehicle[] })
 
         <VehicleTypeCards className={styles.types} />
 
-        <div className={styles.previewHead}>
-          <Text variant="h2" as="h3" raw>
-            {t('home.browse.available')}
-          </Text>
-          <Button
-            label={t('home.browse.seeAll')}
-            href="/search"
-            variant="outline"
-            size="sm"
-          />
-        </div>
+        {/* ---- WHY THE HEADING IS TIED TO HAVING CARS ----
+            "Available now" above an empty row reads as a page that failed to
+            load, and this is the homepage. When the preview is empty — the
+            catalogue is empty, or the fetch failed and app/(site)/page.tsx
+            chose to keep the page standing — the heading and the empty grid
+            both go, and the way through to the full search stays. */}
+        {previewVehicles.length > 0 ? (
+          <>
+            <div className={styles.previewHead}>
+              <Text variant="h2" as="h3" raw>
+                {t('home.browse.available')}
+              </Text>
+              <Button
+                label={t('home.browse.seeAll')}
+                href="/search"
+                variant="outline"
+                size="sm"
+              />
+            </div>
 
-        <div className={styles.cars}>
-          {previewVehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
-          ))}
-        </div>
+            <div className={styles.cars}>
+              {previewVehicles.map((vehicle) => (
+                <VehicleCard key={vehicle.id} vehicle={vehicle} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className={styles.previewHead}>
+            <Button label={t('home.browse.seeAll')} href="/search" variant="outline" size="sm" />
+          </div>
+        )}
       </section>
 
       {/* ==================== WHY SXM RENTALS ==================== */}

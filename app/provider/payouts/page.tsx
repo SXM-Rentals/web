@@ -20,7 +20,7 @@ import React from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { dateRange, longDate, money } from '@/lib/format';
-import { COMMISSION_RATE } from '@/lib/mock/business';
+import { COMMISSION_RATE } from '@/lib/constants';
 import {
   Card,
   EmptyState,

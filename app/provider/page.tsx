@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { findVehicle } from '@/lib/mock/vehicles';
-import { COMMISSION_RATE } from '@/lib/mock/business';
+import { COMMISSION_RATE } from '@/lib/constants';
 import { money, longDate, dateRange, relativeDay } from '@/lib/format';
 import { useBusiness } from '@/lib/business';
 import {
@@ -79,6 +79,26 @@ export default function ProviderDashboardPage() {
     .slice(0, 5);
 
   // What the pending payout is worth, shown with its commission alongside.
+  //
+  // ---- THESE TWO ARE WORKED BACKWARDS, AND THAT IS A KNOWN PROBLEM ----
+  //
+  // /providers/me/summary reports only the net — what will land in the
+  // business's account. Rule 3 says a business must see all three numbers
+  // together, so the gross and the commission are reconstructed here from the
+  // rate we hold a copy of. See the warning in lib/constants.ts: this is the
+  // one calculation that file says not to do.
+  //
+  // It is done anyway because the alternative is worse. Showing the net alone
+  // gives a business no way to check the deduction, which is the entire point
+  // of the rule. So the figures are shown, and the shortcut is written down
+  // here rather than hidden.
+  //
+  // WHAT MAKES IT RIGHT: the backend returning `pendingGross` and
+  // `pendingCommission` on the summary, the way every individual payout
+  // already carries them. Filed as a backend ask in
+  // docs/backend-asks.md. Until then, if the rate the backend bills
+  // at ever differs from the copy here, these two numbers are wrong and the
+  // net beside them is right.
   const pendingGross = data.pending > 0 ? data.pending / (1 - COMMISSION_RATE) : 0;
   const pendingCommission = pendingGross - data.pending;
 

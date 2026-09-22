@@ -17,9 +17,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findVehicle } from '@/lib/mock/vehicles';
-import { findProvider } from '@/lib/mock/providers';
-import { reviewsForVehicle } from '@/lib/mock/reviews';
+import { vehiclePageData } from './data';
 import {
   money,
   sideLabels,
@@ -47,9 +45,29 @@ type PageProps = { params: Promise<{ id: string }> };
 // ---- WHAT SEARCH ENGINES AND SHARED LINKS SHOW ----
 // Built from the actual car, so a link posted in a message shows the make, model
 // and price rather than a generic site description.
+// ---- WHERE THIS PAGE'S CACHING LIVES, WHICH IS NOT HERE ----
+//
+// There is deliberately no `export const revalidate` on this file. It would
+// do nothing: a page with an [id] in its address and no generateStaticParams
+// is rendered fresh for every visitor, and Next.js ignores the setting. That
+// was measured, not assumed — the page came back with "no-store" and hit the
+// backend on every single load with the line in place.
+//
+// The caching is at the fetch instead, in ./data.ts. That turned out to be
+// the better place anyway, for a reason worth knowing: when a page built this
+// way FAILS, app/error.tsx catches it and offers to try again. A page cached
+// the other way cannot use app/error.tsx — the error page is part of the page
+// that did not get built — so Next.js falls back to a bare, untranslated
+// "500: Internal Server Error". Also measured.
+//
+// So this page stays rendered-per-visit and its DATA is what is shared. The
+// backend is hit once every five minutes rather than once per visitor, and
+// while it is down the cached answer keeps being served.
+
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const { vehicle } = await vehiclePageData(id);
 
   if (!vehicle) return { title: 'Car not found' };
 
@@ -73,14 +91,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function VehiclePage({ params }: PageProps) {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const { vehicle, provider, reviews } = await vehiclePageData(id);
 
-  // A made-up address, or a car that has been removed, gets a proper 404 rather
-  // than an empty page that looks like something failed to load.
+  // A made-up address, or a car that has been taken down, gets a proper 404.
+  //
+  // NOTE WHAT IS NOT HAPPENING HERE. Only a car the backend has actually said
+  // does not exist reaches this line. Anything else — the server asleep, the
+  // connection dropping — is thrown instead and app/error.tsx offers to try
+  // again. Answering 404 for those would tell a search engine the car is gone
+  // for good, and it would drop the page. See lib/api-client.ts.
   if (!vehicle) notFound();
-
-  const provider = findProvider(vehicle.providerId);
-  const reviews = reviewsForVehicle(vehicle.id);
   const name = `${vehicle.make} ${vehicle.model}`;
 
   return (

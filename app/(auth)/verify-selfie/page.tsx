@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth';
 import { Button, Card, Icon, Text } from '@/components/ui';
 import styles from '../auth.module.css';
+import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
 
 type CameraState = 'idle' | 'starting' | 'live' | 'captured' | 'denied' | 'missing' | 'busy';
@@ -99,6 +100,8 @@ export default function VerifySelfiePage() {
 
   return (
     <>
+      <NotConnectedNotice what="The identity check" />
+
       <div className={styles.head}>
         <Text variant="h1" as="h1" raw>
           {t('authp.selfie.title')}

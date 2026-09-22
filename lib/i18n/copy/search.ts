@@ -325,4 +325,10 @@ export const search = {
     fr: 'Ajoutez vos dates pour voir le prix complet et réserver.',
     es: 'Añada sus fechas para ver el precio completo y reservar.',
   },
+  'search.wakingUp': {
+    en: 'The booking system is starting up. This can take up to a minute the first time.',
+    nl: 'Het boekingssysteem start op. De eerste keer kan dat tot een minuut duren.',
+    fr: 'Le système de réservation démarre. Cela peut prendre jusqu’à une minute la première fois.',
+    es: 'El sistema de reservas se está iniciando. La primera vez puede tardar hasta un minuto.',
+  },
 } satisfies Record<string, Phrase>;

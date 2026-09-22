@@ -19,7 +19,6 @@ import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { longDate, dateRange } from '@/lib/format';
 import {
-  Button,
   Card,
   EmptyState,
   Icon,
@@ -112,16 +111,12 @@ export default function DocumentsPage() {
             </Text>
           </div>
 
-          {user.verification.status !== 'approved' ? (
-            <div style={{ marginTop: 'var(--space-md)' }}>
-              <Button
-                label={t('acct.verify.continue')}
-                href="/verify-status"
-                variant="secondary"
-                size="sm"
-              />
-            </div>
-          ) : null}
+          {/* ---- THE "CONTINUE THE CHECK" BUTTON IS GONE ON PURPOSE ----
+              It led to /verify-status, and the identity check has no backend
+              yet. Offering to continue something that cannot be finished sends
+              somebody off to photograph a passport that goes nowhere. The
+              documents already sent are still listed above; only the way into
+              the unbuilt part is removed. It comes back with the endpoints. */}
         </div>
       </Card>
 

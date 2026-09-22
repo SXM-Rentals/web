@@ -206,3 +206,18 @@
   flex-direction: column;
   gap: var(--space-sm);
 }
+
+/* ---- "IT IS STARTING UP" ----
+   Sits above the loading blocks when a request has been going for more than a
+   few seconds. Quiet on purpose: it is an explanation, not a warning. Nothing
+   has gone wrong — the backend is on a free plan and stops after a quiet
+   spell, and the first request after that pays the cost of waking it. */
+.wakingUp {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--tile);
+}

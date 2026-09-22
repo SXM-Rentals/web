@@ -23,6 +23,7 @@ import { useSession } from '@/lib/auth';
 import { cx } from '@/lib/utils';
 import { Button, Card, Icon, SegmentedControl, Text } from '@/components/ui';
 import styles from '../auth.module.css';
+import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
 
 type Slot = 'license' | 'identityDoc';
@@ -124,6 +125,8 @@ export default function VerifyIdPage() {
 
   return (
     <>
+      <NotConnectedNotice what="The identity check" />
+
       <div className={styles.head}>
         <Text variant="h1" as="h1" raw>
           {t('authp.id.title')}

@@ -11,8 +11,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findVehicle } from '@/lib/mock/vehicles';
-import { reviewsForVehicle } from '@/lib/mock/reviews';
+import { vehicleReviewsData } from '../data';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, EmptyState, StarRow, Text } from '@/components/ui';
 import { ReviewCard } from '@/components/vehicle/ReviewCard';
@@ -21,9 +20,14 @@ import { T } from '@/components/i18n/T';
 
 type PageProps = { params: Promise<{ id: string }> };
 
+// No `export const revalidate` here on purpose — on a page with an [id] in
+// its address it does nothing. The caching is at the fetch, in ./data.ts.
+// The long version of why is on app/(site)/vehicles/[id]/page.tsx.
+
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const { vehicle } = await vehicleReviewsData(id);
   if (!vehicle) return { title: 'Car not found' };
 
   return {
@@ -36,10 +40,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function VehicleReviewsPage({ params }: PageProps) {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const { vehicle, reviews } = await vehicleReviewsData(id);
+
+  // Only a car the backend has actually said does not exist gets a 404. A
+  // server that was asleep throws instead, and app/error.tsx offers to try
+  // again — answering 404 for that would tell a crawler the car is gone.
   if (!vehicle) notFound();
 
-  const reviews = reviewsForVehicle(vehicle.id);
   const name = `${vehicle.make} ${vehicle.model}`;
 
   // How many reviews gave each number of stars, counted down from five so the

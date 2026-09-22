@@ -57,23 +57,31 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
   ];
 
   const confirm = async () => {
+    // A booking with no dates cannot be made, and the backend would refuse it.
+    // Refusing here says something useful instead of sending a request that
+    // comes back as a validation error the person cannot act on. The steps
+    // before this should make it impossible to arrive without dates; this is
+    // the belt to that pair of braces.
+    if (!trip.startDate || !trip.endDate) {
+      setError('Please choose your dates before confirming.');
+      return;
+    }
+
     setWorking(true);
     setError(undefined);
 
     try {
-      // Nothing is really reserved and nothing is really charged — there is no
-      // backend. This creates a pretend booking so the success page has
-      // something real-shaped to show.
+      // Only the trip is sent. The price, the reference and the deposit are
+      // worked out by the backend and come back on the booking — deliberately,
+      // because it is the backend that actually charges. Sending our own
+      // figures would mean two sets of pricing rules, and the first time one
+      // of them changed they would quietly disagree.
       await apiClient.createBooking({
         vehicleId: vehicle.id,
-        providerId: vehicle.providerId,
         startDate: trip.startDate,
         endDate: trip.endDate,
         collection: trip.collection,
         location: trip.collection === 'delivery' ? trip.location : vehicle.pickupTown,
-        lines,
-        depositAmount: vehicle.depositAmount,
-        totalDueToday: total,
       });
 
       router.push(`/booking/${vehicle.id}/done`);

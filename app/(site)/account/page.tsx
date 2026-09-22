@@ -39,6 +39,16 @@ import { useTranslation, type TranslationKey } from '@/lib/i18n';
 //
 // The wording is held as keys rather than words. This sits above the component,
 // where t() cannot be called, so each one is looked up at the point it is drawn.
+//
+// ---- WHY THREE OF THESE HAVE LOST THEIR BUTTON ----
+//
+// "Start the check", "Try again" and "Finish the check" all led to
+// /verify-status, and the identity check has no backend. A button that starts
+// something which cannot finish is worse than no button: somebody presses it,
+// walks through four screens, photographs their passport, and nothing was ever
+// sent. The status is still shown — it is true and worth knowing — and the
+// button comes back with the endpoints. The `action` and `href` fields are
+// kept on the type for that reason.
 const VERIFICATION: Record<
   VerificationStatus,
   {
@@ -53,8 +63,6 @@ const VERIFICATION: Record<
     label: 'acct.verify.notStarted',
     tone: 'neutral',
     body: 'acct.verify.notStartedBody',
-    action: 'acct.verify.startCheck',
-    href: '/verify-status',
   },
   pending: {
     label: 'acct.verify.checking',
@@ -70,15 +78,11 @@ const VERIFICATION: Record<
     label: 'acct.verify.rejected',
     tone: 'danger',
     body: 'acct.verify.rejectedBody',
-    action: 'acct.verify.tryAgain',
-    href: '/verify-status',
   },
   resubmit: {
     label: 'acct.verify.resubmit',
     tone: 'warning',
     body: 'acct.verify.resubmitBody',
-    action: 'acct.verify.finishCheck',
-    href: '/verify-status',
   },
 };
 

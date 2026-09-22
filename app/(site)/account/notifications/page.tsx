@@ -43,8 +43,12 @@ const KIND_ICON: Record<NotificationKind, 'checkmark-circle-outline' | 'card-out
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
-  // Marking things read only lasts for this visit — there is no backend to
-  // remember it. Said plainly at the bottom rather than pretended otherwise.
+  // Marking things read only lasts for this visit.
+  //
+  // THE BACKEND CAN NOW REMEMBER IT — POST /notifications/:id/read and
+  // /notifications/read-all both exist. This screen is not wired to them yet;
+  // the signed-in screens are the next pass. Said plainly at the bottom rather
+  // than pretended otherwise.
   const [readIds, setReadIds] = useState<string[]>([]);
 
   const { data: notifications, loading, error, refresh } = useAsyncData(
@@ -155,8 +159,8 @@ export default function NotificationsPage() {
       <div className={styles.note}>
         <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
         <Text variant="small" tone="ink3">
-          Demo mode — marking things as read lasts only until this page is reloaded,
-          because there is no backend to remember it yet.
+          Marking things as read lasts only until this page is reloaded. Keeping
+          it is not connected yet.
         </Text>
       </div>
     </div>

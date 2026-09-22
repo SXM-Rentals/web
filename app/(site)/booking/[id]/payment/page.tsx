@@ -8,7 +8,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { apiClient } from '@/lib/api-client';
 import { BookingPaymentStep } from '@/components/booking/BookingPaymentStep';
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -19,9 +19,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Never cached, for the reason spelled out on the first step of this flow —
+// app/(site)/booking/[id]/page.tsx. The figures here are about to be charged.
+export const dynamic = 'force-dynamic';
+
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
-  const vehicle = findVehicle(id);
+  const vehicle = await apiClient.getVehicle(id);
+  // Only a car the backend has actually said does not exist gets a 404.
+  // A cold server throws instead, and app/error.tsx offers to try again.
   if (!vehicle) notFound();
 
   return <BookingPaymentStep vehicle={vehicle} />;

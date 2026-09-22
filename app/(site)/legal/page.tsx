@@ -14,7 +14,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { canonical } from '@/lib/seo';
 import Link from 'next/link';
-import { legalDocuments, legalTierLabels } from '@/lib/mock/legal';
+import { legalDocuments, legalTierLabels } from '@/lib/content/legal';
 import type { LegalDocument } from '@/types';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Icon, Text } from '@/components/ui';
