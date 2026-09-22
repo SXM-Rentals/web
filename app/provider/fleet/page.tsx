@@ -11,12 +11,18 @@
 //
 // Revenue shown per vehicle is the business's own share after commission, in
 // line with every other figure in the portal.
+//
+// EVERY CAR SAYS WHETHER CUSTOMERS CAN SEE IT. A car just added waits for
+// staff approval before it appears in search, and only a live car has a public
+// page to link to — for any other, "view listing" would open "not found".
+//
+// The figures come separately from the cars. If they cannot be fetched, the
+// fleet is still shown, without them.
 
 import React from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { performanceForVehicle } from '@/lib/mock/business';
 import { money, perDay, vehicleClassLabels } from '@/lib/format';
 import {
   Button,
@@ -30,15 +36,23 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
+import { ListingStatusPill } from '@/components/business/ListingStatusPill';
 import styles from '../provider.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 export default function ProviderFleetPage() {
   const { t } = useTranslation();
-  const { data: fleet, loading, error, refresh } = useAsyncData(
-    () => apiClient.getMyFleet(),
-    [],
-  );
+  const { data, loading, error, refresh } = useAsyncData(async (signal) => {
+    const [fleet, performance] = await Promise.all([
+      apiClient.getMyFleet(signal),
+      // The figures are a nicety; the fleet is the page.
+      apiClient.getFleetPerformance(signal).catch(() => null),
+    ]);
+    return { fleet, performance };
+  }, []);
+  const fleet = data?.fleet;
+  const performanceFor = (vehicleId: string) =>
+    data?.performance?.find((row) => row.vehicleId === vehicleId);
 
   const renderBody = () => {
     if (loading) {
@@ -68,7 +82,7 @@ export default function ProviderFleetPage() {
     return (
       <div className={styles.fleetGrid}>
         {fleet.map((vehicle) => {
-          const performance = performanceForVehicle(vehicle.id);
+          const performance = performanceFor(vehicle.id);
 
           return (
             <Card key={vehicle.id} padded={false} flush>
@@ -84,6 +98,10 @@ export default function ProviderFleetPage() {
                   <Text variant="small" tone="ink3" raw>
                     {`${vehicle.year} · ${vehicleClassLabels[vehicle.vehicleClass]} · ${vehicle.seats} seats`}
                   </Text>
+                </div>
+
+                <div>
+                  <ListingStatusPill status={vehicle.listingStatus} />
                 </div>
 
                 <StarRow rating={vehicle.rating} reviewCount={vehicle.reviewCount} size={13} />
@@ -133,12 +151,14 @@ export default function ProviderFleetPage() {
                     variant="secondary"
                     size="sm"
                   />
-                  <Button
-                    label={t('pp.fleet.viewListing')}
-                    href={`/vehicles/${vehicle.id}`}
-                    variant="ghost"
-                    size="sm"
-                  />
+                  {vehicle.listingStatus === 'live' ? (
+                    <Button
+                      label={t('pp.fleet.viewListing')}
+                      href={`/vehicles/${vehicle.id}`}
+                      variant="ghost"
+                      size="sm"
+                    />
+                  ) : null}
                 </div>
               </div>
             </Card>
@@ -164,12 +184,6 @@ export default function ProviderFleetPage() {
 
         <div className={styles.headActions}>
           <Button label="Add a vehicle" href="/provider/fleet/add" size="sm" />
-          <Button
-            label={t('pp.import.title')}
-            href="/provider/fleet/import"
-            variant="outline"
-            size="sm"
-          />
         </div>
       </div>
 

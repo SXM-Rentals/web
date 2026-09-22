@@ -198,9 +198,11 @@ export default function RentalDetailPage({ params }: PageProps) {
                       variant="outline"
                       size="sm"
                     />
+                    {/* Into this rental's own conversation, starting it if
+                        there is none yet — see message/page.tsx. */}
                     <Button
                       label={t('acct.rental.messageBusiness')}
-                      href="/account/messages"
+                      href={`/account/rentals/${booking.id}/message`}
                       variant="ghost"
                       size="sm"
                     />
@@ -348,7 +350,7 @@ export default function RentalDetailPage({ params }: PageProps) {
               <div className={styles.note}>
                 <Icon name="time-outline" size={16} color="var(--ink2)" />
                 <Text variant="small" tone="ink2" raw>
-                  {`Collection ${relativeDay(booking.startDate).toLowerCase()}. The business will confirm exactly where through SXM Rentals messages.`}
+                  {`Collection ${relativeDay(booking.startDate).toLowerCase()}. To confirm exactly where, message the business through SXM Rentals.`}
                 </Text>
               </div>
             </Card>

@@ -17,12 +17,20 @@
 //
 // EVERY MONEY FIGURE IS THE BUSINESS'S OWN SHARE, with what the customer paid
 // and the commission shown beside it rather than hidden.
+//
+// ---- A CANCELLED BOOKING PAYS NOTHING, AND SAYS SO ----
+//
+// The backend keeps a cancelled booking's original figures. Shown as they are,
+// a cancelled rental would read "you receive $210" — money that is never
+// coming. So a cancelled row shows no amount, and its deposit is "not held":
+// the backend marks it "released" on cancelling even when no hold was ever
+// placed, and "returned" would describe a hold that may never have existed.
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { useFleetLookup } from '@/hooks/useFleet';
 import { dateRange, money } from '@/lib/format';
 import {
   Card,
@@ -61,13 +69,20 @@ export default function ProviderBookingsPage() {
     () => apiClient.getProviderBookings(),
     [],
   );
+  // Car names, from the business's own fleet — see hooks/useFleet.ts.
+  const cars = useFleetLookup();
 
+  // What is coming up reads soonest first; what is over, latest first.
   const shown = useMemo(() => {
     if (!bookings) return [];
     if (tab === 'past') {
-      return bookings.filter((b) => b.status === 'completed' || b.status === 'cancelled');
+      return bookings
+        .filter((b) => b.status === 'completed' || b.status === 'cancelled')
+        .sort((a, b) => b.startDate.localeCompare(a.startDate));
     }
-    return bookings.filter((b) => b.status === tab);
+    return bookings
+      .filter((b) => b.status === tab)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate));
   }, [bookings, tab]);
 
   const counts = useMemo(() => {
@@ -80,7 +95,7 @@ export default function ProviderBookingsPage() {
   }, [bookings]);
 
   const renderBody = () => {
-    if (loading) return <Skeleton height={320} radius="var(--radius-lg)" />;
+    if (loading || cars.loading) return <Skeleton height={320} radius="var(--radius-lg)" />;
     if (error) return <ErrorState message={error} onRetry={refresh} />;
 
     if (shown.length === 0) {
@@ -124,16 +139,16 @@ export default function ProviderBookingsPage() {
 
           <tbody>
             {shown.map((booking) => {
-              const vehicle = findVehicle(booking.vehicleId);
+              const cancelled = booking.status === 'cancelled';
               const status = STATUS_LOOK[booking.status];
-              const deposit = DEPOSIT_LOOK[booking.depositStatus];
+              const deposit = cancelled ? DEPOSIT_LOOK.not_taken : DEPOSIT_LOOK[booking.depositStatus];
 
               return (
                 <tr key={booking.id}>
                   <td>
                     <Link href={`/provider/bookings/${booking.id}`}>
                       <Text variant="label" as="span" raw>
-                        {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}
+                        {cars.name(booking.vehicleId)}
                       </Text>
                     </Link>
                     <Text variant="caption" tone="ink3" raw>
@@ -178,12 +193,25 @@ export default function ProviderBookingsPage() {
                   {/* The net figure leads, with the gross and the commission
                       underneath so the deduction is checkable. */}
                   <td className={styles.numeric}>
-                    <Text variant="label" as="span" raw>
-                      {money(booking.netAmount)}
-                    </Text>
-                    <Text variant="caption" tone="ink3" raw>
-                      {`${money(booking.grossAmount)} − ${money(booking.commission)}`}
-                    </Text>
+                    {cancelled ? (
+                      <>
+                        <Text variant="label" as="span" tone="ink3" raw>
+                          —
+                        </Text>
+                        <Text variant="caption" tone="ink3" raw>
+                          {t('pp.bookings.cancelledNoPayout')}
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Text variant="label" as="span" raw>
+                          {money(booking.netAmount)}
+                        </Text>
+                        <Text variant="caption" tone="ink3" raw>
+                          {`${money(booking.grossAmount)} − ${money(booking.commission)}`}
+                        </Text>
+                      </>
+                    )}
                   </td>
 
                   <td>

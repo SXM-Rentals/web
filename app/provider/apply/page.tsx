@@ -15,16 +15,37 @@
 // has filled in a form and uploaded documents would be a poor way to start a
 // commercial relationship, and it is the first thing any rental company will
 // want to know.
+//
+// ---- IT IS SENT FOR REAL, AND NEEDS AN ACCOUNT ----
+//
+// The application goes to the backend (POST /providers/apply), which links the
+// new business to whoever is signed in — so the page asks somebody to sign in
+// first, and comes back here afterwards. Somebody whose account already has a
+// business is sent to its dashboard instead of being asked to register again.
+//
+// The backend needs three things the form did not use to ask: the registered
+// (legal) name, the town the business is based in, and its side of the island,
+// which comes with the town. It no longer asks whether the business already
+// uses booking software, because nothing kept the answer.
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api-client';
+import { isApiError, type FieldError } from '@/lib/api/errors';
+import { useSession } from '@/lib/auth';
+import { useBusiness } from '@/lib/business';
+import { findTown } from '@/lib/content/towns';
+import { RequireSignIn } from '@/components/layout/RequireSignIn';
+import { TownPicker } from '@/components/business/TownPicker';
 import {
   Button,
   Card,
   Checkbox,
+  ErrorState,
   Icon,
   Input,
   SegmentedControl,
+  Skeleton,
   StepIndicator,
   Text,
   TextArea,
@@ -36,22 +57,167 @@ import { useTranslation } from '@/lib/i18n';
 
 const STEPS = ['Your Business', 'Your Fleet', 'Confirm'];
 
+// Enough of an email address to catch a slip. The backend has the last word.
+const looksLikeEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
 export default function ProviderApplyPage() {
   const { t } = useTranslation();
-  const [step, setStep] = useState(1);
-  const [done, setDone] = useState(false);
+  return (
+    <RequireSignIn title={t('pp.apply.signInTitle')} body={t('pp.apply.signInBody')}>
+      <ApplyWhenSignedIn />
+    </RequireSignIn>
+  );
+}
 
-  // Step one — who the business is.
+function ApplyWhenSignedIn() {
+  const business = useBusiness();
+  // Set once the application has gone through, so the thank-you stays on
+  // screen while the business is looked up again behind it.
+  const [applied, setApplied] = useState(false);
+
+  if (applied) return <Applied />;
+
+  if (business.loading) {
+    return (
+      <div className={styles.stack}>
+        <Skeleton height={30} width="50%" />
+        <Skeleton height={320} radius="var(--radius-lg)" />
+      </div>
+    );
+  }
+
+  if (business.error) return <ErrorState message={business.error} onRetry={business.refresh} />;
+
+  if (business.hasBusiness) return <AlreadyRegistered name={business.provider?.businessName} />;
+
+  return (
+    <ApplyForm
+      onApplied={() => {
+        setApplied(true);
+        // So the dashboard knows about the new business straight away.
+        business.refresh();
+      }}
+      // The backend says this account has a business already — most likely
+      // registered from another tab. Asking again shows it.
+      onAlreadyRegistered={business.refresh}
+    />
+  );
+}
+
+// ---- ALREADY A BUSINESS ----
+function AlreadyRegistered({ name }: { name?: string }) {
+  const { t } = useTranslation();
+  return (
+    <Card padded className={styles.stack}>
+      <Icon name="storefront-outline" size={34} color="var(--brand)" />
+      <Text variant="h2" as="h1" raw>
+        {t('pp.apply.alreadyTitle')}
+      </Text>
+      <Text variant="body" tone="ink2" raw>
+        {name
+          ? t('pp.apply.alreadyBodyNamed').replace('{business}', name)
+          : t('pp.apply.alreadyBody')}
+      </Text>
+      <div className={styles.headActions}>
+        <Button label={t('pp.apply.seeDashboard')} href="/provider" size="md" />
+      </div>
+    </Card>
+  );
+}
+
+// ---- SENT ----
+function Applied() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <div style={{ textAlign: 'center' }}>
+        <span className={`${authStyles.statusIcon} ${authStyles.statusApproved}`}>
+          <Icon name="checkmark-circle-outline" size={38} />
+        </span>
+      </div>
+
+      <div className={authStyles.head} style={{ textAlign: 'center', alignItems: 'center' }}>
+        <Text variant="h1" as="h1" align="center" raw>
+          {t('business.successTitle')}
+        </Text>
+        <Text variant="body" tone="ink2" align="center" raw>
+          {t('pp.apply.inTouch')}
+        </Text>
+      </div>
+
+      <Card padded>
+        <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-lg)' }} raw>
+          {t('flow.done.whatNext')}
+        </Text>
+
+        <div className={styles.stack}>
+          {[
+            {
+              icon: 'mail-outline' as const,
+              title: 'We check your business registration',
+              body: 'Confirming the company is real and trading. Usually a day or two.',
+            },
+            {
+              icon: 'document-outline' as const,
+              title: 'You send your vehicle documents',
+              body: 'Registration and insurance for each vehicle. This is what the SXM Verified badge actually stands for.',
+            },
+            {
+              icon: 'car-outline' as const,
+              title: 'You add your cars from your dashboard',
+              body: 'You can start now. Each car appears to customers once SXM Rentals has approved it.',
+            },
+          ].map((item) => (
+            <div key={item.title} className={styles.note} style={{ marginTop: 0 }}>
+              <Icon name={item.icon} size={18} color="var(--ink2)" />
+              <div>
+                <Text variant="label" as="h3">
+                  {item.title}
+                </Text>
+                <Text variant="small" tone="ink2">
+                  {item.body}
+                </Text>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <div className={authStyles.actions}>
+        <Button label={t('pp.apply.seeDashboard')} href="/provider" fullWidth size="lg" />
+        <Button label={t('pp.apply.backHome')} href="/" variant="ghost" size="md" fullWidth />
+      </div>
+    </>
+  );
+}
+
+// ---- THE FORM ----
+function ApplyForm({
+  onApplied,
+  onAlreadyRegistered,
+}: {
+  onApplied: () => void;
+  onAlreadyRegistered: () => void;
+}) {
+  const { t } = useTranslation();
+  const { user } = useSession();
+  const [step, setStep] = useState(1);
+
+  // Step one — who the business is. The contact starts as the person signed
+  // in, which is who it usually is; either can be changed.
   const [businessName, setBusinessName] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [side, setSide] = useState<'dutch' | 'french' | 'both'>('dutch');
+  const [legalName, setLegalName] = useState('');
+  const [contactName, setContactName] = useState(
+    user ? `${user.firstName} ${user.lastName}`.trim() : '',
+  );
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [townName, setTownName] = useState('');
+  const [operatingSide, setOperatingSide] = useState<'dutch' | 'french' | 'both'>('dutch');
   const [registered, setRegistered] = useState<'registered' | 'not_registered'>('registered');
 
   // Step two — what they have.
   const [fleetSize, setFleetSize] = useState('1-5');
-  const [hasSystem, setHasSystem] = useState<'yes' | 'no'>('no');
   const [about, setAbout] = useState('');
 
   // Step three — the agreements.
@@ -59,79 +225,68 @@ export default function ProviderApplyPage() {
   const [agreedCommission, setAgreedCommission] = useState(false);
   const [agreedDocuments, setAgreedDocuments] = useState(false);
   const [sending, setSending] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [fieldProblems, setFieldProblems] = useState<FieldError[]>([]);
 
-  const stepOneReady =
-    businessName.trim() && contactName.trim() && email.trim() && phone.trim();
+  // What still has to be filled in on step one, as a sentence rather than a
+  // silently disabled button.
+  const stepOneMissing = (): string | null => {
+    if (businessName.trim().length < 2) return 'Add the name customers know the business by.';
+    if (legalName.trim().length < 2) return 'Add the registered name — or your own full name if it is not registered yet.';
+    if (contactName.trim().length < 2) return 'Add the name of the person we should speak to.';
+    if (!looksLikeEmail(email)) return 'Add an email address we can reach you at.';
+    if (phone.trim().length < 5) return 'Add a phone number we can reach you on.';
+    if (!findTown(townName)) return 'Choose the town the business is based in.';
+    return null;
+  };
+  const stepOneBlocked = stepOneMissing();
   const stepThreeReady = agreedTerms && agreedCommission && agreedDocuments;
 
-  // ---- SENT ----
-  if (done) {
-    return (
-      <>
-        <div style={{ textAlign: 'center' }}>
-          <span className={`${authStyles.statusIcon} ${authStyles.statusApproved}`}>
-            <Icon name="checkmark-circle-outline" size={38} />
-          </span>
-        </div>
+  const send = async () => {
+    const town = findTown(townName);
+    if (!town || stepOneBlocked || !stepThreeReady) return;
 
-        <div className={authStyles.head} style={{ textAlign: 'center', alignItems: 'center' }}>
-          <Text variant="h1" as="h1" align="center" raw>
-            {t('business.successTitle')}
-          </Text>
-          <Text variant="body" tone="ink2" align="center" raw>
-            {t('pp.apply.inTouch')}
-          </Text>
-        </div>
+    setSending(true);
+    setProblem(null);
+    setFieldProblems([]);
+    try {
+      await apiClient.applyAsProvider({
+        businessName: businessName.trim(),
+        legalName: legalName.trim(),
+        ownerName: contactName.trim(),
+        contactEmail: email.trim(),
+        ownerPhone: phone.trim(),
+        town: town.name,
+        side: town.side,
+        operatingSide,
+        registrationStatus: registered,
+        fleetSizeBand: fleetSize,
+        ...(about.trim() ? { description: about.trim() } : {}),
+      });
+      onApplied();
+    } catch (caught) {
+      if (isApiError(caught) && caught.code === 'already_a_provider') {
+        onAlreadyRegistered();
+        return;
+      }
+      // Kept on the form, so nothing typed is lost.
+      setProblem(isApiError(caught) ? caught.message : 'Your application was not sent. Please try again.');
+      setFieldProblems(isApiError(caught) ? caught.fieldErrors ?? [] : []);
+    } finally {
+      setSending(false);
+    }
+  };
 
-        <Card padded>
-          <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-lg)' }} raw>
-            {t('flow.done.whatNext')}
-          </Text>
-
-          <div className={styles.stack}>
-            {[
-              {
-                icon: 'mail-outline' as const,
-                title: 'We check your business registration',
-                body: 'Confirming the company is real and trading. Usually a day or two.',
-              },
-              {
-                icon: 'document-outline' as const,
-                title: 'You send your vehicle documents',
-                body: 'Registration and insurance for each vehicle. This is what the SXM Verified badge actually stands for.',
-              },
-              {
-                icon: 'car-outline' as const,
-                title: 'You add your fleet and go live',
-                body: 'One at a time, from a spreadsheet, or connected straight to your own booking system.',
-              },
-            ].map((item) => (
-              <div key={item.title} className={styles.note} style={{ marginTop: 0 }}>
-                <Icon name={item.icon} size={18} color="var(--ink2)" />
-                <div>
-                  <Text variant="label" as="h3">
-                    {item.title}
-                  </Text>
-                  <Text variant="small" tone="ink2">
-                    {item.body}
-                  </Text>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Text variant="small" tone="ink3" align="center" raw>
-          {t('pp.apply.demoNote')}
-        </Text>
-
-        <div className={authStyles.actions}>
-          <Button label={t('pp.apply.seeDashboard')} href="/provider" fullWidth size="lg" />
-          <Button label={t('pp.apply.backHome')} href="/" variant="ghost" size="md" fullWidth />
-        </div>
-      </>
-    );
-  }
+  // The backend names fields its own way; these are the form's words for them.
+  const FIELD_LABELS: Record<string, string> = {
+    businessName: t('pp.apply.businessName'),
+    legalName: t('pp.apply.legalName'),
+    ownerName: t('pp.apply.yourName'),
+    contactEmail: t('auth.email'),
+    ownerPhone: t('auth.phoneNumber'),
+    town: t('pp.apply.town'),
+    description: t('pp.apply.aboutLabel'),
+  };
 
   return (
     <>
@@ -161,6 +316,16 @@ export default function ProviderApplyPage() {
               value={businessName}
               onChange={(event) => setBusinessName(event.target.value)}
               iconLeft="storefront-outline"
+              hint={t('pp.apply.businessNameHint')}
+              required
+            />
+
+            <Input
+              label={t('pp.apply.legalName')}
+              value={legalName}
+              onChange={(event) => setLegalName(event.target.value)}
+              iconLeft="document-outline"
+              hint={t('pp.apply.legalNameHint')}
               required
             />
 
@@ -191,6 +356,14 @@ export default function ProviderApplyPage() {
               required
             />
 
+            <TownPicker
+              label={t('pp.apply.town')}
+              value={townName}
+              onChange={(name) => setTownName(name)}
+              hint={t('pp.apply.townHint')}
+              required
+            />
+
             <div>
               <Text variant="label" tone="ink2" as="p" style={{ marginBottom: 'var(--space-sm)' }} raw>
                 {t('pp.apply.whereOperate')}
@@ -198,8 +371,8 @@ export default function ProviderApplyPage() {
               <SegmentedControl
                 label={t('pp.apply.whereOperate')}
                 fullWidth
-                value={side}
-                onChange={setSide}
+                value={operatingSide}
+                onChange={setOperatingSide}
                 options={[
                   { value: 'dutch', label: t('search.side.dutch') },
                   { value: 'french', label: t('search.side.french') },
@@ -234,11 +407,20 @@ export default function ProviderApplyPage() {
             </div>
           </div>
 
+          {stepOneBlocked ? (
+            <div className={styles.note} style={{ marginTop: 'var(--space-xl)' }}>
+              <Icon name="alert-circle-outline" size={15} color="var(--warning)" />
+              <Text variant="small" tone="ink2" raw>
+                {stepOneBlocked}
+              </Text>
+            </div>
+          ) : null}
+
           <div className={styles.headActions} style={{ marginTop: 'var(--space-xl)' }}>
             <Button
               label={t('common.continue')}
               size="md"
-              disabled={!stepOneReady}
+              disabled={Boolean(stepOneBlocked)}
               onClick={() => setStep(2)}
             />
           </div>
@@ -272,47 +454,14 @@ export default function ProviderApplyPage() {
               />
             </div>
 
-            <div>
-              <Text variant="label" tone="ink2" as="p" style={{ marginBottom: 'var(--space-sm)' }} raw>
-                {t('pp.apply.alreadySoftware')}
-              </Text>
-              <SegmentedControl
-                label={t('pp.apply.alreadySoftware')}
-                fullWidth
-                value={hasSystem}
-                onChange={setHasSystem}
-                options={[
-                  { value: 'no', label: t('common.no') },
-                  { value: 'yes', label: t('common.yes') },
-                ]}
-              />
-
-              {hasSystem === 'yes' ? (
-                <div className={styles.note}>
-                  <Icon name="flash-outline" size={15} color="var(--success)" />
-                  <Text variant="small" tone="ink2" raw>
-                    {t('pp.apply.goodConnect')}
-                  </Text>
-                </div>
-              ) : (
-                <div className={styles.note}>
-                  <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-                  <Text variant="small" tone="ink2">
-                    That is fine. The dashboard covers everything — fleet, bookings,
-                    availability and payouts — at no cost.
-                  </Text>
-                </div>
-              )}
-            </div>
-
             <TextArea
-              label={t('pp.apply.anythingElse')}
+              label={t('pp.apply.aboutLabel')}
               value={about}
               onChange={(event) => setAbout(event.target.value)}
               rows={4}
               maxLength={500}
               showCount
-              hint="Optional. How long you have been going, what you specialise in, anything unusual about how you operate."
+              hint={t('pp.apply.aboutHint')}
             />
           </div>
 
@@ -425,6 +574,22 @@ export default function ProviderApplyPage() {
               </Link>
             </div>
 
+            {problem ? (
+              <div className={styles.note} style={{ marginTop: 'var(--space-xl)' }} role="alert">
+                <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
+                <div>
+                  <Text variant="small" tone="ink2" raw>
+                    {problem}
+                  </Text>
+                  {fieldProblems.map((entry) => (
+                    <Text key={entry.field} variant="small" tone="ink3" raw>
+                      {`${FIELD_LABELS[entry.field] ?? entry.field}: ${entry.message}`}
+                    </Text>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div className={styles.headActions} style={{ marginTop: 'var(--space-xl)' }}>
               <Button label={t('common.back')} variant="outline" size="md" onClick={() => setStep(2)} />
               <Button
@@ -432,13 +597,7 @@ export default function ProviderApplyPage() {
                 size="md"
                 loading={sending}
                 disabled={!stepThreeReady}
-                onClick={() => {
-                  setSending(true);
-                  window.setTimeout(() => {
-                    setSending(false);
-                    setDone(true);
-                  }, 700);
-                }}
+                onClick={send}
               />
             </div>
           </Card>

@@ -9,6 +9,10 @@
 // whole point of the API-first idea in the Overview document — existing rental
 // companies should be able to join without feeling replaced or re-typing their
 // entire inventory.
+//
+// ONLY THE FORM IS CONNECTED SO FAR. The backend has nowhere yet to send a
+// spreadsheet or a connection to another system, so those are drawn as coming
+// soon rather than leading to a page that cannot finish the job.
 
 import React from 'react';
 import type { Metadata } from 'next';
@@ -34,7 +38,7 @@ const ROUTES: {
     href: '/provider/fleet/new',
     title: 'Add one vehicle',
     blurb:
-      'Fill in a form: photos, the price, how long it can be rented for, the deposit, and anything declared about its history.',
+      'Fill in a form: the price, how long it can be rented for, the deposit, and where it is collected from.',
     best: 'Best for a handful of vehicles, or adding one to a fleet already listed.',
     icon: 'add',
     available: true,
@@ -46,7 +50,7 @@ const ROUTES: {
       'Drag in a spreadsheet and see every row read back before anything is saved. Rows with something wrong are shown with the reason, and can be fixed on screen.',
     best: 'Best for getting an existing fleet onto the platform in one go.',
     icon: 'cloud-upload-outline',
-    available: true,
+    available: false,
   },
   {
     href: '/provider/fleet/api',
@@ -55,7 +59,7 @@ const ROUTES: {
       'If you already run booking software, connect it directly. Your inventory and availability stay in one place instead of being kept up to date twice.',
     best: 'Best for a business with its own booking system it intends to keep.',
     icon: 'flash-outline',
-    available: true,
+    available: false,
   },
   {
     href: '/provider/fleet/add',

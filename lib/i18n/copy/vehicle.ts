@@ -163,10 +163,10 @@ export const vehicle = {
     es: 'REPARADO',
   },
   'vehicle.accidents.none': {
-    en: 'No accidents reported for this vehicle.',
-    nl: 'Geen schade gemeld voor dit voertuig.',
-    fr: 'Aucun accident signalé pour ce véhicule.',
-    es: 'No se han declarado accidentes para este vehículo.',
+    en: 'Accident history is not recorded on SXM Rentals yet. If it matters to you, ask the rental business before you book.',
+    nl: 'Schadehistorie wordt nog niet bijgehouden op SXM Rentals. Is het voor u belangrijk, vraag het dan aan het verhuurbedrijf voordat u boekt.',
+    fr: 'L’historique des accidents n’est pas encore enregistré sur SXM Rentals. Si c’est important pour vous, demandez au loueur avant de réserver.',
+    es: 'El historial de accidentes todavía no se registra en SXM Rentals. Si es importante para usted, pregunte a la empresa de alquiler antes de reservar.',
   },
   'vehicle.accidents.disclaimer': {
     en: 'As reported by the provider. SXM Rentals does not inspect vehicles or independently confirm this history.',

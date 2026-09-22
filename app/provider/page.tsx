@@ -16,12 +16,21 @@
 // the business's money, no commission is taken from it, and it never appears in
 // a payout — so putting it into a revenue dashboard would misrepresent it twice
 // over.
+//
+// ---- ENQUIRIES AND BOOKINGS ARE TWO COUNTS, NOT A CONVERSION RATE ----
+//
+// This panel used to show "enquiries that became bookings" as a percentage.
+// The backend counts the two separately — every conversation a renter has ever
+// started, and the bookings from the last 90 days onward — and most bookings
+// never start with a conversation at all, so dividing one by the other gave
+// numbers like 300%. The two counts are shown side by side instead, each
+// labelled with what it actually counts.
 
 import React from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { useFleetLookup } from '@/hooks/useFleet';
 import { COMMISSION_RATE } from '@/lib/constants';
 import { money, longDate, dateRange, relativeDay } from '@/lib/format';
 import { useBusiness } from '@/lib/business';
@@ -35,7 +44,7 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
-import { StatTile, RankedBar, EarningsSplit, PercentBar } from '@/components/business/Stats';
+import { StatTile, RankedBar, EarningsSplit } from '@/components/business/Stats';
 import styles from './provider.module.css';
 import { useTranslation } from '@/lib/i18n';
 
@@ -46,6 +55,8 @@ export default function ProviderDashboardPage() {
   const summary = useAsyncData(() => apiClient.getBusinessSummary(), []);
   const bookings = useAsyncData(() => apiClient.getProviderBookings(), []);
   const performance = useAsyncData(() => apiClient.getFleetPerformance(), []);
+  // Car names, from the business's own fleet — see hooks/useFleet.ts.
+  const cars = useFleetLookup();
 
   // Anything still loading holds the whole dashboard, since a page of numbers
   // half-arrived is harder to read than one that says it is still working.
@@ -73,10 +84,17 @@ export default function ProviderDashboardPage() {
 
   const data = summary.data;
 
-  // The bookings that need attention today, rather than the whole list.
+  // The bookings that need attention today, rather than the whole list —
+  // soonest first. The backend sends them latest first, which put next year's
+  // booking above tomorrow's.
   const soon = (bookings.data ?? [])
     .filter((booking) => booking.status === 'upcoming' || booking.status === 'active')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, 5);
+
+  // Only cars that have brought something in. The backend lists every car,
+  // including the ones at $0, and a chart of noughts is not "best earning".
+  const earning = (performance.data ?? []).filter((row) => row.revenue > 0);
 
   // What the pending payout is worth, shown with its commission alongside.
   //
@@ -101,9 +119,6 @@ export default function ProviderDashboardPage() {
   // net beside them is right.
   const pendingGross = data.pending > 0 ? data.pending / (1 - COMMISSION_RATE) : 0;
   const pendingCommission = pendingGross - data.pending;
-
-  const conversion =
-    data.totalInquiries > 0 ? data.totalConversions / data.totalInquiries : 0;
 
   return (
     <>
@@ -201,20 +216,19 @@ export default function ProviderDashboardPage() {
             />
           </div>
 
-          {performance.loading ? (
+          {performance.loading || cars.loading ? (
             <Skeleton height={180} radius="var(--radius-md)" />
           ) : performance.error ? (
             <ErrorState message={performance.error} onRetry={performance.refresh} inline />
-          ) : (performance.data ?? []).length === 0 ? (
+          ) : earning.length === 0 ? (
             <Text variant="small" tone="ink2" raw>
               {t('pp.noEarnings')}
             </Text>
           ) : (
             <RankedBar
-              items={(performance.data ?? []).slice(0, 5).map((row) => {
-                const vehicle = findVehicle(row.vehicleId);
+              items={earning.slice(0, 5).map((row) => {
                 return {
-                  label: vehicle ? `${vehicle.make} ${vehicle.model}` : row.vehicleId,
+                  label: cars.name(row.vehicleId),
                   value: row.revenue,
                   sublabel: `${row.bookings} bookings · ${Math.round(
                     row.occupancyRate * 100,
@@ -238,12 +252,24 @@ export default function ProviderDashboardPage() {
             {t('pp.enquiriesAndBookings')}
           </Text>
 
-          <PercentBar
-            label={t('pp.enquiriesBecame')}
-            value={conversion}
-            tone="brand"
-            note={`${data.totalConversions} bookings from ${data.totalInquiries} enquiries this month`}
-          />
+          <div className={styles.infoRows}>
+            <div className={styles.infoRow}>
+              <Text variant="body" tone="ink2" as="span" raw>
+                {t('pp.enquiriesCount')}
+              </Text>
+              <Text variant="label" as="span" raw>
+                {String(data.totalInquiries)}
+              </Text>
+            </div>
+            <div className={styles.infoRow}>
+              <Text variant="body" tone="ink2" as="span" raw>
+                {t('pp.recentBookings')}
+              </Text>
+              <Text variant="label" as="span" raw>
+                {String(data.totalConversions)}
+              </Text>
+            </div>
+          </div>
 
           <div className={styles.note} style={{ marginTop: 'var(--space-lg)' }}>
             <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
@@ -264,7 +290,7 @@ export default function ProviderDashboardPage() {
             <Button label={t('pp.allBookings')} href="/provider/bookings" variant="ghost" size="sm" />
           </div>
 
-          {bookings.loading ? (
+          {bookings.loading || cars.loading ? (
             <Skeleton height={180} radius="var(--radius-md)" />
           ) : bookings.error ? (
             <ErrorState message={bookings.error} onRetry={bookings.refresh} inline />
@@ -297,14 +323,12 @@ export default function ProviderDashboardPage() {
 
                 <tbody>
                   {soon.map((booking) => {
-                    const vehicle = findVehicle(booking.vehicleId);
-
                     return (
                       <tr key={booking.id}>
                         <td>
                           <Link href={`/provider/bookings/${booking.id}`}>
                             <Text variant="label" as="span" raw>
-                              {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}
+                              {cars.name(booking.vehicleId)}
                             </Text>
                           </Link>
                         </td>

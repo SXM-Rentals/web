@@ -24,6 +24,13 @@
 // The page title is now the layout's default, "Business Dashboard", which is
 // what every other page in this section already shows. A client page cannot
 // export its own, and the layout says so in the same words.
+//
+// ---- THE CAR COMES FROM THE BUSINESS'S OWN FLEET ----
+//
+// Not from the public catalogue: a car still waiting for approval is not in
+// the catalogue, and it is exactly the car a business is most likely to want
+// to correct. There is no address for one car of the fleet, so the fleet is
+// fetched and the car picked out of it.
 
 import React, { use } from 'react';
 import { apiClient } from '@/lib/api-client';
@@ -31,15 +38,18 @@ import { useAsyncData } from '@/hooks/useAsyncData';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import { Button, EmptyState, ErrorState, Skeleton, Text } from '@/components/ui';
 import { VehicleForm } from '@/components/business/VehicleForm';
+import { ListingStatusPill } from '@/components/business/ListingStatusPill';
 import styles from '../../provider.module.css';
+import { useTranslation } from '@/lib/i18n';
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export default function EditVehiclePage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { id } = use(params);
 
   const { data: vehicle, loading, error, refresh } = useAsyncData(
-    (signal) => apiClient.getVehicle(id, { signal }),
+    async (signal) => (await apiClient.getMyFleet(signal)).find((car) => car.id === id),
     [id],
   );
 
@@ -60,7 +70,7 @@ export default function EditVehiclePage({ params }: PageProps) {
   if (!vehicle) {
     return (
       <EmptyState
-        title="That vehicle is not listed"
+        title="That vehicle is not in your fleet"
         body="It may have been removed. Your other vehicles are still on the fleet page."
         icon="car-outline"
         actionLabel="Back to the fleet"
@@ -87,18 +97,25 @@ export default function EditVehiclePage({ params }: PageProps) {
             {name}
           </Text>
           <Text variant="body" tone="ink2" raw>
-            {`${vehicle.year} · ${vehicle.pickupTown}`}
+            {`${vehicle.reference} · ${vehicle.year} · ${vehicle.pickupTown}`}
           </Text>
+          <div>
+            <ListingStatusPill status={vehicle.listingStatus} />
+          </div>
         </div>
 
-        <div className={styles.headActions}>
-          <Button
-            label="View the public listing"
-            href={`/vehicles/${vehicle.id}`}
-            variant="outline"
-            size="sm"
-          />
-        </div>
+        {/* Only a live car has a public page; for any other the link would
+            open "not found". */}
+        {vehicle.listingStatus === 'live' ? (
+          <div className={styles.headActions}>
+            <Button
+              label={t('pp.fleet.viewPublic')}
+              href={`/vehicles/${vehicle.id}`}
+              variant="outline"
+              size="sm"
+            />
+          </div>
+        ) : null}
       </div>
 
       <VehicleForm vehicle={vehicle} />

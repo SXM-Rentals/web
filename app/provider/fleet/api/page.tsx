@@ -101,7 +101,7 @@ function CopyRow({
 export default function FleetApiPage() {
   const { t } = useTranslation();
   const { profile } = useOwnBusiness();
-  const { data: connection, loading, error, refresh } = useAsyncData(
+  const { data: connection, loading, error, unavailable, refresh } = useAsyncData(
     () => apiClient.getApiConnection(),
     [],
   );
@@ -194,6 +194,15 @@ export default function FleetApiPage() {
           <Skeleton height={220} radius="var(--radius-md)" />
         ) : error ? (
           <ErrorState message={error} onRetry={refresh} inline />
+        ) : unavailable ? (
+          // The backend has no connection details to give out yet. Said
+          // plainly, rather than a retry button that can never work.
+          <div className={styles.note} style={{ marginTop: 0 }}>
+            <Icon name="information-circle-outline" size={16} color="var(--ink3)" />
+            <Text variant="small" tone="ink2" raw>
+              {t('pp.api.notConnected')}
+            </Text>
+          </div>
         ) : connection ? (
           <div className={styles.stack}>
             <CopyRow label={t('pp.api.key')} value={connection.apiKey} secret />
@@ -219,15 +228,6 @@ export default function FleetApiPage() {
             </div>
           </div>
         ) : null}
-      </Card>
-
-      <Card padded>
-        <div className={styles.note} style={{ marginTop: 0 }}>
-          <Icon name="information-circle-outline" size={16} color="var(--ink3)" />
-          <Text variant="small" tone="ink3" raw>
-            {t('pp.api.demoNote')}
-          </Text>
-        </div>
       </Card>
     </>
   );

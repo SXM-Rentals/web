@@ -15,12 +15,23 @@
 // be given contact details, and bookings would drift off the platform into
 // private arrangements — where there is no deposit held, no signed agreement,
 // and nobody to turn to when something goes wrong.
+//
+// ---- REPLYING ----
+//
+// A reply goes to the backend, and the conversation it hands back replaces the
+// one on screen — so what is shown is what was stored. If sending fails, the
+// reply stays in the box. Opening a conversation marks the renter's messages in
+// it as read. The same as the customer's side (components/messages).
+//
+// A business can only reply. Starting a conversation is the renter's to do;
+// the backend has no way for a business to write first.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { useFleetLookup } from '@/hooks/useFleet';
 import { clockTime, relativeDay } from '@/lib/format';
 import { cx } from '@/lib/utils';
 import {
@@ -37,7 +48,7 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
-import type { BusinessChatThread, ChatMessage } from '@/types';
+import type { BusinessChatThread } from '@/types';
 import accountStyles from '@/app/(site)/account/account.module.css';
 import styles from '@/app/provider/provider.module.css';
 import { useTranslation } from '@/lib/i18n';
@@ -46,12 +57,25 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [draft, setDraft] = useState('');
-  const [sent, setSent] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
+  const [sendProblem, setSendProblem] = useState<string | null>(null);
   const [callOpen, setCallOpen] = useState(false);
 
-  const { data: threads, loading, error, refresh } = useAsyncData(
+  // Conversations as the backend handed them back after a reply or a read,
+  // laid over the list as first loaded. Reloading the whole list instead would
+  // flash grey blocks in the middle of a conversation.
+  const [updated, setUpdated] = useState<Record<string, BusinessChatThread>>({});
+
+  const { data, loading, error, refresh } = useAsyncData(
     () => apiClient.getBusinessThreads(),
     [],
+  );
+  // Car names, from the business's own fleet — see hooks/useFleet.ts.
+  const cars = useFleetLookup();
+
+  const threads = useMemo(
+    () => data?.map((thread) => updated[thread.id] ?? thread),
+    [data, updated],
   );
 
   const active: BusinessChatThread | undefined = useMemo(() => {
@@ -59,36 +83,53 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
     return threads.find((thread) => thread.id === threadId) ?? threads[0];
   }, [threads, threadId]);
 
+  // ---- OPENING A CONVERSATION MARKS IT READ ----
+  // Only when there is something unread, so reading does not cost a request.
+  // A failure is left alone: the dot simply comes back on the next visit.
+  const activeId = active?.id;
+  const activeUnread = active?.unreadCount ?? 0;
+  useEffect(() => {
+    if (!activeId || activeUnread === 0) return;
+    apiClient
+      .markBusinessThreadRead(activeId)
+      .then(() =>
+        setUpdated((current) => {
+          const base = current[activeId] ?? threads?.find((thread) => thread.id === activeId);
+          return base ? { ...current, [activeId]: { ...base, unreadCount: 0 } } : current;
+        }),
+      )
+      .catch(() => {});
+    // `threads` is read, not watched: only opening a conversation should mark it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, activeUnread]);
+
   // Keep the newest message in view.
   const bubblesRef = useRef<HTMLDivElement | null>(null);
+  const messageCount = active?.messages.length ?? 0;
   useEffect(() => {
     const element = bubblesRef.current;
     if (element) element.scrollTop = element.scrollHeight;
-  }, [active?.id, sent.length]);
+  }, [activeId, messageCount]);
 
-  const messages = useMemo(() => {
-    if (!active) return [];
-    return [...active.messages, ...sent.filter((m) => m.id.startsWith(`${active.id}-`))];
-  }, [active, sent]);
+  const send = async () => {
+    const body = draft.trim();
+    if (!body || !active) return;
 
-  const send = () => {
-    if (!draft.trim() || !active) return;
-
-    setSent((current) => [
-      ...current,
-      {
-        // From the business's side, so it appears on the right of the thread.
-        id: `${active.id}-${Date.now()}`,
-        from: 'provider',
-        body: draft.trim(),
-        sentAt: new Date().toISOString(),
-        read: true,
-      },
-    ]);
-    setDraft('');
+    setSending(true);
+    setSendProblem(null);
+    try {
+      const thread = await apiClient.replyAsBusiness(active.id, body);
+      setUpdated((current) => ({ ...current, [thread.id]: thread }));
+      setDraft('');
+    } catch (caught) {
+      // The reply is kept, so nothing typed is lost.
+      setSendProblem(isApiError(caught) ? caught.message : 'Your reply was not sent. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
-  if (loading) {
+  if (loading || cars.loading) {
     return (
       <div className={styles.stack}>
         <Skeleton height={34} width="30%" />
@@ -130,7 +171,6 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
           {threads.map((thread) => {
             const last = thread.messages[thread.messages.length - 1];
             const isActive = active?.id === thread.id;
-            const vehicle = thread.vehicleId ? findVehicle(thread.vehicleId) : undefined;
 
             return (
               <button
@@ -171,7 +211,7 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
                   </Text>
 
                   <Text variant="caption" tone="ink3" as="span" raw>
-                    {[thread.bookingRef, vehicle ? `${vehicle.make} ${vehicle.model}` : null]
+                    {[thread.bookingRef, thread.vehicleId ? cars.name(thread.vehicleId) : null]
                       .filter(Boolean)
                       .join(' · ')}
                   </Text>
@@ -223,7 +263,7 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
             </div>
 
             <div className={cx(accountStyles.bubbles, 'thinScroll')} ref={bubblesRef}>
-              {messages.map((message) => {
+              {active.messages.map((message) => {
                 // From this side of the app, the business's own messages are
                 // the ones on the right.
                 const mine = message.from === 'provider';
@@ -249,6 +289,15 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
               })}
             </div>
 
+            {sendProblem ? (
+              <div className={accountStyles.note} role="alert">
+                <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
+                <Text variant="small" tone="ink2" raw>
+                  {sendProblem}
+                </Text>
+              </div>
+            ) : null}
+
             <form
               className={accountStyles.composer}
               onSubmit={(event) => {
@@ -267,6 +316,7 @@ export function ProviderMessagesView({ threadId }: { threadId?: string }) {
                 size="sm"
                 type="submit"
                 disabled={!draft.trim()}
+                loading={sending}
                 iconRight={<Icon name="send" size={15} />}
               />
             </form>

@@ -266,6 +266,93 @@ export type BusinessProfile = {
   apiLastSyncedAt?: string;
 };
 
+// The headline figures on the dashboard's overview, as the backend works them
+// out (GET /providers/me/summary). Money is the business's own share.
+//
+// NOTE `pending` is the net only. The overview reconstructs the gross and the
+// commission from it — see the note in app/provider/page.tsx, and ask #3 in
+// docs/backend-asks.md for the fix.
+export type BusinessSummary = {
+  paidOut: number;
+  pending: number;
+  nextPayoutDate: string;
+  activeBookings: number;
+  upcomingBookings: number;
+  fleetSize: number;
+  averageRating: number;
+  // Conversations started with the business, and how many became bookings.
+  // Counts only — never the people.
+  totalInquiries: number;
+  totalConversions: number;
+};
+
+// Whether customers can see a car yet. Every new car starts as
+// 'pending_review' and waits for SXM Rentals staff to approve it.
+export type ListingStatus = 'live' | 'pending_review' | 'suspended';
+
+// One of the business's own cars, as the dashboard sees it: the public record
+// plus two things only the business is told.
+export type FleetVehicle = Vehicle & {
+  listingStatus: ListingStatus;
+  // The business's own reference for the car.
+  reference: string;
+};
+
+// What the business fills in to list a car. Prices in dollars, as typed.
+//
+// There is no accident history or delivery fee here, though the form asks
+// about both: the backend does not accept them yet (ask #6). And no photos —
+// there is nowhere to upload them (ask #8).
+export type VehicleInput = {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  vehicleClass: VehicleClass;
+  transmission: Transmission;
+  fuel: FuelType;
+  seats: number;
+  doors: number;
+  airConditioning?: boolean;
+  dailyRate: number;
+  weeklyRate?: number;
+  minimumDays?: number;
+  maximumDays?: number;
+  depositAmount: number;
+  pickupTown: string;
+  side: 'dutch' | 'french';
+  // Where the car is collected, for the map. Filled in from the town — see
+  // lib/content/towns.ts.
+  latitude: number;
+  longitude: number;
+  deliveryAvailable?: boolean;
+  description?: string;
+};
+
+// Registering a business (POST /providers/apply).
+export type BusinessApplication = {
+  businessName: string;
+  legalName: string;
+  contactEmail: string;
+  ownerName: string;
+  ownerPhone: string;
+  town: string;
+  // The side the business is based on…
+  side: 'dutch' | 'french';
+  // …and the sides it rents cars on, which can be both.
+  operatingSide: 'dutch' | 'french' | 'both';
+  phone?: string;
+  description?: string;
+  website?: string;
+  registrationStatus?: 'registered' | 'not_registered' | 'pending';
+  registrationNumber?: string;
+  registeredIn?: string;
+  fleetSizeBand?: string;
+  locations?: string[];
+  deliversVehicles?: boolean;
+  airportPickup?: boolean;
+};
+
 // One payment from SXM Rentals to the business.
 //
 // IMPORTANT: a payout only ever covers RENTAL money, and only the business's

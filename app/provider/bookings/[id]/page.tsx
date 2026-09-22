@@ -20,11 +20,22 @@
 //
 // Keeping the fields off the type is what makes the rule hold: ProviderBooking
 // has no contact fields at all, so this page could not show one if it tried.
+//
+// ---- THE CONVERSATION ABOUT THIS BOOKING ----
+//
+// A business cannot start a conversation — the backend only lets it reply —
+// and a booking from the backend does not say which conversation is its own.
+// So the page looks through the business's conversations for the one with
+// this booking's reference. If the renter has not written yet, the page says
+// so, rather than offering a button that has nowhere to go.
+//
+// A CANCELLED BOOKING shows no payout and no deposit hold, for the reasons
+// given at the top of the bookings list.
 
 import React, { use } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { useFleetLookup } from '@/hooks/useFleet';
 import { dateRange, daysBetween, money } from '@/lib/format';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import { EarningsSplit } from '@/components/business/Stats';
@@ -39,11 +50,18 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
-import type { DepositStatus } from '@/types';
+import type { BookingStatus, DepositStatus } from '@/types';
 import styles from '../../provider.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 type PageProps = { params: Promise<{ id: string }> };
+
+const STATUS_LOOK: Record<BookingStatus, { label: string; tone: 'neutral' | 'success' | 'danger' | 'brand' }> = {
+  upcoming: { label: 'UPCOMING', tone: 'brand' },
+  active: { label: 'OUT NOW', tone: 'success' },
+  completed: { label: 'COMPLETED', tone: 'neutral' },
+  cancelled: { label: 'CANCELLED', tone: 'danger' },
+};
 
 const DEPOSIT_NOTE: Record<DepositStatus, string> = {
   not_taken:
@@ -63,8 +81,15 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
     () => apiClient.getProviderBooking(id),
     [id],
   );
+  // Car names, from the business's own fleet — see hooks/useFleet.ts.
+  const cars = useFleetLookup();
+  // The conversations, to find this booking's. A failure only costs the link.
+  const threads = useAsyncData(
+    (signal) => apiClient.getBusinessThreads(signal).catch(() => null),
+    [],
+  );
 
-  if (loading) {
+  if (loading || cars.loading || threads.loading) {
     return (
       <div className={styles.stack}>
         <Skeleton height={30} width="40%" />
@@ -88,8 +113,13 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
     );
   }
 
-  const vehicle = findVehicle(booking.vehicleId);
+  const vehicle = cars.vehicle(booking.vehicleId);
   const days = daysBetween(booking.startDate, booking.endDate);
+  const cancelled = booking.status === 'cancelled';
+  const status = STATUS_LOOK[booking.status];
+  const threadId =
+    booking.threadId ??
+    threads.data?.find((thread) => thread.bookingRef === booking.reference)?.id;
 
   const rows: { label: string; value: string }[] = [
     { label: 'Reference', value: booking.reference },
@@ -116,7 +146,7 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
       <div className={styles.pageHead}>
         <div className={styles.headText}>
           <Text variant="h1" as="h1" raw>
-            {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Booking'}
+            {cars.name(booking.vehicleId)}
           </Text>
           <Text variant="body" tone="ink2" raw>
             {`${booking.reference} · ${dateRange(booking.startDate, booking.endDate)}`}
@@ -124,26 +154,11 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
         </div>
 
         <div className={styles.headActions}>
-          <StatusPill
-            label={
-              booking.status === 'active'
-                ? 'OUT NOW'
-                : booking.status === 'upcoming'
-                  ? 'UPCOMING'
-                  : booking.status.toUpperCase()
-            }
-            tone={
-              booking.status === 'active'
-                ? 'success'
-                : booking.status === 'upcoming'
-                  ? 'brand'
-                  : 'neutral'
-            }
-          />
-          {booking.threadId ? (
+          <StatusPill label={status.label} tone={status.tone} />
+          {threadId ? (
             <Button
               label={t('pp.bookings.messageRenter')}
-              href={`/provider/messages/${booking.threadId}`}
+              href={`/provider/messages/${threadId}`}
               size="sm"
             />
           ) : null}
@@ -161,7 +176,7 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
             <PhotoPlaceholder shape="wide" iconSize={28} style={{ width: 120, flexShrink: 0 }} />
             <div style={{ minWidth: 0 }}>
               <Text variant="label" as="p" raw>
-                {vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` : 'Vehicle'}
+                {vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` : cars.name(booking.vehicleId)}
               </Text>
               {vehicle ? (
                 <Text variant="small" tone="ink2" raw>
@@ -225,6 +240,15 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {!threadId && !cancelled ? (
+            <div className={styles.note} style={{ marginTop: 'var(--space-md)' }}>
+              <Icon name="chatbubble-outline" size={15} color="var(--ink3)" />
+              <Text variant="small" tone="ink2" raw>
+                {t('pp.bookings.waitForRenter')}
+              </Text>
+            </div>
+          ) : null}
+
           {!booking.renterVerified ? (
             <div className={styles.note} style={{ marginTop: 'var(--space-md)' }}>
               <Icon name="alert-circle-outline" size={15} color="var(--warning)" />
@@ -257,12 +281,23 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
 
         {/* ---- THE MONEY ---- */}
         <Card padded>
-          <EarningsSplit
-            gross={booking.grossAmount}
-            commission={booking.commission}
-            net={booking.netAmount}
-            title={t('pp.bookings.whatYouReceive')}
-          />
+          {cancelled ? (
+            <>
+              <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-md)' }} raw>
+                {t('pp.bookings.whatYouReceive')}
+              </Text>
+              <Text variant="body" tone="ink2" raw>
+                {t('pp.bookings.cancelledNothing')}
+              </Text>
+            </>
+          ) : (
+            <EarningsSplit
+              gross={booking.grossAmount}
+              commission={booking.commission}
+              net={booking.netAmount}
+              title={t('pp.bookings.whatYouReceive')}
+            />
+          )}
 
           {/* The deposit gets its own block, clearly outside the money above. */}
           <div className={styles.privacyNote} style={{ marginTop: 'var(--space-lg)' }}>
@@ -271,8 +306,8 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
               <Text variant="label" as="h3" raw>
                 {`Security deposit — ${money(booking.depositAmount)}`}
               </Text>
-              <Text variant="small" tone="ink2">
-                {DEPOSIT_NOTE[booking.depositStatus]}
+              <Text variant="small" tone="ink2" raw>
+                {cancelled ? t('pp.bookings.cancelledDeposit') : DEPOSIT_NOTE[booking.depositStatus]}
               </Text>
               <Text variant="small" tone="ink3" style={{ marginTop: 'var(--space-sm)' }} raw>
                 {t('pp.bookings.noCommissionOnDeposits')}

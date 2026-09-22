@@ -183,7 +183,7 @@ export function LogoUpload({ businessName }: { businessName: string }) {
           <div className={styles.note}>
             <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
             <Text variant="small" tone="ink3" raw>
-              {t('pp.logo.demoNote')}
+              {t('pp.logo.notSaved')}
             </Text>
           </div>
         </div>

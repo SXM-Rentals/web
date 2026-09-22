@@ -48,6 +48,12 @@ type BusinessValue = {
   error: string | null;
   /** Asks again — after `error`, or after registering a business. */
   refresh: () => void;
+  /**
+   * Puts the record the backend handed back after an edit in place. Unlike
+   * refresh, this does not blank the dashboard while it asks again — which
+   * would throw away the page the edit was made on.
+   */
+  applyChanges: (profile: BusinessProfile) => void;
 
   // The public half of the record — name, rating, description.
   provider: Provider | undefined;
@@ -112,16 +118,29 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(() => setAttempt((n) => n + 1), []);
 
+  const applyChanges = useCallback((next: BusinessProfile) => {
+    setProfile(next);
+    // The public half changes with an edit too — the description, the town —
+    // so it is read again, quietly. If that fails, the old one stays.
+    apiClient
+      .getProvider(next.providerId)
+      .then((record) => {
+        if (record) setProvider(record);
+      })
+      .catch(() => {});
+  }, []);
+
   const value = useMemo<BusinessValue>(
     () => ({
       hasBusiness: profile !== undefined,
       loading: sessionLoading || loading,
       error,
       refresh,
+      applyChanges,
       provider,
       profile,
     }),
-    [profile, provider, sessionLoading, loading, error, refresh],
+    [profile, provider, sessionLoading, loading, error, refresh, applyChanges],
   );
 
   return <BusinessContext.Provider value={value}>{children}</BusinessContext.Provider>;

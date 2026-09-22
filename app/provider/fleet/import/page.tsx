@@ -17,9 +17,16 @@
 // is a customer booking a $180 Jeep for $18. So the file is read, every row is
 // shown back with its problems spelled out in plain words, and the save button
 // stays out of reach until that has happened.
+//
+// ---- NOT CONNECTED YET ----
+//
+// The backend has nowhere to send a spreadsheet, so choosing a file says
+// exactly that — not "we could not read that file", which would blame a file
+// that was never looked at. The rest of the page is written and waiting.
 
 import React, { useMemo, useRef, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
+import { isUnavailable } from '@/lib/api/errors';
 import { money } from '@/lib/format';
 import { cx } from '@/lib/utils';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
@@ -72,14 +79,17 @@ export default function FleetImportPage() {
     setStage('reading');
 
     try {
-      // In the finished site the file is uploaded and the server reads it. Here
-      // it hands back a pretend set of rows so the preview can be built — the
-      // file itself never leaves this computer.
+      // The file is uploaded and the server reads it. Until the backend has an
+      // address for that, this refuses as "not connected".
       const result = await apiClient.readImportFile();
       setRows(result);
       setStage('preview');
-    } catch {
-      setError('We could not read that file. Check it opens properly and try again.');
+    } catch (caught) {
+      setError(
+        isUnavailable(caught)
+          ? t('pp.import.notConnected')
+          : 'We could not read that file. Check it opens properly and try again.',
+      );
       setStage('choose');
     }
   };
@@ -114,9 +124,6 @@ export default function FleetImportPage() {
           </Text>
           <Text variant="body" tone="ink2" raw>
             {t('pp.import.notVisibleYet')}
-          </Text>
-          <Text variant="small" tone="ink3" raw>
-            {t('pp.import.demoNote')}
           </Text>
 
           <div className={styles.headActions}>

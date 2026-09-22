@@ -1031,4 +1031,48 @@ export const accountPages = {
     fr: 'Terminer la Vérification',
     es: 'Terminar la Comprobación',
   },
+
+  // ---- MESSAGING THE BUSINESS ABOUT A RENTAL ----
+  'acct.message.title': {
+    en: 'Message {business}',
+    nl: 'Bericht aan {business}',
+    fr: 'Écrire à {business}',
+    es: 'Escribir a {business}',
+  },
+  'acct.message.titleGeneric': {
+    en: 'Message the Business',
+    nl: 'Bericht aan het bedrijf',
+    fr: 'Écrire au loueur',
+    es: 'Escribir a la empresa',
+  },
+  'acct.message.intro': {
+    en: 'About your rental {reference}. The business replies in your SXM Rentals messages.',
+    nl: 'Over uw huur {reference}. Het bedrijf antwoordt in uw SXM Rentals-berichten.',
+    fr: 'Au sujet de votre location {reference}. Le loueur vous répond dans vos messages SXM Rentals.',
+    es: 'Sobre su alquiler {reference}. La empresa le responde en sus mensajes de SXM Rentals.',
+  },
+  'acct.message.label': {
+    en: 'Your message',
+    nl: 'Uw bericht',
+    fr: 'Votre message',
+    es: 'Su mensaje',
+  },
+  'acct.message.placeholder': {
+    en: 'For example: where exactly do I collect the car?',
+    nl: 'Bijvoorbeeld: waar haal ik de auto precies op?',
+    fr: 'Par exemple : où dois-je récupérer la voiture exactement ?',
+    es: 'Por ejemplo: ¿dónde recojo exactamente el coche?',
+  },
+  'acct.message.send': {
+    en: 'Send Message',
+    nl: 'Bericht Versturen',
+    fr: 'Envoyer le Message',
+    es: 'Enviar el Mensaje',
+  },
+  'acct.message.privacy': {
+    en: 'The business does not see your phone number or email address. Everything stays in SXM Rentals messages.',
+    nl: 'Het bedrijf ziet uw telefoonnummer en e-mailadres niet. Alles blijft in de berichten van SXM Rentals.',
+    fr: 'Le loueur ne voit ni votre numéro de téléphone ni votre adresse e-mail. Tout reste dans les messages SXM Rentals.',
+    es: 'La empresa no ve su número de teléfono ni su dirección de correo electrónico. Todo queda en los mensajes de SXM Rentals.',
+  },
 } satisfies Record<string, Phrase>;

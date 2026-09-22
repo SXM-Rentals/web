@@ -23,9 +23,26 @@
 // private one — and the public business page has no access to the second. That
 // is what guarantees a business's earnings and registration details cannot leak
 // onto a customer-facing page by accident: they were never handed to it.
+//
+// ---- SAVING ----
+//
+// Changes go to the backend (PATCH /providers/me), and the record it hands
+// back replaces the one on screen. Two things are shown rather than offered:
+//
+//   The business name, which the backend does not let a business change.
+//
+//   The town is chosen from the towns on the business's own side of the
+//   island. The side itself cannot change, so a town on the other side would
+//   leave the page saying one thing and the side filter another.
+//
+// If the public half could not be loaded, its boxes are not offered at all.
+// Starting them empty and saving would have wiped the description that is
+// really there.
 
 import React, { useState } from 'react';
-import { useOwnBusiness } from '@/lib/business';
+import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
+import { useBusiness, useOwnBusiness } from '@/lib/business';
 import { longDate, sideLabels } from '@/lib/format';
 import {
   Button,
@@ -38,20 +55,46 @@ import {
   Toggle,
 } from '@/components/ui';
 import { LogoUpload } from '@/components/business/LogoUpload';
+import { TownPicker } from '@/components/business/TownPicker';
 import styles from '../provider.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 export default function ProviderSettingsPage() {
   const { t } = useTranslation();
   const { provider, profile } = useOwnBusiness();
+  const { applyChanges } = useBusiness();
 
-  const [businessName, setBusinessName] = useState(provider?.businessName ?? '');
   const [description, setDescription] = useState(provider?.description ?? '');
   const [town, setTown] = useState(provider?.town ?? '');
   const [website, setWebsite] = useState(profile.website ?? '');
   const [delivers, setDelivers] = useState(profile.deliversVehicles);
   const [airport, setAirport] = useState(profile.airportPickup);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const save = async () => {
+    setSaving(true);
+    setSaved(false);
+    setProblem(null);
+    try {
+      const next = await apiClient.updateBusinessProfile({
+        website: website.trim(),
+        deliversVehicles: delivers,
+        airportPickup: airport,
+        // The public half only when it was loaded — see the top of the file.
+        ...(provider ? { description: description.trim(), town } : {}),
+      });
+      applyChanges(next);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2500);
+    } catch (caught) {
+      // Kept on the page, so nothing typed is lost.
+      setProblem(isApiError(caught) ? caught.message : 'Your changes were not saved. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const registrationLook = {
     registered: { label: 'REGISTERED', tone: 'success' as const },
@@ -87,7 +130,7 @@ export default function ProviderSettingsPage() {
       {/* The logo comes first, because it is the most visible thing a customer
           sees about a business — on its page, on every listing, and beside its
           name in messages. */}
-      <LogoUpload businessName={businessName} />
+      <LogoUpload businessName={provider?.businessName ?? ''} />
 
       <Card padded>
         <div className={styles.formHead}>
@@ -103,30 +146,50 @@ export default function ProviderSettingsPage() {
         </div>
 
         <div className={styles.formSection} style={{ marginTop: 'var(--space-lg)' }}>
-          <Input
-            label={t('pp.apply.businessName')}
-            value={businessName}
-            onChange={(event) => setBusinessName(event.target.value)}
-            iconLeft="storefront-outline"
-          />
+          {provider ? (
+            <>
+              <div className={styles.infoRow}>
+                <div>
+                  <Text variant="body" tone="ink2" as="span" raw>
+                    {t('pp.apply.businessName')}
+                  </Text>
+                  <Text variant="small" tone="ink3" raw>
+                    {t('pp.profile.nameFixed')}
+                  </Text>
+                </div>
+                <Text variant="label" as="span" className={styles.infoValue} raw>
+                  {provider.businessName}
+                </Text>
+              </div>
 
-          <TextArea
-            label={t('pp.profile.description')}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={4}
-            maxLength={500}
-            showCount
-            hint="What makes you worth renting from. Kept short — most people read a line or two."
-          />
+              <TextArea
+                label={t('pp.profile.description')}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={4}
+                maxLength={500}
+                showCount
+                hint="What makes you worth renting from. Kept short — most people read a line or two."
+              />
+            </>
+          ) : (
+            <div className={styles.note} style={{ marginTop: 0 }}>
+              <Icon name="alert-circle-outline" size={15} color="var(--warning)" />
+              <Text variant="small" tone="ink2" raw>
+                {t('pp.profile.publicNotLoaded')}
+              </Text>
+            </div>
+          )}
 
           <div className={styles.formGrid}>
-            <Input
-              label={t('pp.profile.town')}
-              value={town}
-              onChange={(event) => setTown(event.target.value)}
-              iconLeft="location-outline"
-            />
+            {provider ? (
+              <TownPicker
+                label={t('pp.profile.town')}
+                value={town}
+                onChange={(name) => setTown(name)}
+                side={provider.side}
+              />
+            ) : null}
             <Input
               label={t('pp.profile.website')}
               value={website}
@@ -290,7 +353,7 @@ export default function ProviderSettingsPage() {
               Locations
             </Text>
             <Text variant="body" as="span" className={styles.infoValue} raw>
-              {profile.locations.join(', ')}
+              {profile.locations.length > 0 ? profile.locations.join(', ') : '—'}
             </Text>
           </div>
 
@@ -348,23 +411,23 @@ export default function ProviderSettingsPage() {
       </Card>
 
       <Card padded>
+        {problem ? (
+          <div className={styles.note} style={{ marginTop: 0, marginBottom: 'var(--space-md)' }} role="alert">
+            <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
+            <Text variant="small" tone="ink2" raw>
+              {problem}
+            </Text>
+          </div>
+        ) : null}
+
         <div className={styles.headActions}>
           <Button
             label={saved ? 'Saved' : 'Save changes'}
             size="md"
+            loading={saving}
             iconLeft={saved ? <Icon name="checkmark" size={17} /> : undefined}
-            onClick={() => {
-              setSaved(true);
-              window.setTimeout(() => setSaved(false), 2500);
-            }}
+            onClick={save}
           />
-        </div>
-
-        <div className={styles.note}>
-          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3" raw>
-            {t('pp.profile.demoNote')}
-          </Text>
         </div>
       </Card>
     </>

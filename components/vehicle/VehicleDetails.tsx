@@ -209,9 +209,17 @@ export function DepositBlock({ vehicle }: { vehicle: Vehicle }) {
 
 // ---- ACCIDENT AND DAMAGE HISTORY ----
 // The wording here matters: SXM Rentals does not inspect these cars, so the page
-// is explicit that this comes from the rental business, not from us. The
-// disclaimer appears whether or not there is any history — "none reported" is
-// also a claim by the business, not a finding of ours.
+// is explicit that this comes from the rental business, not from us.
+//
+// ---- AN EMPTY HISTORY IS NOT A CLEAN ONE ----
+//
+// The backend has no way for a business to declare a car's history yet, so
+// every car arrives with none. This used to show a green tick and "No
+// accidents reported" — which a customer reads as the business saying the car
+// is clean, when the business was never asked. With nothing recorded, the
+// page now says that plainly, with no tick, and suggests asking. The
+// "as reported by the business" line appears only beside a history the
+// business actually gave.
 export function AccidentBlock({ vehicle }: { vehicle: Vehicle }) {
   const { t } = useTranslation();
   const hasHistory = vehicle.accidentHistory.length > 0;
@@ -220,9 +228,9 @@ export function AccidentBlock({ vehicle }: { vehicle: Vehicle }) {
     <Card>
       <div className={styles.accidentHead}>
         <Icon
-          name={hasHistory ? 'warning-outline' : 'checkmark-circle-outline'}
+          name={hasHistory ? 'warning-outline' : 'information-circle-outline'}
           size={20}
-          color={hasHistory ? 'var(--warning)' : 'var(--success)'}
+          color={hasHistory ? 'var(--warning)' : 'var(--ink3)'}
         />
         <Text variant="label" as="h3" raw>
           {t('vehicle.accidentHistory')}
@@ -251,12 +259,14 @@ export function AccidentBlock({ vehicle }: { vehicle: Vehicle }) {
         </Text>
       )}
 
-      <div className={styles.disclaimer}>
-        <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-        <Text variant="small" tone="ink3" raw>
-          {t('vehicle.accidents.disclaimer')}
-        </Text>
-      </div>
+      {hasHistory ? (
+        <div className={styles.disclaimer}>
+          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
+          <Text variant="small" tone="ink3" raw>
+            {t('vehicle.accidents.disclaimer')}
+          </Text>
+        </div>
+      ) : null}
     </Card>
   );
 }

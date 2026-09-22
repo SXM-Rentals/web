@@ -2,7 +2,7 @@
 
 Written while connecting `sxm-rentals-web` to
 `https://sxm-rentals-api.onrender.com/api/v1`, and updated after reading the
-backend's own code on 2026-09-21.
+backend's own code on 2026-09-21 and 2026-09-22.
 
 **One item blocks going live — the first one.** Everything after it is
 something the website works around. Those workarounds run today, but each is
@@ -149,15 +149,15 @@ against it rather than against its own sample data.
 
 ## 6. Accept accident history and a delivery fee on a car
 
-**Today:** the business's car form asks for both. `POST` and
-`PATCH /providers/me/vehicles` accept neither. A public car already *returns*
-`accidentHistory`, but nothing can set it.
+**Today:** `POST` and `PATCH /providers/me/vehicles` accept neither. A public
+car already *returns* `accidentHistory`, but nothing can set it, so every car
+has an empty one.
 
-Accident history is the one that matters. The site tells customers it shows
-what the business declared, and that SXM Rentals has not checked it, so an
-empty list that only means "could not be saved" reads to a customer as "no
-accidents". Until this exists, the form says the two fields are not saved yet,
-rather than offering inputs that quietly go nowhere.
+Accident history is the one that matters. An empty list that only means "could
+not be recorded" reads to a customer as "no accidents" — and the car page used
+to say exactly that, with a green tick. It now says accident history is not
+recorded on SXM Rentals yet and suggests asking the business; the car form no
+longer asks for either field, and says why. When this exists, both come back.
 
 ---
 
@@ -201,8 +201,87 @@ a never-taken deposit as `not_taken` would let it say which.
 
 ---
 
+## 11. Let a business write first about a booking
+
+**Today:** only a customer can start a conversation. `/providers/me/messages`
+lets a business reply, and nothing else. A booking seen by the business never
+carries a `threadId` either — `toProviderBooking` has a place for one, and
+neither caller passes it.
+
+So a business with a booking tomorrow has no way to say "we are at the Simpson
+Bay office" until the renter writes. The website looks for a conversation with
+the booking's reference and, when there is none, tells the business it has to
+wait.
+
+**The fix:** `POST /providers/me/bookings/:id/messages` (starting or continuing
+the booking's conversation), and `threadId` on provider bookings.
+
+---
+
+## 12. Move a car's side and map position with its town
+
+**Today:** `PATCH /providers/me/vehicles/:id` changes `pickupTown` but not
+`side`, `latitude` or `longitude`. A car moved from Simpson Bay to Marigot would
+say Marigot, sit on the map in Simpson Bay, and come up under the Dutch side in
+search.
+
+The website does not offer the change: when editing, the town is shown, not
+editable, and so are make, model, year, class, gearbox and fuel, which the
+PATCH ignores. **The fix:** accept `side`, `latitude` and `longitude` with
+`pickupTown`, or refuse `pickupTown` on its own.
+
+---
+
+## 13. Make the dashboard's enquiry and revenue figures mean what they say
+
+Three numbers, each counting something slightly different from its name:
+
+- `totalConversions` and a car's `conversions` are **every booking** in the
+  window, not bookings that came from an enquiry. Most bookings never start
+  with a conversation, so "conversions ÷ enquiries" came out at 300%.
+- `totalInquiries` counts conversations **ever**; the bookings beside it count
+  **90 days**.
+- A car's `revenue` includes bookings **still to come** — and, while payments
+  are off, bookings nobody has paid for.
+
+The website now shows the counts side by side, with no rate, and labels the
+revenue "your share" of bookings in the last 90 days and coming up. **The fix:**
+either track which booking followed which enquiry, or rename the fields; and
+separate earned revenue from booked. (The comment on `totalInquiries` also
+still says messaging is not built.)
+
+---
+
+## 14. Zero a cancelled booking's payout for the business
+
+**Today:** a cancelled booking keeps its `grossAmount`, `commission` and
+`netAmount` in `/providers/me/bookings`. Shown as they come, the business
+would read "you receive $210" for money that is never coming. The website
+shows no amount for a cancelled booking; the backend saying 0 would make that
+unnecessary — and would be right for anything else that reads these figures.
+
+---
+
+## 15. Keep new businesses out of the public list until they are checked
+
+**Today:** `POST /providers/apply` puts the business straight into
+`GET /providers`, which filters on nothing but deletion. Anybody who signs up
+and applies appears in the public list of rental businesses that same minute,
+before staff have looked at it. Worth filtering the public list to
+`isVerified`, or at least to businesses with an approved car.
+
+---
+
 ## Smaller notes
 
+- **A weekly rate cannot be removed once set.** `PATCH` treats a missing
+  `weeklyRate` as "no change" and rejects 0, so there is no way to take one
+  away. The form says so rather than appearing to clear it. Accepting `null`
+  would fix it.
+- **The business record leaves out the contact details.** `GET /providers/me`
+  does not return `contactEmail`, `ownerName` or `ownerPhone`, so the profile
+  page cannot show them or offer to change them, although `PATCH` accepts all
+  three.
 - **Emails link to `/sign-in`; the website's page is `/login`.** The website
   redirects one to the other, so nothing breaks, but linking `/login` directly
   saves a hop.

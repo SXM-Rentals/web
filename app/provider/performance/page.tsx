@@ -3,7 +3,18 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: How each vehicle is doing — what it earns, how often it
-// is out, and how many enquiries turn into bookings.
+// is out, and how many people have asked about it.
+//
+// ---- WHAT THE NUMBERS COVER ----
+//
+// The backend counts bookings that ended in the last 90 days and every booking
+// still to come, so "your share" includes rentals that have not happened yet.
+// The page says so at the top rather than calling it money earned.
+//
+// There is no "enquiries converted" rate. The backend counts enquiries (every
+// conversation about a car, ever) and bookings (that window) separately, and
+// most bookings never begin with a conversation — so one divided by the other
+// came out at 300%. The two counts are shown side by side instead.
 //
 // ENQUIRIES ARE COUNTS ONLY. A business sees "14 enquiries, 6 bookings" and
 // never who the fourteen people were. That is the same rule as everywhere else
@@ -18,7 +29,7 @@ import React from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAsyncData } from '@/hooks/useAsyncData';
-import { findVehicle } from '@/lib/mock/vehicles';
+import { useFleetLookup } from '@/hooks/useFleet';
 import { money, perDay } from '@/lib/format';
 import {
   Card,
@@ -38,8 +49,10 @@ export default function ProviderPerformancePage() {
     () => apiClient.getFleetPerformance(),
     [],
   );
+  // Car names and rates, from the business's own fleet — see hooks/useFleet.ts.
+  const cars = useFleetLookup();
 
-  if (loading) {
+  if (loading || cars.loading) {
     return (
       <div className={styles.stack}>
         <Skeleton height={34} width="35%" />
@@ -66,13 +79,12 @@ export default function ProviderPerformancePage() {
   const totalRevenue = rows.reduce((sum, row) => sum + row.revenue, 0);
   const totalBookings = rows.reduce((sum, row) => sum + row.bookings, 0);
   const totalInquiries = rows.reduce((sum, row) => sum + row.inquiries, 0);
-  const totalConversions = rows.reduce((sum, row) => sum + row.conversions, 0);
   const averageOccupancy =
     rows.reduce((sum, row) => sum + row.occupancyRate, 0) / rows.length;
 
   // The one earning least, which is usually the useful thing to look at.
   const weakest = [...rows].sort((a, b) => a.revenue - b.revenue)[0];
-  const weakestVehicle = weakest ? findVehicle(weakest.vehicleId) : undefined;
+  const weakestVehicle = weakest ? cars.vehicle(weakest.vehicleId) : undefined;
 
   return (
     <>
@@ -107,14 +119,10 @@ export default function ProviderPerformancePage() {
           note={t('pp.perf.daysOut')}
         />
         <StatTile
-          label={t('pp.perf.converted')}
-          value={
-            totalInquiries > 0
-              ? `${Math.round((totalConversions / totalInquiries) * 100)}%`
-              : '—'
-          }
+          label={t('pp.perf.enquiries')}
+          value={String(totalInquiries)}
           icon="chatbubble-outline"
-          note={`${totalConversions} of ${totalInquiries}`}
+          note={t('pp.perf.enquiriesNote')}
         />
       </div>
 
@@ -127,9 +135,8 @@ export default function ProviderPerformancePage() {
 
           <RankedBar
             items={rows.map((row) => {
-              const vehicle = findVehicle(row.vehicleId);
               return {
-                label: vehicle ? `${vehicle.make} ${vehicle.model}` : row.vehicleId,
+                label: cars.name(row.vehicleId),
                 value: row.revenue,
                 sublabel: `${row.bookings} bookings`,
               };
@@ -145,11 +152,10 @@ export default function ProviderPerformancePage() {
 
           <div className={styles.stack}>
             {rows.map((row) => {
-              const vehicle = findVehicle(row.vehicleId);
               return (
                 <PercentBar
                   key={row.vehicleId}
-                  label={vehicle ? `${vehicle.make} ${vehicle.model}` : row.vehicleId}
+                  label={cars.name(row.vehicleId)}
                   value={row.occupancyRate}
                   tone={row.occupancyRate > 0.6 ? 'success' : row.occupancyRate > 0.3 ? 'brand' : 'warning'}
                 />
@@ -182,9 +188,6 @@ export default function ProviderPerformancePage() {
                 Enquiries
               </th>
               <th scope="col" className={styles.numeric}>
-                Converted
-              </th>
-              <th scope="col" className={styles.numeric}>
                 {t('pp.fleet.youEarned')}
               </th>
             </tr>
@@ -192,8 +195,7 @@ export default function ProviderPerformancePage() {
 
           <tbody>
             {rows.map((row) => {
-              const vehicle = findVehicle(row.vehicleId);
-              const rate = row.inquiries > 0 ? row.conversions / row.inquiries : 0;
+              const vehicle = cars.vehicle(row.vehicleId);
 
               return (
                 <tr key={row.vehicleId}>
@@ -206,7 +208,7 @@ export default function ProviderPerformancePage() {
                       </Link>
                     ) : (
                       <Text variant="label" as="span" raw>
-                        {row.vehicleId}
+                        {cars.name(row.vehicleId)}
                       </Text>
                     )}
                   </td>
@@ -235,11 +237,6 @@ export default function ProviderPerformancePage() {
                     </Text>
                   </td>
 
-                  <td className={styles.numeric}>
-                    <Text variant="body" tone="ink2" as="span" raw>
-                      {`${row.conversions} (${Math.round(rate * 100)}%)`}
-                    </Text>
-                  </td>
 
                   <td className={styles.numeric}>
                     <Text variant="label" as="span" raw>
@@ -265,9 +262,9 @@ export default function ProviderPerformancePage() {
               <Text variant="small" tone="ink2" raw>
                 {`Your ${weakestVehicle.make} ${weakestVehicle.model} is out ${Math.round(
                   weakest.occupancyRate * 100,
-                )}% of the time and earned ${money(
+                )}% of the time, with ${money(
                   weakest.revenue,
-                )}. If enquiries are coming in but not converting, the price or the minimum rental length is usually the reason.`}
+                )} as your share. If people ask about it but do not book, the price or the minimum rental length is usually the reason.`}
               </Text>
             </div>
           </div>

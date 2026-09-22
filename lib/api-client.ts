@@ -42,23 +42,16 @@ import { mockVehicles, findVehicle } from './mock/vehicles';
 import { mockProviders, findProvider } from './mock/providers';
 import { reviewsForVehicle } from './mock/reviews';
 import { legalDocuments, findLegalDocument } from './content/legal';
-import {
-  businessSummary,
-  findBusinessThread,
-  findProviderBooking,
-  mockBusinessThreads,
-  mockPayouts,
-  mockProviderBookings,
-  mockVehiclePerformance,
-  providerFleet,
-} from './mock/business';
 import { request } from './api/http';
 import { isNotFound, notImplemented } from './api/errors';
 import { useSampleCatalogue } from './api/source';
 import type {
   AppNotification,
   BusinessChatThread,
+  BusinessApplication,
   BusinessProfile,
+  BusinessSummary,
+  FleetVehicle,
   ImportRow,
   PayoutRecord,
   ProviderBooking,
@@ -71,6 +64,7 @@ import type {
   User,
   Vehicle,
   VehicleClass,
+  VehicleInput,
 } from '@/types';
 
 // ---- THE SHARED LOOKUP (see catalogueLookup) ----
@@ -536,35 +530,72 @@ export const apiClient = {
 
   // ==================== THE BUSINESS SIDE ====================
   // What a rental business sees about itself. None of it is reachable from a
-  // customer-facing screen.
+  // customer-facing screen. Always live: it is somebody's own business, and a
+  // sample answer is how every visitor used to "own" the same made-up one.
 
-  async getBusinessSummary(signal?: AbortSignal) {
-    if (useSampleCatalogue()) return sampleDelay(businessSummary());
-    return request<ReturnType<typeof businessSummary>>('/providers/me/summary', {
-      signal,
-      auth: true,
-    });
+  async getBusinessSummary(signal?: AbortSignal): Promise<BusinessSummary> {
+    return request<BusinessSummary>('/providers/me/summary', { signal, auth: true });
   },
 
   /**
-   * The signed-in person's own business. Always live, like accounts: it is
-   * how the site decides whether somebody has a business at all (see
-   * lib/business.tsx), and a sample answer made everybody the owner of the
-   * same made-up one. Fails with `not_a_provider` when they have none.
+   * The signed-in person's own business. It is how the site decides whether
+   * somebody has a business at all (see lib/business.tsx). Fails with
+   * `not_a_provider` when they have none.
    */
   async getBusinessProfile(signal?: AbortSignal): Promise<BusinessProfile> {
     return request<BusinessProfile>('/providers/me', { signal, auth: true });
   },
 
-  async getMyFleet(signal?: AbortSignal): Promise<Vehicle[]> {
-    if (useSampleCatalogue()) return sampleDelay(providerFleet());
-    return request<Vehicle[]>('/providers/me/vehicles', { signal, auth: true });
+  /**
+   * Registers a business for the signed-in person. Hands back its private
+   * record. Fails with `already_a_provider` if they have one already.
+   */
+  async applyAsProvider(application: BusinessApplication): Promise<BusinessProfile> {
+    return request<BusinessProfile>('/providers/apply', {
+      method: 'POST',
+      body: application,
+      auth: true,
+    });
+  },
+
+  /** Changes the business's own details. Only the fields given change. */
+  async updateBusinessProfile(
+    changes: Partial<Omit<BusinessApplication, 'businessName' | 'side' | 'registrationStatus' | 'registrationNumber' | 'registeredIn'>>,
+  ): Promise<BusinessProfile> {
+    return request<BusinessProfile>('/providers/me', { method: 'PATCH', body: changes, auth: true });
+  },
+
+  /**
+   * Every car the business has listed — including those still waiting for
+   * staff approval, which the public catalogue leaves out. That is also why
+   * the dashboard looks its cars up here and not in the catalogue.
+   */
+  async getMyFleet(signal?: AbortSignal): Promise<FleetVehicle[]> {
+    return request<FleetVehicle[]>('/providers/me/vehicles', { signal, auth: true });
+  },
+
+  /** Lists a new car. It waits for staff approval before customers see it. */
+  async addVehicle(input: VehicleInput): Promise<FleetVehicle> {
+    return request<FleetVehicle>('/providers/me/vehicles', { method: 'POST', body: input, auth: true });
+  },
+
+  async updateVehicle(id: string, changes: Partial<VehicleInput>): Promise<FleetVehicle> {
+    return request<FleetVehicle>(`/providers/me/vehicles/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: changes,
+      auth: true,
+    });
+  },
+
+  /**
+   * Takes a car off the platform. Fails with `vehicle_has_bookings` while it
+   * still has bookings to honour.
+   */
+  async removeVehicle(id: string): Promise<void> {
+    await request(`/providers/me/vehicles/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
   },
 
   async getFleetPerformance(signal?: AbortSignal): Promise<VehiclePerformance[]> {
-    if (useSampleCatalogue()) {
-      return sampleDelay([...mockVehiclePerformance].sort((a, b) => b.revenue - a.revenue));
-    }
     const rows = await request<VehiclePerformance[]>('/providers/me/performance', {
       signal,
       auth: true,
@@ -582,12 +613,10 @@ export const apiClient = {
    * car, and talks to the customer through SXM Rentals.
    */
   async getProviderBookings(signal?: AbortSignal): Promise<ProviderBooking[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockProviderBookings);
     return request<ProviderBooking[]>('/providers/me/bookings', { signal, auth: true });
   },
 
   async getProviderBooking(id: string, signal?: AbortSignal): Promise<ProviderBooking | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findProviderBooking(id));
     return findOrUndefined(
       request<ProviderBooking>(`/providers/me/bookings/${encodeURIComponent(id)}`, {
         signal,
@@ -598,12 +627,10 @@ export const apiClient = {
 
   /** Conversations with renters — same contact-detail rule as the bookings above. */
   async getBusinessThreads(signal?: AbortSignal): Promise<BusinessChatThread[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockBusinessThreads);
     return request<BusinessChatThread[]>('/providers/me/messages', { signal, auth: true });
   },
 
   async getBusinessThread(id: string, signal?: AbortSignal): Promise<BusinessChatThread | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findBusinessThread(id));
     return findOrUndefined(
       request<BusinessChatThread>(`/providers/me/messages/${encodeURIComponent(id)}`, {
         signal,
@@ -612,8 +639,26 @@ export const apiClient = {
     );
   },
 
+  /**
+   * Replies to a renter and hands back the conversation as it now stands. A
+   * reply is words, a car to suggest, or both.
+   */
+  async replyAsBusiness(threadId: string, body: string): Promise<BusinessChatThread> {
+    return request<BusinessChatThread>(
+      `/providers/me/messages/${encodeURIComponent(threadId)}/messages`,
+      { method: 'POST', body: { body }, auth: true },
+    );
+  },
+
+  /** Marks the renter's messages in a conversation as read. */
+  async markBusinessThreadRead(threadId: string): Promise<void> {
+    await request(`/providers/me/messages/${encodeURIComponent(threadId)}/read`, {
+      method: 'POST',
+      auth: true,
+    });
+  },
+
   async getPayouts(signal?: AbortSignal): Promise<PayoutRecord[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockPayouts);
     return request<PayoutRecord[]>('/providers/me/payouts', { signal, auth: true });
   },
 
