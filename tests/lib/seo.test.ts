@@ -10,7 +10,7 @@
 // weeks later as pages that will not rank. These are exactly the sort of
 // mistakes a test catches and a person does not.
 
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import sitemap from '@/app/sitemap';
 import robots from '@/app/robots';
 import {
@@ -21,9 +21,9 @@ import {
   jsonLdBreadcrumbs,
   jsonLdLegalDocument,
 } from '@/lib/seo';
-import { mockVehicles } from '@/lib/mock/vehicles';
-import { mockProviders } from '@/lib/mock/providers';
 import { legalDocuments } from '@/lib/content/legal';
+import { fakeBackend } from '../fakeBackend';
+import { providers, vehicles } from '../fixtures/catalogue';
 
 describe('canonical addresses', () => {
   it('builds a full address from a path', () => {
@@ -49,21 +49,26 @@ describe('canonical addresses', () => {
 });
 
 describe('the sitemap', () => {
-  // ---- WHY THIS IS NOW AWAITED ----
+  // ---- WHERE ITS CARS COME FROM ----
   //
-  // The sitemap used to read the sample data straight out of a file, so it
-  // could be built on the spot. It now asks the api-client, which means it is
-  // a promise even when the answer comes from the sample data.
-  //
-  // The catalogue switch is off in tests, so api-client hands back the same
-  // sample cars these assertions were always written against — nothing about
-  // what is being checked has changed, only when it is available.
+  // The sitemap asks the backend for the cars and the businesses. Here a
+  // stand-in backend answers with a few of each (tests/fixtures/catalogue.ts),
+  // so these checks are about the sitemap and not about what happens to be in
+  // a database.
   let entries: Awaited<ReturnType<typeof sitemap>>;
   let urls: string[];
 
   beforeAll(async () => {
+    fakeBackend({
+      'GET /vehicles': { status: 200, body: vehicles },
+      'GET /providers': { status: 200, body: providers },
+    });
     entries = await sitemap();
     urls = entries.map((entry) => entry.url);
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   it('lists the homepage, the search page and the legal index', () => {
@@ -73,7 +78,7 @@ describe('the sitemap', () => {
   });
 
   it('lists every car', () => {
-    for (const vehicle of mockVehicles) {
+    for (const vehicle of vehicles) {
       expect(urls, `${vehicle.make} ${vehicle.model} is missing`).toContain(
         `${SITE_URL}/vehicles/${vehicle.id}`,
       );
@@ -81,7 +86,7 @@ describe('the sitemap', () => {
   });
 
   it('lists every rental business and every policy', () => {
-    for (const provider of mockProviders) {
+    for (const provider of providers) {
       expect(urls).toContain(`${SITE_URL}/providers/${provider.id}`);
     }
     for (const document of legalDocuments) {
@@ -156,8 +161,8 @@ describe('the robots file', () => {
 });
 
 describe('what a search engine is told about a car', () => {
-  const vehicle = mockVehicles[0];
-  const provider = mockProviders.find((p) => p.id === vehicle.providerId);
+  const vehicle = vehicles[0];
+  const provider = providers.find((p) => p.id === vehicle.providerId);
   const data = jsonLdVehicle(vehicle, provider) as Record<string, any>;
 
   it('quotes the same price the page shows, per day', () => {
@@ -182,8 +187,7 @@ describe('what a search engine is told about a car', () => {
   });
 
   it('reports the real rating when there are reviews', () => {
-    const reviewed = mockVehicles.find((v) => v.reviewCount > 0);
-    if (!reviewed) return;
+    const reviewed = vehicles.find((v) => v.reviewCount > 0)!;
     const withReviews = jsonLdVehicle(reviewed) as Record<string, any>;
     expect(withReviews.aggregateRating.ratingValue).toBe(reviewed.rating);
     expect(withReviews.aggregateRating.reviewCount).toBe(reviewed.reviewCount);
@@ -200,7 +204,7 @@ describe('what a search engine is told about a car', () => {
 
 describe('what a search engine is told about a business and a policy', () => {
   it('describes a rental business with its town and rating', () => {
-    const provider = mockProviders[0];
+    const provider = providers[0];
     const data = jsonLdProvider(provider) as Record<string, any>;
     expect(data.name).toBe(provider.businessName);
     expect(data.address.addressLocality).toBe(provider.town);
@@ -209,7 +213,7 @@ describe('what a search engine is told about a business and a policy', () => {
   it('never publishes a business phone number to a search engine', () => {
     // Provider.phone exists so the platform can reach them. It is not part of
     // what gets handed to a search engine.
-    for (const provider of mockProviders) {
+    for (const provider of providers) {
       expect(JSON.stringify(jsonLdProvider(provider))).not.toContain(provider.phone);
     }
   });

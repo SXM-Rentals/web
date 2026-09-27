@@ -327,10 +327,4 @@ export const auth = {
     fr: 'Il nous manque un document',
     es: 'Nos falta un documento',
   },
-  'verify.demoNotice': {
-    en: 'Demo only — no ID is uploaded, stored or verified.',
-    nl: 'Alleen demo — er wordt geen ID geüpload, bewaard of gecontroleerd.',
-    fr: 'Démo uniquement — aucune pièce d’identité n’est envoyée, conservée ni vérifiée.',
-    es: 'Solo demo — no se envía, guarda ni verifica ninguna identificación.',
-  },
 } satisfies Record<string, Phrase>;

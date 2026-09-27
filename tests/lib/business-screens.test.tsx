@@ -117,7 +117,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
   nav.push.mockReset();
   nav.replace.mockReset();
 });
@@ -297,9 +296,6 @@ describe('registering a business', () => {
   } as User;
 
   it('sends the registered name, town and side, then says it was received', async () => {
-    // The business record is read through the catalogue path — see
-    // tests/lib/business.test.tsx.
-    vi.stubEnv('NEXT_PUBLIC_LIVE_CATALOGUE', 'true');
     let applied = false;
     const calls = fakeBackend({
       'GET /customers/me': { status: 200, body: OWNER },

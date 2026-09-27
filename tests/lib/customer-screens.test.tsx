@@ -65,14 +65,11 @@ function settledParams<T>(value: T): Promise<T> {
 }
 
 beforeEach(() => {
-  // These screens are about the real path; see tests/lib/business.test.tsx.
-  vi.stubEnv('NEXT_PUBLIC_LIVE_CATALOGUE', 'true');
   clearCatalogueLookup();
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
 });
 
 describe('the shared lookup of cars and businesses', () => {

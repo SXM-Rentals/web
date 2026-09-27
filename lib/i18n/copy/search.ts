@@ -331,4 +331,18 @@ export const search = {
     fr: 'Le système de réservation démarre. Cela peut prendre jusqu’à une minute la première fois.',
     es: 'El sistema de reservas se está iniciando. La primera vez puede tardar hasta un minuto.',
   },
+
+  // ---- NO CARS AT ALL, RATHER THAN NONE MATCHING ----
+  'search.none.title': {
+    en: 'No cars are listed yet',
+    nl: 'Er staan nog geen auto’s online',
+    fr: 'Aucune voiture n’est encore proposée',
+    es: 'Todavía no hay coches publicados',
+  },
+  'search.none.body': {
+    en: 'SXM Rentals has only just opened, and rental businesses are adding their cars now. Check back soon — or, if you rent out cars yourself, list them here.',
+    nl: 'SXM Rentals is net geopend en verhuurbedrijven zetten hun auto’s er nu op. Kom snel terug — of, als u zelf auto’s verhuurt, plaats ze hier.',
+    fr: 'SXM Rentals vient d’ouvrir et les loueurs ajoutent leurs voitures en ce moment. Revenez bientôt — ou, si vous louez vous-même des voitures, proposez-les ici.',
+    es: 'SXM Rentals acaba de abrir y las empresas de alquiler están añadiendo sus coches ahora. Vuelva pronto o, si usted alquila coches, publíquelos aquí.',
+  },
 } satisfies Record<string, Phrase>;

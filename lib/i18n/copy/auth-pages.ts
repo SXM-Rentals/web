@@ -366,12 +366,6 @@ export const authPages = {
     fr: 'Renvoyer',
     es: 'Enviarlo Otra Vez',
   },
-  'authp.otp.demoNote': {
-    en: 'Demo mode — no message has been sent, and any six digits will be accepted.',
-    nl: 'Demomodus — er is geen bericht verstuurd en elke zes cijfers worden geaccepteerd.',
-    fr: 'Mode démo — aucun message n’a été envoyé, et six chiffres quelconques seront acceptés.',
-    es: 'Modo demo: no se ha enviado ningún mensaje y se aceptan seis dígitos cualesquiera.',
-  },
 
   // ---- LOCAL OR VISITING ----
   'authp.type.title': {
@@ -496,11 +490,11 @@ export const authPages = {
     fr: 'Un autre programme l’utilise — un appel vidéo, en général. Fermez-le et réessayez, ou envoyez plutôt une photo.',
     es: 'Otro programa la está usando, normalmente una videollamada. Ciérrelo e inténtelo de nuevo, o suba una foto.',
   },
-  'authp.selfie.demoNote': {
-    en: 'Demo mode — nothing is captured, stored or sent anywhere. In the finished site this goes straight to the identity service, encrypted, and rental businesses never see it.',
-    nl: 'Demomodus — er wordt niets vastgelegd, opgeslagen of verzonden. In de definitieve site gaat dit versleuteld rechtstreeks naar de identiteitsdienst, en verhuurbedrijven zien het nooit.',
-    fr: 'Mode démo — rien n’est capturé, stocké ni envoyé. Sur le site final, cela va directement au service d’identité, chiffré, et les loueurs ne le voient jamais.',
-    es: 'Modo demo: no se captura, guarda ni envía nada. En el sitio final esto va cifrado directamente al servicio de identidad, y las empresas de alquiler nunca lo ven.',
+  'authp.selfie.whenConnected': {
+    en: 'When this is connected, the photo goes straight to the identity service, encrypted, and rental businesses never see it.',
+    nl: 'Zodra dit is gekoppeld, gaat de foto versleuteld rechtstreeks naar de identiteitsdienst, en verhuurbedrijven zien hem nooit.',
+    fr: 'Une fois connecté, la photo va directement au service d’identité, chiffrée, et les loueurs ne la voient jamais.',
+    es: 'Cuando esto esté conectado, la foto irá cifrada directamente al servicio de identidad, y las empresas de alquiler nunca la verán.',
   },
 
   // ---- THE DOCUMENTS ----
@@ -582,11 +576,11 @@ export const authPages = {
     fr: 'Le faire accepter du premier coup',
     es: 'Que lo acepten a la primera',
   },
-  'authp.id.demoNote': {
-    en: 'Demo mode — files chosen here never leave your computer. In the finished site they go encrypted to the identity service, are stored separately from everything else, and are never shown to rental businesses.',
-    nl: 'Demomodus — hier gekozen bestanden verlaten uw computer nooit. In de definitieve site gaan ze versleuteld naar de identiteitsdienst, worden ze apart van al het andere bewaard, en worden ze nooit aan verhuurbedrijven getoond.',
-    fr: 'Mode démo — les fichiers choisis ici ne quittent jamais votre ordinateur. Sur le site final, ils sont transmis chiffrés au service d’identité, conservés séparément de tout le reste, et ne sont jamais montrés aux loueurs.',
-    es: 'Modo demo: los archivos que elija aquí nunca salen de su ordenador. En el sitio final se envían cifrados al servicio de identidad, se guardan aparte de todo lo demás y nunca se muestran a las empresas de alquiler.',
+  'authp.id.whenConnected': {
+    en: 'When this is connected, the files go encrypted to the identity service, are stored separately from everything else, and are never shown to rental businesses.',
+    nl: 'Zodra dit is gekoppeld, gaan de bestanden versleuteld naar de identiteitsdienst, worden ze apart van al het andere bewaard, en worden ze nooit aan verhuurbedrijven getoond.',
+    fr: 'Une fois connecté, les fichiers sont transmis chiffrés au service d’identité, conservés séparément de tout le reste, et ne sont jamais montrés aux loueurs.',
+    es: 'Cuando esto esté conectado, los archivos se enviarán cifrados al servicio de identidad, se guardarán aparte de todo lo demás y nunca se mostrarán a las empresas de alquiler.',
   },
 
   // ---- THE FOUR ANSWERS ----

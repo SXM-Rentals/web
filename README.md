@@ -9,9 +9,11 @@
 The customer website and the rental business dashboard for SXM Rentals, covering
 both sides of Sint Maarten / Saint-Martin.
 
-**There is no backend yet.** Every screen is real and every page routes properly,
-but the data comes from the mock layer in `lib/mock/`. The seam to a future
-backend is `lib/api-client.ts`, and it is one file wide on purpose.
+It runs on the SXM Rentals API (`sxm-rentals-backend`), at
+**https://www.sxmrentals.app**. Every screen reads real accounts, cars, bookings,
+messages and payouts; there is no sample data left. The doorway to the backend
+is `lib/api-client.ts`, one file wide on purpose, and what the backend cannot do
+yet is written up in `docs/backend-asks.md`.
 
 ---
 
@@ -19,8 +21,14 @@ backend is `lib/api-client.ts`, and it is one file wide on purpose.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
+cp .env.example .env.local   # then fill it in — every setting is explained there
+npm run dev -- -p 3001       # http://localhost:3001
 ```
+
+Port 3001 because the backend, run locally, takes 3000, and 3001 is one of the
+addresses its example settings (`CORS_ORIGINS`) accept requests from. Point `API_URL` in
+`.env.local` at it (`http://localhost:3000`) to work without touching the live
+database, or at `https://sxm-rentals-api.onrender.com` to read the live one.
 
 | Command | What it does |
 |---|---|
@@ -32,7 +40,7 @@ npm run dev          # http://localhost:3000
 | `npm run test:watch` | The test suite, re-running as files change |
 | `npm run test:coverage` | The suite plus a coverage report in `coverage/` |
 
-Node 20 or newer. Nothing is deployed anywhere; everything stays on localhost.
+Node 20 or newer. Vercel deploys the site from GitHub, so **a push is a deploy**.
 
 ---
 
@@ -78,7 +86,8 @@ components/
   vehicle/  booking/  business/   the parts specific to each area
   seo/                the machine-readable page descriptions
 lib/
-  mock/               the seed data. Roughly 1,800 lines of it
+  api-client.ts       the one doorway to the backend
+  content/            fixed text — the policy documents, the island's towns
   i18n/copy/          the four languages, one file per subject
   theme/              light and dark
   seo.ts              addresses, canonical links, structured descriptions
@@ -164,7 +173,7 @@ done alongside the final drafts. The reasoning is written out at the top of
 
 ### What is still English
 
-- **Seed data** — a car's description, a review, a business's own blurb. That is
+- **Listings** — a car's description, a review, a business's own blurb. That is
   content, written by whoever owns it, not interface text.
 - **Roughly 270 phrases** in the longer forms and less-visited corners: the
   vehicle form a business fills in, parts of the fleet import and API pages, and
@@ -200,9 +209,9 @@ cannot appear in a search result.
   image that is too large. To change it, replace both files with the same
   picture at that size; Next.js writes the page tags from them
 
-**Before launch, set `NEXT_PUBLIC_SITE_URL`** to the real domain. Everything else
-is built from it, and until it is set every canonical address and shared link
-points at localhost.
+**`NEXT_PUBLIC_SITE_URL` is set in Vercel to `https://www.sxmrentals.app`.**
+Every canonical address, the sitemap and every shared link are built from it.
+Change it there if the address ever changes.
 
 ---
 
@@ -213,8 +222,11 @@ terminal in about a second.
 
 ```
 tests/rules/          the three product rules above
-tests/lib/            money, dates, Title Case, the languages, the SEO plumbing
+tests/lib/            money, dates, the languages, the SEO plumbing, and each
+                      area's screens against a stand-in backend
 tests/components/     the share button, and the navigation in four languages
+tests/fixtures/       a few cars, businesses and bookings, shaped as the backend
+                      sends them
 ```
 
 The suite is not trying to cover every line. It stands over the things whose
@@ -229,14 +241,20 @@ up the moment you opened the page is left to the page.
 
 Deliberate, and worth knowing before hunting for them:
 
-- **No backend.** Nothing saves. No payment is taken, no ID is uploaded
+- **Card payments are not connected.** Nothing is charged online and no deposit
+  is held; the booking flow says so, and says the rental is settled with the
+  business at collection
+- **Identity checks, rewards, logo and photo upload, the spreadsheet import and
+  connecting a business's own system** have no backend yet. Each says so on its
+  screen. `docs/backend-asks.md` has the full list
 - **`/welcome` and `/onboarding` are not built.** The homepage is the front door
   on the web; a phone app's opening carousel has no equivalent here
 - **`/provider/payout` folded into `/provider/settings`** — one page for how a
   business gets paid, rather than two
 - **No map view.** The phone app shows a placeholder too
-- **Stripe is a marked placeholder.** Card numbers must never touch our own
-  inputs; wiring real Stripe Elements is a backend-era task
+- **When payments are connected,** card details go through Stripe Elements, never
+  inputs of our own — and the deposit and payment wording across the booking
+  flow changes with them (the rule 1 test will insist)
 - **The translations want a native speaker** before launch, particularly the
   deposit, verification and legal wording
 

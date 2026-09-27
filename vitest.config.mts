@@ -38,9 +38,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['components/**', 'lib/**', 'hooks/**'],
-      // Mock data is a pile of constants — there is no behaviour in it to cover,
-      // and counting it would make the percentage meaningless.
-      exclude: ['lib/mock/**', '**/*.d.ts'],
+      exclude: ['**/*.d.ts'],
     },
   },
 });

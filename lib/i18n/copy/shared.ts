@@ -71,12 +71,6 @@ export const shared = {
     fr: 'Mentions Légales et Conditions',
     es: 'Aviso Legal y Condiciones',
   },
-  'footer.demoNotice': {
-    en: 'Demo build — sample data, not connected to a backend.',
-    nl: 'Demoversie — voorbeeldgegevens, niet verbonden met een server.',
-    fr: 'Version de démonstration — données d’exemple, non reliées à un serveur.',
-    es: 'Versión de demostración — datos de ejemplo, sin conexión a un servidor.',
-  },
 
   // ---- THE CALENDAR ----
   'calendar.chooseDates': {
@@ -180,11 +174,5 @@ export const shared = {
     nl: 'Ga direct naar de hoofdinhoud',
     fr: 'Aller directement au contenu principal',
     es: 'Saltar al contenido principal',
-  },
-  'shared.demoBanner': {
-    en: 'Demo mode — sample data, not connected to a backend.',
-    nl: 'Demomodus — voorbeeldgegevens, niet verbonden met een server.',
-    fr: 'Mode démo — données d’exemple, non reliées à un serveur.',
-    es: 'Modo demo: datos de ejemplo, sin conexión a un servidor.',
   },
 } satisfies Record<string, Phrase>;

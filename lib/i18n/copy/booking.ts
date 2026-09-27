@@ -147,12 +147,6 @@ export const booking = {
     fr: 'Réservation confirmée',
     es: 'Reserva confirmada',
   },
-  'booking.demoNotice': {
-    en: 'Demo only — no payment is taken and no booking is made.',
-    nl: 'Alleen demo — er wordt niets betaald en er wordt geen boeking gemaakt.',
-    fr: 'Démo uniquement — aucun paiement n’est prélevé et aucune réservation n’est créée.',
-    es: 'Solo demo — no se cobra nada y no se crea ninguna reserva.',
-  },
 
   // ---- WHAT A BOOKING COMES TO ----
   'booking.bookingTotal': {

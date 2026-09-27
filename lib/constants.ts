@@ -7,8 +7,8 @@
 //
 // The commission rate lived in lib/mock/business.ts, alongside the made-up
 // cars and the pretend payouts. That was wrong in a way that would have become
-// expensive: lib/mock/ is scheduled for deletion once everything reads from
-// the backend, and one of the three product rules is built on this number.
+// expensive: lib/mock/ was always going to be deleted — it now has been — and
+// one of the three product rules is built on this number.
 // Deleting a folder of sample data should never be able to take a real
 // business rule with it.
 

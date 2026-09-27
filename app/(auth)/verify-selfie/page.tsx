@@ -205,7 +205,7 @@ export default function VerifySelfiePage() {
         <div className={styles.note}>
           <Icon name="lock-closed-outline" size={15} color="var(--ink3)" />
           <Text variant="small" tone="ink3" raw>
-            {t('authp.selfie.demoNote')}
+            {t('authp.selfie.whenConnected')}
           </Text>
         </div>
       </Card>

@@ -18,7 +18,6 @@ export { Card, SectionHeader, Divider, type CardProps } from './Card';
 export { Input, PasswordInput, TextArea, type InputProps, type TextAreaProps } from './Input';
 export { Chip, ChipRow, SegmentedControl, Checkbox, Toggle } from './Controls';
 export {
-  MockBanner,
   StatusPill,
   ComingSoon,
   ComingSoonBadge,

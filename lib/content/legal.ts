@@ -7,7 +7,8 @@
 // ---- WHY THIS LIVES IN lib/content/ AND NOT lib/mock/ ----
 //
 // It used to sit in lib/mock/, next to the made-up cars, and that was going to
-// end badly. lib/mock/ is deleted once every screen reads from the backend.
+// end badly: lib/mock/ has since been deleted, with every screen reading from
+// the backend.
 // This is not sample data waiting to be replaced by a real version — it is the
 // real thing, and it is never coming from the backend. There is no /legal
 // endpoint on the API and there is not going to be one: these are nineteen

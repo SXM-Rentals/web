@@ -9,7 +9,7 @@
 // shows nothing of a business to somebody who does not have one.
 
 import React, { useEffect } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '../render';
 import { SessionProvider } from '@/lib/auth';
 import { BusinessProvider, useBusiness } from '@/lib/business';
@@ -68,17 +68,8 @@ function withBusiness() {
   return latest;
 }
 
-// The business's public record is still looked up through the catalogue,
-// which reads sample data while the switch in lib/api/source.ts is off. These
-// tests are about the real path, so the switch is on for them — as it is on
-// the site now, and as everything will be once that switch is deleted.
-beforeEach(() => {
-  vi.stubEnv('NEXT_PUBLIC_LIVE_CATALOGUE', 'true');
-});
-
 afterEach(() => {
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
 });
 
 describe('whether somebody runs a business', () => {

@@ -2,23 +2,20 @@
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: The single doorway between the app's screens and its
 // information. Every screen asks this file, and this file decides where the
-// answer comes from — the live backend, the sample data in lib/mock/, or, for
-// the few screens whose backend does not exist yet, an honest refusal.
+// answer comes from — the live backend, or, for the few screens whose backend
+// does not exist yet, an honest refusal.
 //
 // Because every screen goes through here, connecting things up has meant
 // changing this file rather than fifty others.
 //
 // ---- WHERE EACH ANSWER COMES FROM ----
 //
-//   ACCOUNTS — signing in and out, who is signed in, email links
-//   Always the backend. There is no sample version of a session worth keeping.
-//
-//   EVERYTHING ELSE, EXCEPT THE CASES BELOW
-//   The backend, or the sample data in lib/mock/, depending on one setting —
-//   see lib/api/source.ts. That switch, the sample branches and lib/mock/
-//   itself are all being removed, screen by screen, now that signing in is
-//   real. Until the last of them goes, the setting decides: on, and it is all
-//   the backend; off, and everything but accounts is sample data.
+//   EVERYTHING, EXCEPT THE CASES BELOW
+//   The backend. There used to be a second source — made-up cars, bookings,
+//   messages and a made-up business, in lib/mock/, behind a setting called
+//   NEXT_PUBLIC_LIVE_CATALOGUE — and all of it has been deleted. An empty
+//   platform now looks empty, which is the truth, rather than full of cars
+//   nobody can rent.
 //
 //   THE SPREADSHEET IMPORT, THE API CONNECTION DETAILS
 //   Nothing. These screens were built before the backend had anywhere for them
@@ -38,13 +35,9 @@
 // that turns both into a 404 tells a search engine a car has been deleted
 // because a server was briefly asleep, and the page drops out of the index.
 
-import { mockVehicles, findVehicle } from './mock/vehicles';
-import { mockProviders, findProvider } from './mock/providers';
-import { reviewsForVehicle } from './mock/reviews';
 import { legalDocuments, findLegalDocument } from './content/legal';
 import { request } from './api/http';
 import { isNotFound, notImplemented } from './api/errors';
-import { useSampleCatalogue } from './api/source';
 import type {
   AppNotification,
   BusinessChatThread,
@@ -86,17 +79,6 @@ export function clearCatalogueLookup(): void {
 }
 
 /**
- * A short made-up wait on the sample-data path only.
- *
- * It exists so the loading and skeleton states still get exercised while the
- * catalogue switch is off. Without it everything appears instantly and those
- * states are never seen until they break in front of somebody.
- */
-function sampleDelay<T>(value: T, ms = 350): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
-}
-
-/**
  * Looks something up and turns "there is no such thing" into `undefined`,
  * while letting every other failure through.
  *
@@ -126,47 +108,6 @@ export type VehicleFilters = {
   side?: 'dutch' | 'french';
   sort?: 'recommended' | 'price_low' | 'price_high' | 'rating';
 };
-
-/**
- * Narrowing and sorting the sample cars, for when the catalogue switch is off.
- *
- * The backend does all of this itself. This is only kept so the search screen
- * behaves identically either way — otherwise the switch would change how the
- * page works, not just where the data came from, and testing it would prove
- * nothing.
- */
-function filterSampleVehicles(filters: VehicleFilters): Vehicle[] {
-  let results = [...mockVehicles];
-
-  if (filters.search) {
-    const q = filters.search.toLowerCase().trim();
-    results = results.filter((v) => `${v.make} ${v.model} ${v.pickupTown}`.toLowerCase().includes(q));
-  }
-  if (filters.classes?.length) {
-    results = results.filter((v) => filters.classes!.includes(v.vehicleClass));
-  }
-  if (filters.minPrice != null) results = results.filter((v) => v.dailyRate >= filters.minPrice!);
-  if (filters.maxPrice != null) results = results.filter((v) => v.dailyRate <= filters.maxPrice!);
-  if (filters.seats != null) results = results.filter((v) => v.seats >= filters.seats!);
-  if (filters.transmission) results = results.filter((v) => v.transmission === filters.transmission);
-  if (filters.fuel) results = results.filter((v) => v.fuel === filters.fuel);
-  if (filters.deliveryOnly) results = results.filter((v) => v.deliveryAvailable);
-  if (filters.side) results = results.filter((v) => v.side === filters.side);
-
-  switch (filters.sort) {
-    case 'price_low':
-      results.sort((a, b) => a.dailyRate - b.dailyRate);
-      break;
-    case 'price_high':
-      results.sort((a, b) => b.dailyRate - a.dailyRate);
-      break;
-    default:
-      // "Recommended" and "rating" both mean best rated first for now.
-      results.sort((a, b) => b.rating - a.rating);
-  }
-
-  return results;
-}
 
 /**
  * How a catalogue read may be cached, and for how long.
@@ -212,8 +153,6 @@ export const apiClient = {
   // ==================== CARS ====================
 
   async listVehicles(filters: VehicleFilters = {}, options: ReadOptions = {}): Promise<Vehicle[]> {
-    if (useSampleCatalogue()) return sampleDelay(filterSampleVehicles(filters));
-
     return request<Vehicle[]>('/vehicles', {
       ...options,
       query: {
@@ -233,19 +172,16 @@ export const apiClient = {
   },
 
   async getVehicle(id: string, options: ReadOptions = {}): Promise<Vehicle | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findVehicle(id));
     return findOrUndefined(request<Vehicle>(`/vehicles/${encodeURIComponent(id)}`, options));
   },
 
   // ==================== RENTAL BUSINESSES ====================
 
   async listProviders(options: ReadOptions = {}): Promise<Provider[]> {
-    if (useSampleCatalogue()) return sampleDelay(mockProviders);
     return request<Provider[]>('/providers', options);
   },
 
   async getProvider(id: string, options: ReadOptions = {}): Promise<Provider | undefined> {
-    if (useSampleCatalogue()) return sampleDelay(findProvider(id));
     return findOrUndefined(request<Provider>(`/providers/${encodeURIComponent(id)}`, options));
   },
 
@@ -267,7 +203,6 @@ export const apiClient = {
   // ==================== REVIEWS ====================
 
   async getReviews(vehicleId: string, options: ReadOptions = {}): Promise<Review[]> {
-    if (useSampleCatalogue()) return sampleDelay(reviewsForVehicle(vehicleId));
     return request<Review[]>(`/vehicles/${encodeURIComponent(vehicleId)}/reviews`, options);
   },
 
@@ -280,10 +215,9 @@ export const apiClient = {
    *
    * A booking says `vehicleId` and `providerId`; a conversation says
    * `providerId`. To draw either — "Kia Picanto from Harbour View Rentals" —
-   * the screen needs the car and the business themselves. With sample data
-   * that was an instant lookup in a file. Over the network it is a request,
-   * and one request per row would be slow and would spend the backend's
-   * 300-per-window allowance a list at a time.
+   * the screen needs the car and the business themselves. Over the network
+   * that is a request, and one request per row would be slow and would spend
+   * the backend's 300-per-window allowance a list at a time.
    *
    * So the whole catalogue is fetched once — the backend returns all of it in
    * one answer anyway — and kept for five minutes, shared by every screen that
@@ -694,10 +628,10 @@ export const apiClient = {
   // these and there is not meant to be.
 
   async listLegalDocuments(): Promise<LegalDocument[]> {
-    return sampleDelay(legalDocuments, 100);
+    return legalDocuments;
   },
 
   async getLegalDocument(slug: string): Promise<LegalDocument | undefined> {
-    return sampleDelay(findLegalDocument(slug), 100);
+    return findLegalDocument(slug);
   },
 };

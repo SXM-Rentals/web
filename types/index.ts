@@ -106,14 +106,13 @@ export type Vehicle = {
   // Where and how it can be collected
   pickupTown: string;
   side: 'dutch' | 'french';
-  deliveryAvailable: boolean;
-  deliveryFee?: number;
+  deliveryAvailable: boolean; // delivery is never charged for (see docs/backend-asks.md, ask 6)
   latitude: number;
   longitude: number;
 
   rating: number;
   reviewCount: number;
-  accidentHistory: AccidentRecord[]; // empty array means "none reported"
+  accidentHistory: AccidentRecord[]; // empty means nothing is recorded — not that there were no accidents
   unavailableDates: string[]; // days already booked, as YYYY-MM-DD
   description: string;
 };

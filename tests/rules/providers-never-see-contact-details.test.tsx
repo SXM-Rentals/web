@@ -11,14 +11,35 @@
 // call about a late return") and would look perfectly reasonable in review.
 //
 // IT CHECKS TWO THINGS, deliberately. The type definitions, read as text, so a
-// new field is caught the moment it is declared. And the seed data, read as
-// values, because a stray "renterPhone" would otherwise sit unnoticed inside an
-// object that is only loosely typed at the point it is written.
+// new field is caught the moment it is declared. And the business screens
+// themselves, handed a booking and a conversation that DO carry a phone number
+// and an email address — as though the backend had leaked them — to prove the
+// screens show only what the types allow, whatever arrives.
+//
+// (It used to check the sample data for stray contact details instead. The
+// sample data is deleted; checking what the screens actually show is the
+// stronger guard anyway.)
 
+import React from 'react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { mockProviderBookings, mockBusinessThreads } from '@/lib/mock/business';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { render, screen } from '../render';
+import { fakeBackend } from '../fakeBackend';
+import { businessThreads, providerBookings } from '../fixtures/business';
+import { fleet } from '../fixtures/catalogue';
+import ProviderBookingsPage from '@/app/provider/bookings/page';
+import { ProviderMessagesView } from '@/components/business/ProviderMessagesView';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/provider',
+}));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const typesSource = readFileSync(join(process.cwd(), 'types', 'index.ts'), 'utf8');
 
@@ -38,6 +59,14 @@ function typeBody(name: string): string {
 // you greet the right person at the counter. A way to reach them privately is
 // not.
 const FORBIDDEN = ['email', 'phone', 'mobile', 'whatsapp', 'telephone', 'contactNumber'];
+
+// What a leak would look like, if the backend ever sent one.
+const LEAKED = {
+  renterEmail: 'maria.k@example.com',
+  renterPhone: '+1 721 555 0199',
+  email: 'maria.k@example.com',
+  phone: '+1 721 555 0199',
+};
 
 describe('Rule 2 — providers never see customer contact details', () => {
   it('gives ProviderBooking nowhere to put a phone number or email', () => {
@@ -63,35 +92,29 @@ describe('Rule 2 — providers never see customer contact details', () => {
     expect(body).toContain('renterVerified');
   });
 
-  it('has no contact details hiding in the business-side seed data', () => {
-    const emailShaped = /[\w.+-]+@[\w-]+\.[\w.]+/;
-    // Seven or more digits in a row, allowing the spaces, dashes and brackets a
-    // phone number is usually written with.
-    const phoneShaped = /(\+?\d[\d\s()-]{6,}\d)/;
+  it('shows no contact details on the bookings list, even if the backend sent some', async () => {
+    fakeBackend({
+      'GET /providers/me/bookings': { status: 200, body: [{ ...providerBookings[0], ...LEAKED }] },
+      'GET /providers/me/vehicles': { status: 200, body: fleet },
+    });
+    render(<ProviderBookingsPage />);
 
-    for (const booking of mockProviderBookings) {
-      const asText = JSON.stringify(booking);
-      expect(asText, `booking ${booking.reference} contains an email address`).not.toMatch(
-        emailShaped,
-      );
-      // Reference numbers and dates are digits too, so only the human-readable
-      // string fields are worth checking for a phone number.
-      const words = [booking.renterDisplayName, booking.location].join(' ');
-      expect(words, `booking ${booking.reference} contains a phone number`).not.toMatch(
-        phoneShaped,
-      );
-    }
-
-    for (const thread of mockBusinessThreads) {
-      expect(JSON.stringify(thread)).not.toMatch(emailShaped);
-    }
+    await screen.findByText('Maria K.');
+    const onScreen = document.body.textContent ?? '';
+    expect(onScreen).not.toContain(LEAKED.renterEmail);
+    expect(onScreen).not.toContain('555 0199');
   });
 
-  it('shows the renter by display name only, in every seeded booking', () => {
-    for (const booking of mockProviderBookings) {
-      expect(booking.renterDisplayName.length).toBeGreaterThan(0);
-      // "Benjamin J." — a first name and an initial, not a full legal name.
-      expect(booking.renterDisplayName.split(' ').length).toBeLessThanOrEqual(3);
-    }
+  it('shows no contact details in a conversation, even if the backend sent some', async () => {
+    fakeBackend({
+      'GET /providers/me/messages': { status: 200, body: [{ ...businessThreads[0], ...LEAKED, unreadCount: 0 }] },
+      'GET /providers/me/vehicles': { status: 200, body: fleet },
+    });
+    render(<ProviderMessagesView threadId={businessThreads[0].id} />);
+
+    await screen.findAllByText('Maria K.');
+    const onScreen = document.body.textContent ?? '';
+    expect(onScreen).not.toContain(LEAKED.renterEmail);
+    expect(onScreen).not.toContain('555 0199');
   });
 });

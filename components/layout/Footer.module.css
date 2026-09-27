@@ -135,8 +135,6 @@
   border-top: 1px solid var(--hairline);
 }
 
-.baseSpacer { flex: 1; }
-
 /* ---- ROOM FOR A THUMB ----
    Below the tablet breakpoint every footer link becomes at least 44px tall.
    The words do not move and nothing looks different; the strip that responds to

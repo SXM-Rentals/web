@@ -20,7 +20,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, Icon, Text } from '@/components/ui';
+import { Button, Text } from '@/components/ui';
 import styles from '../auth.module.css';
 import { NotConnectedNotice } from '@/components/layout/NotConnectedNotice';
 import { useTranslation } from '@/lib/i18n';
@@ -140,15 +140,6 @@ export default function OtpPage() {
         />
         <Button label={t('authp.otp.resend')} variant="ghost" size="md" fullWidth />
       </div>
-
-      <Card>
-        <div className={styles.note}>
-          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3" raw>
-            {t('authp.otp.demoNote')}
-          </Text>
-        </div>
-      </Card>
     </>
   );
 }

@@ -139,11 +139,6 @@ export function Footer() {
             {`© ${new Date().getFullYear()} SXM Rentals. Sint Maarten / Saint-Martin.`}
           </Text>
 
-          <span className={styles.baseSpacer} />
-
-          <Text variant="small" tone="ink3" as="span">
-            <T k="footer.demoNotice" />
-          </Text>
         </div>
       </div>
     </footer>

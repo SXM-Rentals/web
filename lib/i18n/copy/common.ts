@@ -190,12 +190,6 @@ export const common = {
     fr: 'avis',
     es: 'reseñas',
   },
-  'common.demoNotice': {
-    en: 'Demo mode — sample data, not connected to a backend.',
-    nl: 'Demomodus — voorbeeldgegevens, niet verbonden met een server.',
-    fr: 'Mode démo — données d’exemple, non reliées à un serveur.',
-    es: 'Modo demo — datos de ejemplo, sin conexión a un servidor.',
-  },
   'common.yes': {
     en: 'Yes',
     nl: 'Ja',

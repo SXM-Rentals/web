@@ -14,16 +14,24 @@
 // THE DEPOSIT IS TESTED HERE TOO, from the other side. Rule 1 keeps it out of
 // what the customer is charged; this keeps it out of what the business is paid.
 // It is the customer's money in both directions.
+//
+// ---- WHAT IT CHECKS NOW ----
+//
+// The figures as the backend sends them (tests/fixtures/business.ts, worked
+// out with the backend's own arithmetic, cents and all) — so a change to the
+// shape the screens rely on is caught here. The sample data these checks used
+// to run on is deleted. What the screens do with the figures is checked in
+// tests/rules/provider-figures-on-screen.test.tsx.
 
 import { describe, expect, it } from 'vitest';
-import { mockPayouts, mockProviderBookings } from '@/lib/mock/business';
+import { payouts, providerBookings } from '../fixtures/business';
 import { COMMISSION_RATE } from '@/lib/constants';
 
 describe('Rule 3 — provider figures are always their own share', () => {
-  it('shows gross, commission and net together on every payout', () => {
-    expect(mockPayouts.length).toBeGreaterThan(0);
+  it('carries gross, commission and net together on every payout', () => {
+    expect(payouts.length).toBeGreaterThan(0);
 
-    for (const payout of mockPayouts) {
+    for (const payout of payouts) {
       expect(payout.grossAmount, `${payout.reference} is missing the gross`).toBeGreaterThan(0);
       expect(payout.commission, `${payout.reference} is missing the commission`).toBeGreaterThan(0);
       expect(payout.amount, `${payout.reference} is missing the net`).toBeGreaterThan(0);
@@ -31,7 +39,7 @@ describe('Rule 3 — provider figures are always their own share', () => {
   });
 
   it('makes the three numbers add up, so the deduction can be checked', () => {
-    for (const payout of mockPayouts) {
+    for (const payout of payouts) {
       // Allowed to be a cent out from rounding, and no more. If these did not
       // reconcile, a business checking our figures against its own bank
       // statement would find a discrepancy it could not explain — which costs
@@ -44,7 +52,7 @@ describe('Rule 3 — provider figures are always their own share', () => {
   });
 
   it('takes roughly the stated commission and no more', () => {
-    for (const payout of mockPayouts) {
+    for (const payout of payouts) {
       const rate = payout.commission / payout.grossAmount;
       // A band rather than an exact figure: the rate varies a little in
       // practice. The point is to catch a rate that has drifted somewhere it
@@ -57,30 +65,24 @@ describe('Rule 3 — provider figures are always their own share', () => {
   });
 
   it('reconciles the same three numbers on an individual booking', () => {
-    expect(mockProviderBookings.length).toBeGreaterThan(0);
+    expect(providerBookings.length).toBeGreaterThan(0);
 
-    for (const booking of mockProviderBookings) {
+    for (const booking of providerBookings) {
       expect(
         Math.abs(booking.grossAmount - booking.commission - booking.netAmount),
         `${booking.reference} does not reconcile`,
       ).toBeLessThan(0.01);
 
-
-      // And the business is never shown a figure larger than what it gets.
-      // A cancelled booking is 0/0/0, which is right — no money changed hands —
-      // so it is the one case where net and gross are allowed to be equal.
-      if (booking.status === 'cancelled') {
-        expect(booking.grossAmount).toBe(0);
-        expect(booking.netAmount).toBe(0);
-      } else {
-        expect(booking.netAmount).toBeLessThan(booking.grossAmount);
-        expect(booking.netAmount).toBeGreaterThan(0);
-      }
+      // And the business is never sent a figure larger than what it gets.
+      // (A cancelled booking keeps its original figures on the backend; the
+      // screens show no payout for it — see the bookings list.)
+      expect(booking.netAmount).toBeLessThan(booking.grossAmount);
+      expect(booking.netAmount).toBeGreaterThan(0);
     }
   });
 
   it('never counts the deposit as money the business is owed', () => {
-    for (const booking of mockProviderBookings) {
+    for (const booking of providerBookings) {
       if (booking.depositAmount <= 0) continue;
 
       // If the deposit had been folded into the booking's value, the gross
@@ -96,7 +98,7 @@ describe('Rule 3 — provider figures are always their own share', () => {
   });
 
   it('never lets a payout total exceed the bookings it was made from', () => {
-    for (const payout of mockPayouts) {
+    for (const payout of payouts) {
       expect(payout.bookingCount).toBeGreaterThan(0);
       expect(payout.amount).toBeLessThan(payout.grossAmount);
     }

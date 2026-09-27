@@ -281,6 +281,25 @@ export function SearchView() {
     }
 
     if (!vehicles || vehicles.length === 0) {
+      // ---- NOTHING LISTED AT ALL ----
+      // With no filter on, an empty list is not "nothing matches" — the
+      // catalogue itself is empty, which is how the site opens: businesses
+      // are still listing their cars, and each waits for staff approval.
+      // "No cars match those filters" would send somebody hunting for a
+      // filter that is not there, so this says what is actually happening,
+      // and gives a business the way in.
+      if (activeChips.length === 0) {
+        return (
+          <EmptyState
+            title={t('search.none.title')}
+            body={t('search.none.body')}
+            icon="car-outline"
+            actionLabel={t('web.nav.listVehicles')}
+            actionHref="/provider/apply"
+          />
+        );
+      }
+
       return (
         <EmptyState
           title={t('search.empty.title')}

@@ -71,7 +71,10 @@ export default function ProviderPayoutsPage() {
   const totalCommission = payouts.reduce((sum, payout) => sum + payout.commission, 0);
   const totalGross = payouts.reduce((sum, payout) => sum + payout.grossAmount, 0);
 
-  const next = pending[0];
+  // The next payout due: the pending one with the earliest period. The
+  // backend lists payouts newest first, so the first pending one on the list
+  // is the furthest away, not the next.
+  const next = [...pending].sort((a, b) => a.periodEnd.localeCompare(b.periodEnd))[0];
 
   return (
     <>
