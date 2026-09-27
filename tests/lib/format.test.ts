@@ -33,14 +33,22 @@ describe('money', () => {
     expect(money(12500)).toBe('$12,500');
   });
 
-  it('rounds rather than showing a stray fraction of a cent', () => {
-    expect(money(64.6)).toBe('$65');
-    expect(money(64.4)).toBe('$64');
+  it('shows cents whenever there are any — a price is never rounded into a different price', () => {
+    // A 5% service fee on $114, as the backend works it out.
+    expect(money(5.7)).toBe('$5.70');
+    expect(money(64.6)).toBe('$64.60');
+    expect(money(1234.5)).toBe('$1,234.50');
   });
 
-  it('shows cents when asked, for a receipt', () => {
+  it('rounds away only floating-point noise smaller than a cent', () => {
+    expect(money(0.1 + 0.2)).toBe('$0.30');
+    expect(money(64.99999999)).toBe('$65');
+  });
+
+  it('shows cents when asked, for a receipt, and drops them when asked', () => {
     expect(money(64.5, { decimals: true })).toBe('$64.50');
     expect(money(65, { decimals: true })).toBe('$65.00');
+    expect(money(64.6, { decimals: false })).toBe('$65');
   });
 
   it('handles zero and a negative discount line', () => {

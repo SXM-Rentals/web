@@ -94,3 +94,10 @@
 @media (max-width: 519px) {
   .actions > * { flex: 1; }
 }
+
+/* The panel where the price goes before there are dates to price. */
+.noPrice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}

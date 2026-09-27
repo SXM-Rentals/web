@@ -154,9 +154,11 @@ export function DepositBlock({ vehicle }: { vehicle: Vehicle }) {
               </Text>
             </div>
 
+            {/* Worded to be true whoever holds it: SXM Rentals cannot hold a
+                deposit until card payments are connected, and until then the
+                business arranges it at collection (see the booking panel). */}
             <Text variant="small" tone="ink2" raw>
-              {t('vehicle.deposit.shortBody')}
-              {t('vehicle.deposit.notACharge')}
+              {`${t('vehicle.deposit.shortBody')} ${t('vehicle.deposit.notACharge')}`}
             </Text>
 
             {/* Some cars carry their own deposit rather than the standard one. */}

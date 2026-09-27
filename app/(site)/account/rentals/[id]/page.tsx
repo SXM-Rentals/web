@@ -50,8 +50,10 @@ const STATUS_LOOK: Record<string, { label: string; tone: 'neutral' | 'success' |
 };
 
 const DEPOSIT_EXPLAINER: Record<string, string> = {
+  // Every real booking sits here for now: SXM Rentals cannot hold a deposit
+  // until payments are connected, so nothing is set aside automatically.
   not_taken:
-    'Nothing has been set aside yet. The hold is placed on your card shortly before you collect the car.',
+    'Nothing has been set aside. SXM Rentals does not hold deposits yet — the rental business arranges it with you when you collect the car.',
   held: 'This amount is currently set aside on your card. It has not been charged, and is released after you return the car.',
   released:
     'The hold has been lifted. Your bank may take a few working days to show the money as available again.',

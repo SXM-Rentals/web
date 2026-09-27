@@ -16,11 +16,20 @@
 // It also enforces the minimum and maximum rental length, and explains WHY the
 // button is unavailable rather than just greying it out — being refused with no
 // reason given is the most frustrating way for a form to fail.
+//
+// ---- THE TOTAL IS THE BACKEND'S, NOT A SUM DONE HERE ----
+//
+// This panel used to multiply the daily rate by the number of days and add the
+// business's delivery fee. That missed the weekly rate, missed the service fee,
+// and charged for delivery the backend gives away — so the figure here and the
+// figure at the end of the booking were different numbers. It now asks the
+// backend to price the dates, which it will do for anyone, signed in or not.
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { daysBetween, dateRange, money, perDay } from '@/lib/format';
+import { daysBetween, dateRange, money } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import { useQuote } from '@/hooks/useQuote';
 import { useSession } from '@/lib/auth';
 import {
   Button,
@@ -28,6 +37,7 @@ import {
   Card,
   Icon,
   Sheet,
+  Skeleton,
   StatusPill,
   Text,
 } from '@/components/ui';
@@ -41,18 +51,10 @@ export function BookingPanel({ vehicle }: { vehicle: Vehicle }) {
   const { trip, setTrip, hasDates } = useTrip();
   const { isSignedIn } = useSession();
   const [datesOpen, setDatesOpen] = useState(false);
+  // What the backend says these dates cost — see hooks/useQuote.ts.
+  const quote = useQuote(vehicle.id, trip);
 
   const days = hasDates ? daysBetween(trip.startDate!, trip.endDate!) : 0;
-
-  // ---- WHAT THE RENTAL COMES TO ----
-  // Only the rental itself and the delivery charge. The deposit is deliberately
-  // absent from this sum and is shown separately below.
-  const rentalTotal = days * vehicle.dailyRate;
-  const deliveryFee =
-    trip.collection === 'delivery' && vehicle.deliveryAvailable
-      ? (vehicle.deliveryFee ?? 0)
-      : 0;
-  const dueToday = rentalTotal + deliveryFee;
 
   // ---- WHY THE BUTTON MIGHT NOT BE AVAILABLE ----
   // Worked out as a sentence rather than a boolean, so the reason can be shown.
@@ -64,6 +66,10 @@ export function BookingPanel({ vehicle }: { vehicle: Vehicle }) {
     if (days > vehicle.maximumDays) {
       return `This car can be rented for at most ${vehicle.maximumDays} days. Your dates cover ${days}.`;
     }
+    // What the backend said when it priced these dates, including a car that
+    // has since been booked by somebody else.
+    if (quote.error) return quote.error;
+    if (quote.quote && !quote.quote.available) return t('flow.trip.justBooked');
     return null;
   };
 
@@ -115,35 +121,30 @@ export function BookingPanel({ vehicle }: { vehicle: Vehicle }) {
             <Icon name="chevron-forward" size={18} />
           </button>
 
-          {/* ---- THE RUNNING TOTAL ---- */}
-          {hasDates && !blocked ? (
+          {/* ---- WHAT THESE DATES COST ----
+              Every line as the backend worked it out, so this figure and the
+              one at the end of the booking are the same figure. */}
+          {quote.loading ? (
+            <Skeleton height={72} radius="var(--radius-md)" />
+          ) : quote.quote && !blocked ? (
             <div className={styles.totals}>
-              <div className={styles.totalRow}>
-                <Text variant="body" tone="ink2" as="span" raw>
-                  {`${perDay(vehicle.dailyRate)} × ${days} ${days === 1 ? 'day' : 'days'}`}
-                </Text>
-                <Text variant="body" as="span" raw>
-                  {money(rentalTotal)}
-                </Text>
-              </div>
-
-              {deliveryFee > 0 ? (
-                <div className={styles.totalRow}>
+              {quote.quote.lines.map((line) => (
+                <div key={line.label} className={styles.totalRow}>
                   <Text variant="body" tone="ink2" as="span" raw>
-                    {t('booking.delivery')}
+                    {line.label}
                   </Text>
                   <Text variant="body" as="span" raw>
-                    {money(deliveryFee)}
+                    {money(line.amount)}
                   </Text>
                 </div>
-              ) : null}
+              ))}
 
               <div className={styles.totalRow}>
                 <Text variant="h3" as="span" raw>
-                  {t('booking.dueToday')}
+                  {t('booking.bookingTotal')}
                 </Text>
                 <Text variant="h3" as="span" raw>
-                  {money(dueToday)}
+                  {money(quote.quote.totalDueToday)}
                 </Text>
               </div>
             </div>
@@ -160,7 +161,7 @@ export function BookingPanel({ vehicle }: { vehicle: Vehicle }) {
                     {t('vehicle.depositLabel')}
                   </Text>
                   <Text variant="body" tone="ink2" as="span" raw>
-                    {money(vehicle.depositAmount)}
+                    {money(quote.quote?.depositAmount ?? vehicle.depositAmount)}
                   </Text>
                 </div>
                 <Text variant="small" tone="ink3" raw>
@@ -210,14 +211,9 @@ export function BookingPanel({ vehicle }: { vehicle: Vehicle }) {
               <Text variant="small" tone="ink2" as="span" raw>
                 {t('booking.delivery')}
               </Text>
-              <StatusPill
-                label={
-                  vehicle.deliveryFee
-                    ? `AVAILABLE · ${money(vehicle.deliveryFee)}`
-                    : 'AVAILABLE'
-                }
-                tone="success"
-              />
+              {/* Delivery is free on SXM Rentals: the backend charges
+                  nothing for it, whatever a business would charge alone. */}
+              <StatusPill label={t('vehicle.panel.deliveryFree')} tone="success" />
             </div>
           ) : null}
         </div>

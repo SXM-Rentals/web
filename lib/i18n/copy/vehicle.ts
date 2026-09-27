@@ -77,10 +77,10 @@ export const vehicle = {
     es: 'Se retiene, no se cobra',
   },
   'vehicle.deposit.shortBody': {
-    en: 'Held on your card while you have the car and released when you bring it back.',
-    nl: 'Wordt op uw kaart gereserveerd zolang u de auto heeft en vrijgegeven wanneer u hem terugbrengt.',
-    fr: 'Bloquée sur votre carte pendant la location et libérée dès que vous rendez la voiture.',
-    es: 'Se retiene en su tarjeta mientras tiene el coche y se libera cuando lo devuelve.',
+    en: 'Set aside while you have the car and given back when you return it.',
+    nl: 'Wordt apart gezet zolang u de auto heeft en teruggegeven wanneer u hem terugbrengt.',
+    fr: 'Mise de côté pendant que vous avez la voiture et rendue à son retour.',
+    es: 'Se aparta mientras tiene el coche y se devuelve cuando lo entrega.',
   },
   'vehicle.deposit.notACharge': {
     en: 'This is not a charge.',
@@ -195,16 +195,16 @@ export const vehicle = {
     es: 'Elija sus fechas',
   },
   'vehicle.panel.depositNote': {
-    en: 'Held on your card just before pickup and released when you return the car. Not included in the total above.',
-    nl: 'Wordt vlak voor het ophalen op uw kaart gereserveerd en vrijgegeven wanneer u de auto terugbrengt. Niet inbegrepen in het totaal hierboven.',
-    fr: 'Bloquée sur votre carte juste avant le retrait et libérée quand vous rendez la voiture. Non comprise dans le total ci-dessus.',
-    es: 'Se retiene en su tarjeta justo antes de la recogida y se libera cuando devuelve el coche. No está incluida en el total de arriba.',
+    en: 'Not part of the total above. SXM Rentals does not hold deposits yet — the business arranges it with you when you collect the car.',
+    nl: 'Geen onderdeel van het totaal hierboven. SXM Rentals houdt nog geen borgsommen vast — het bedrijf regelt het met u bij het ophalen.',
+    fr: 'Ne fait pas partie du total ci-dessus. SXM Rentals ne bloque pas encore les cautions : le loueur la règle avec vous au retrait.',
+    es: 'No forma parte del total de arriba. SXM Rentals todavía no retiene fianzas: la empresa lo acuerda con usted al recoger el coche.',
   },
   'vehicle.panel.notChargedYet': {
-    en: 'You will not be charged yet. The next step confirms the trip before any payment is taken.',
-    nl: 'Er wordt nog niets afgeschreven. De volgende stap bevestigt de reis voordat er wordt betaald.',
-    fr: 'Rien ne vous sera débité pour l’instant. L’étape suivante confirme le trajet avant tout paiement.',
-    es: 'Todavía no se le cobrará nada. El siguiente paso confirma el viaje antes de cobrar.',
+    en: 'Nothing is charged online. You pay the rental business when you collect the car.',
+    nl: 'Er wordt online niets afgeschreven. U betaalt het verhuurbedrijf wanneer u de auto ophaalt.',
+    fr: 'Rien n’est débité en ligne. Vous payez le loueur au moment du retrait.',
+    es: 'No se cobra nada en línea. Paga a la empresa de alquiler cuando recoge el coche.',
   },
 
   // ---- SXM VERIFIED ----
@@ -319,5 +319,13 @@ export const vehicle = {
     nl: 'Borgsom',
     fr: 'Caution',
     es: 'Fianza',
+  },
+
+  // ---- DELIVERY ----
+  'vehicle.panel.deliveryFree': {
+    en: 'AVAILABLE · FREE',
+    nl: 'MOGELIJK · GRATIS',
+    fr: 'POSSIBLE · GRATUIT',
+    es: 'DISPONIBLE · GRATIS',
   },
 } satisfies Record<string, Phrase>;

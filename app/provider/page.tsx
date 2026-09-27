@@ -117,8 +117,12 @@ export default function ProviderDashboardPage() {
   // docs/backend-asks.md. Until then, if the rate the backend bills
   // at ever differs from the copy here, these two numbers are wrong and the
   // net beside them is right.
-  const pendingGross = data.pending > 0 ? data.pending / (1 - COMMISSION_RATE) : 0;
-  const pendingCommission = pendingGross - data.pending;
+  //
+  // Both are rounded to the cent, and the commission is worked out from the
+  // rounded gross, so the three figures on screen subtract exactly.
+  const pendingGross =
+    data.pending > 0 ? Math.round((data.pending / (1 - COMMISSION_RATE)) * 100) / 100 : 0;
+  const pendingCommission = Math.round((pendingGross - data.pending) * 100) / 100;
 
   return (
     <>
@@ -183,8 +187,8 @@ export default function ProviderDashboardPage() {
           </div>
 
           <EarningsSplit
-            gross={Math.round(pendingGross)}
-            commission={Math.round(pendingCommission)}
+            gross={pendingGross}
+            commission={pendingCommission}
             net={data.pending}
             title={`Due ${longDate(data.nextPayoutDate)}`}
           />

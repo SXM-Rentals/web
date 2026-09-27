@@ -10,15 +10,23 @@
 // costs nothing to fix. Wrong dates, the wrong side of the island, or a delivery
 // address that was never filled in are all cheap to correct now and expensive to
 // correct once a business has been told to expect someone.
+//
+// THE BOOKING IS MADE HERE, and the backend's own refusal is what the page
+// shows if it will not have it — "this vehicle has just been booked for those
+// dates" is worth reading; "something went wrong" is not. The reference it
+// hands back is carried to the last step, so the page that says "you are
+// booked" shows the booking that was actually made.
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dateRange, daysBetween, money, sideLabels } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import { useQuote } from '@/hooks/useQuote';
 import { useSession } from '@/lib/auth';
 import { apiClient } from '@/lib/api-client';
+import { isApiError } from '@/lib/api/errors';
 import { Button, Card, ErrorState, Icon, Text } from '@/components/ui';
-import { BookingShell, buildPriceLines } from './BookingShell';
+import { BookingShell } from './BookingShell';
 import type { Vehicle } from '@/types';
 import styles from './BookingSteps.module.css';
 import { useTranslation } from '@/lib/i18n';
@@ -28,14 +36,15 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
   const router = useRouter();
   const { trip, hasDates } = useTrip();
   const { user } = useSession();
+  const quote = useQuote(vehicle.id, trip);
 
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const days = hasDates ? daysBetween(trip.startDate!, trip.endDate!) : vehicle.minimumDays;
-  const lines = buildPriceLines(vehicle, days, trip.collection);
-  // The total is the sum of the price lines. The deposit is NOT part of it.
-  const total = lines.reduce((sum, line) => sum + line.amount, 0);
+  const days = quote.quote?.days ?? (hasDates ? daysBetween(trip.startDate!, trip.endDate!) : vehicle.minimumDays);
+  // The backend's total for these dates. The deposit is never part of it.
+  const total = quote.quote?.totalDueToday;
+  const deposit = quote.quote?.depositAmount ?? vehicle.depositAmount;
 
   const rows: { label: string; value: string }[] = [
     { label: 'Vehicle', value: `${vehicle.make} ${vehicle.model} ${vehicle.year}` },
@@ -52,8 +61,8 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
           : `${vehicle.pickupTown}, ${sideLabels[vehicle.side]}`,
     },
     { label: 'Driver', value: user ? `${user.firstName} ${user.lastName}` : 'You' },
-    { label: 'Paid today', value: money(total) },
-    { label: 'Deposit held', value: `${money(vehicle.depositAmount)} — returned after` },
+    { label: 'Booking total', value: total === undefined ? '—' : money(total) },
+    { label: t('vehicle.depositLabel'), value: t('flow.confirm.depositRow').replace('{amount}', money(deposit)) },
   ];
 
   const confirm = async () => {
@@ -76,7 +85,7 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
       // because it is the backend that actually charges. Sending our own
       // figures would mean two sets of pricing rules, and the first time one
       // of them changed they would quietly disagree.
-      await apiClient.createBooking({
+      const booking = await apiClient.createBooking({
         vehicleId: vehicle.id,
         startDate: trip.startDate,
         endDate: trip.endDate,
@@ -84,12 +93,20 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
         location: trip.collection === 'delivery' ? trip.location : vehicle.pickupTown,
       });
 
-      router.push(`/booking/${vehicle.id}/done`);
-    } catch {
+      // The reference travels in the address, so the confirmation shows the
+      // real booking and survives a reload.
+      router.push(
+        `/booking/${vehicle.id}/done?ref=${encodeURIComponent(booking.reference)}&booking=${encodeURIComponent(booking.id)}`,
+      );
+    } catch (caught) {
       // A failure here must never look like a success, and must never leave the
-      // button spinning with no explanation.
+      // button spinning with no explanation. The backend's own sentence is
+      // shown: "this vehicle has just been booked for those dates" is something
+      // a person can act on.
       setError(
-        'We could not confirm your booking. Nothing has been charged. Please try again.',
+        isApiError(caught)
+          ? caught.message
+          : 'We could not confirm your booking. Nothing has been charged. Please try again.',
       );
       setWorking(false);
     }
@@ -101,7 +118,7 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
       step={4}
       title={t('flow.confirm.title')}
       subtitle={t('flow.confirm.subtitle')}
-      depositHeld
+      quote={quote}
       actions={
         <>
           <Button
@@ -114,8 +131,9 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
             label={t('flow.confirm.cta')}
             size="md"
             loading={working}
+            disabled={quote.loading || total === undefined}
             onClick={confirm}
-            priceLabel={money(total)}
+            {...(total === undefined ? {} : { priceLabel: money(total) })}
           />
         </>
       }
@@ -151,10 +169,15 @@ export function BookingConfirmStep({ vehicle }: { vehicle: Vehicle }) {
 
         <div className={styles.note}>
           <Icon name="shield-outline" size={16} color="var(--ink2)" />
-          <Text variant="small" tone="ink2">
-            {`The ${money(
-              vehicle.depositAmount,
-            )} deposit is held shortly before you collect the car, not now, and is returned after you bring it back.`}
+          <Text variant="small" tone="ink2" raw>
+            {t('flow.confirm.depositNote').replace('{amount}', money(deposit))}
+          </Text>
+        </div>
+
+        <div className={styles.note}>
+          <Icon name="card-outline" size={16} color="var(--ink2)" />
+          <Text variant="small" tone="ink2" raw>
+            {t('flow.confirm.nothingCharged')}
           </Text>
         </div>
 

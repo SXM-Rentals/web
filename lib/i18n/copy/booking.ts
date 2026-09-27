@@ -153,4 +153,18 @@ export const booking = {
     fr: 'Démo uniquement — aucun paiement n’est prélevé et aucune réservation n’est créée.',
     es: 'Solo demo — no se cobra nada y no se crea ninguna reserva.',
   },
+
+  // ---- WHAT A BOOKING COMES TO ----
+  'booking.bookingTotal': {
+    en: 'Booking total',
+    nl: 'Boekingstotaal',
+    fr: 'Total de la réservation',
+    es: 'Total de la reserva',
+  },
+  'booking.depositHeldNote': {
+    en: 'Currently held on your card. Released after the car is returned.',
+    nl: 'Momenteel gereserveerd op uw kaart. Wordt vrijgegeven nadat de auto is ingeleverd.',
+    fr: 'Actuellement bloquée sur votre carte. Libérée après le retour de la voiture.',
+    es: 'Actualmente retenida en su tarjeta. Se libera después de devolver el coche.',
+  },
 } satisfies Record<string, Phrase>;

@@ -14,12 +14,21 @@
 // THE PLACEHOLDER WORDING IS MARKED AS SUCH. A local attorney still has to write
 // and approve the real text, and a draft that reads like a finished agreement is
 // worse than one that admits it is a draft.
+//
+// ---- SIGNING IS NOT RECORDED YET ----
+//
+// The backend has nowhere to keep a signature: a booking carries
+// `agreementSigned`, and nothing sets it. So this step says the signature is
+// not kept, and that the business will ask for one at the counter, rather than
+// promising a signed copy in an account that will not have one. Filed as an
+// ask in docs/backend-asks.md.
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { dateRange, daysBetween, money } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import { useQuote } from '@/hooks/useQuote';
 import { useSession } from '@/lib/auth';
 import { Button, Card, Checkbox, Icon, Text } from '@/components/ui';
 import { BookingShell } from './BookingShell';
@@ -33,6 +42,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
   const router = useRouter();
   const { trip, hasDates } = useTrip();
   const { user } = useSession();
+  const quote = useQuote(vehicle.id, trip);
 
   const [signed, setSigned] = useState(false);
   const [typedName, setTypedName] = useState('');
@@ -47,7 +57,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
       heading: 'Who this agreement is between',
       body: `You${
         user ? `, ${user.firstName} ${user.lastName},` : ''
-      } and the rental business listing this vehicle. SXM Rentals handles the booking, the payment and the deposit, but the car is rented to you by the business.`,
+      } and the rental business listing this vehicle. SXM Rentals handles the booking and the messages between you, but the car is rented to you by the business, and you settle the rental and the deposit with them.`,
     },
     {
       heading: 'The vehicle and the dates',
@@ -58,8 +68,8 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
     {
       heading: 'The security deposit',
       body: `${money(
-        vehicle.depositAmount,
-      )} is held against your card shortly before collection and released after the car is returned and checked. It is not a charge and is not part of what you have paid.`,
+        quote.quote?.depositAmount ?? vehicle.depositAmount,
+      )}, arranged with the business when you collect the car. SXM Rentals does not hold deposits yet. Whatever is held is not a charge, is not part of the rental price, and is given back after the car is returned and checked.`,
     },
     {
       heading: 'Who may drive',
@@ -75,7 +85,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
     },
     {
       heading: 'Cancelling',
-      body: 'What you get back depends on how close to the start you cancel. The refund is always shown to you before a cancellation is confirmed.',
+      body: 'You can cancel a rental that has not started, from the rental in your account. What you get back depends on how close to the start you cancel and is settled with the business, under the Cancellation and Refund Policy.',
     },
   ];
 
@@ -85,7 +95,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
       step={3}
       title={t('flow.step.agreement')}
       subtitle={t('flow.agreement.subtitle')}
-      depositHeld
+      quote={quote}
       actions={
         <>
           <Button
@@ -151,8 +161,15 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
             checked={agreed}
             onChange={setAgreed}
             label={t('flow.agreement.consent')}
-            hint="Signing here has the same effect as signing on paper."
           />
+        </div>
+
+        {/* Said where the signature is given, not buried at the end. */}
+        <div className={styles.note}>
+          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
+          <Text variant="small" tone="ink3" raw>
+            {t('flow.agreement.notRecorded')}
+          </Text>
         </div>
       </Card>
     </BookingShell>

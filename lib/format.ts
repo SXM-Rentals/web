@@ -9,10 +9,28 @@ import dayjs from 'dayjs';
 
 // ---- MONEY ----
 // The island uses US dollars for tourism pricing, so that is the default.
+//
+// CENTS ARE SHOWN WHENEVER THERE ARE ANY. This used to round every amount to
+// whole dollars, which was harmless while the sample prices were all whole.
+// The backend's are not: a 5% service fee on $114 is $5.70, and a 30%
+// commission is rarely a round number. Rounded one figure at a time, a price
+// breakdown stopped adding up to its own total, and a business's gross minus
+// commission could come out a dollar away from its net — on the one screen
+// whose purpose is letting them check that deduction. A price is never shown
+// as a different price.
+//
+// Only floating-point noise below a cent is rounded away: 0.1 + 0.2 is $0.30.
+// `decimals: true` always shows cents (a receipt); `decimals: false` rounds to
+// the dollar, for a headline where cents do not matter.
 
 export function money(amount: number, options?: { decimals?: boolean }): string {
-  const showDecimals = options?.decimals ?? false;
-  return showDecimals ? `$${amount.toFixed(2)}` : `$${Math.round(amount).toLocaleString()}`;
+  const cents = Math.round(amount * 100);
+  const showDecimals = options?.decimals ?? cents % 100 !== 0;
+  const value = showDecimals ? cents / 100 : Math.round(cents / 100);
+  return `$${value.toLocaleString('en-US', {
+    minimumFractionDigits: showDecimals ? 2 : 0,
+    maximumFractionDigits: showDecimals ? 2 : 0,
+  })}`;
 }
 
 // "$45/day" as shown on a car card.

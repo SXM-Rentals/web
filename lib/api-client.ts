@@ -57,6 +57,7 @@ import type {
   ProviderBooking,
   VehiclePerformance,
   Booking,
+  BookingQuote,
   ChatThread,
   LegalDocument,
   Provider,
@@ -341,18 +342,22 @@ export const apiClient = {
    * backend is what actually charges, and two sets of pricing rules drift
    * apart the first time one of them changes. Note the deposit comes back
    * BESIDE the total and is never inside it.
+   *
+   * Public — no account needed — because the price is shown on a car's page to
+   * anyone. Refused, in words worth showing, when the dates are impossible:
+   * `invalid_dates`, `below_minimum_days`, `above_maximum_days`,
+   * `delivery_unavailable`.
    */
   async quoteBooking(
-    input: { vehicleId: string; startDate: string; endDate: string; collection: 'pickup' | 'delivery' },
+    input: {
+      vehicleId: string;
+      startDate: string;
+      endDate: string;
+      collection: 'pickup' | 'delivery';
+    },
     signal?: AbortSignal,
-  ): Promise<{
-    days: number;
-    lines: { label: string; amount: number; note?: string }[];
-    totalDueToday: number;
-    depositAmount: number;
-    available: boolean;
-  }> {
-    return request('/bookings/quote', { method: 'POST', body: input, signal });
+  ): Promise<BookingQuote> {
+    return request<BookingQuote>('/bookings/quote', { method: 'POST', body: input, signal });
   },
 
   async createBooking(draft: {

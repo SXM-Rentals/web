@@ -142,6 +142,26 @@ export type PriceLine = {
   note?: string;
 };
 
+/**
+ * What a rental would cost, worked out by the backend (POST /bookings/quote).
+ *
+ * THE WEBSITE NEVER WORKS THIS OUT ITSELF. It used to: a copy of the daily
+ * rate, a copy of the weekly rule and a service fee of its own. The backend
+ * charges 5% and nothing for delivery; the copy here charged 8% and added a
+ * delivery fee — so the page and the bill disagreed. One of them does the
+ * arithmetic now, and it is the one that takes the money.
+ *
+ * `available` is false when the car has been booked for those dates in the
+ * meantime. The deposit comes back beside the total, never inside it.
+ */
+export type BookingQuote = {
+  days: number;
+  lines: PriceLine[];
+  totalDueToday: number;
+  depositAmount: number;
+  available: boolean;
+};
+
 export type Booking = {
   id: string;
   reference: string; // the short code shown to the customer, e.g. SXM-4821

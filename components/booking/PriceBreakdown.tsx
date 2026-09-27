@@ -3,8 +3,10 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: Shows what a rental costs, broken into its parts — the
-// rental itself, any delivery charge, the service fee, and what is payable
-// today.
+// rental itself, the service fee, and what the booking comes to.
+//
+// THE LINES ARE THE BACKEND'S. Nothing here works a price out; it is handed
+// them (see hooks/useQuote.ts) and adds them up for the total.
 //
 // THE ONE RULE THAT MATTERS HERE: the security deposit is shown on its own line,
 // BELOW the total, clearly separated and labelled as held rather than charged.
@@ -70,10 +72,12 @@ export function PriceBreakdown({
 
       <Divider className={styles.divider} />
 
-      {/* ---- THE AMOUNT ACTUALLY BEING CHARGED ---- */}
+      {/* ---- WHAT THE BOOKING COMES TO ----
+          Not "due today": nothing is charged online yet, so a total labelled
+          as due today would be describing a payment nobody takes. */}
       <div className={styles.total}>
         <Text variant="h3" as="span" raw>
-          {t('booking.dueToday')}
+          {t('booking.bookingTotal')}
         </Text>
         <Text variant="h3" as="span" raw>
           {money(total)}
@@ -98,10 +102,8 @@ export function PriceBreakdown({
             </Text>
           </div>
 
-          <Text variant="small" tone="ink3" className={styles.depositNote}>
-            {depositHeld
-              ? 'Currently held on your card. Released after the car is returned.'
-              : 'Held on your card just before pickup and released when you return the car. Not included in the total above.'}
+          <Text variant="small" tone="ink3" className={styles.depositNote} raw>
+            {depositHeld ? t('booking.depositHeldNote') : t('vehicle.panel.depositNote')}
           </Text>
         </div>
       ) : null}

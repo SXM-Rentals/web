@@ -11,87 +11,38 @@
 // room to keep it alongside, which matters most at the payment step: nobody
 // should have to go back a page to check what they are about to be charged.
 //
-// It also works out the price lines in one place, so the summary, the payment
-// step and the confirmation can never disagree about what the rental costs. The
-// deposit is deliberately kept out of that calculation and passed separately.
+// ---- THE PRICE COMES FROM THE BACKEND ----
+//
+// This file used to work the price out itself, from a copy of the rules, and
+// every step drew its summary from that. The copy had drifted: an 8% service
+// fee where the backend charges 5%, and a delivery charge where the backend
+// charges nothing. Now each step asks the backend for a quote (hooks/useQuote)
+// and hands it here, so the summary, the button and the bill are one number
+// from one place — the place that takes the money.
+//
+// The deposit is never part of that total. It arrives beside it.
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { daysBetween, dateRange, money } from '@/lib/format';
+import { daysBetween, dateRange } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import type { QuoteState } from '@/hooks/useQuote';
 import {
   Card,
+  ErrorState,
+  Icon,
   PhotoPlaceholder,
+  Skeleton,
   StepIndicator,
   Text,
 } from '@/components/ui';
 import { PriceBreakdown } from './PriceBreakdown';
-import type { PriceLine, Vehicle } from '@/types';
+import type { Vehicle } from '@/types';
 import styles from './BookingShell.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 // The four steps, named the same way in every place they are shown.
 export const BOOKING_STEPS = ['Trip', 'Payment', 'Agreement', 'Confirm'];
-
-// The service fee SXM Rentals adds. Written here as one number rather than
-// scattered through the pages, so changing it is a single edit.
-const SERVICE_FEE_RATE = 0.08;
-
-// ---- WORKING OUT WHAT THE RENTAL COSTS ----
-// Returns the lines that make up the bill. THE DEPOSIT IS NOT ONE OF THEM and
-// must never be added here — it is money held and returned, not money charged.
-export function buildPriceLines(
-  vehicle: Vehicle,
-  days: number,
-  collection: 'pickup' | 'delivery',
-): PriceLine[] {
-  const lines: PriceLine[] = [];
-
-  // A week or more is charged at the weekly rate where the business offers one,
-  // because quoting the daily rate when a cheaper one applies is simply wrong.
-  const useWeekly = vehicle.weeklyRate != null && days >= 7;
-
-  if (useWeekly) {
-    const weeks = Math.floor(days / 7);
-    const spareDays = days % 7;
-
-    lines.push({
-      label: `${money(vehicle.weeklyRate!)} × ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`,
-      amount: vehicle.weeklyRate! * weeks,
-      note: 'Weekly rate applied',
-    });
-
-    if (spareDays > 0) {
-      lines.push({
-        label: `${money(vehicle.dailyRate)} × ${spareDays} ${spareDays === 1 ? 'day' : 'days'}`,
-        amount: vehicle.dailyRate * spareDays,
-      });
-    }
-  } else {
-    lines.push({
-      label: `${money(vehicle.dailyRate)} × ${days} ${days === 1 ? 'day' : 'days'}`,
-      amount: vehicle.dailyRate * days,
-    });
-  }
-
-  if (collection === 'delivery' && vehicle.deliveryAvailable && vehicle.deliveryFee) {
-    lines.push({
-      label: 'Delivery',
-      amount: vehicle.deliveryFee,
-      note: 'Brought to you rather than collected',
-    });
-  }
-
-  const subtotal = lines.reduce((sum, line) => sum + line.amount, 0);
-
-  lines.push({
-    label: 'Service Fee',
-    amount: Math.round(subtotal * SERVICE_FEE_RATE),
-    note: 'What SXM Rentals charges for handling the booking',
-  });
-
-  return lines;
-}
 
 export function BookingShell({
   vehicle,
@@ -102,8 +53,8 @@ export function BookingShell({
   children,
   // The buttons at the end of the step.
   actions,
-  // Set once the deposit has actually been placed on the card.
-  depositHeld = false,
+  // The backend's price for these dates — see hooks/useQuote.ts.
+  quote,
 }: {
   vehicle: Vehicle;
   step: number;
@@ -111,12 +62,11 @@ export function BookingShell({
   subtitle?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
-  depositHeld?: boolean;
+  quote: QuoteState;
 }) {
   const { t } = useTranslation();
   const { trip, hasDates } = useTrip();
-  const days = hasDates ? daysBetween(trip.startDate!, trip.endDate!) : vehicle.minimumDays;
-  const lines = buildPriceLines(vehicle, days, trip.collection);
+  const days = quote.quote?.days ?? (hasDates ? daysBetween(trip.startDate!, trip.endDate!) : vehicle.minimumDays);
 
   return (
     <div className={`container ${styles.wrap}`}>
@@ -197,13 +147,32 @@ export function BookingShell({
             </div>
           </Card>
 
-          {/* The deposit is passed in separately and is never part of the lines
-              above, which is what keeps it out of the total. */}
-          <PriceBreakdown
-            lines={lines}
-            depositAmount={vehicle.depositAmount}
-            depositHeld={depositHeld}
-          />
+          {/* ---- THE PRICE, AS THE BACKEND WORKS IT OUT ----
+              A price that could not be fetched is never guessed at: the panel
+              says so and offers to ask again. The deposit arrives separately
+              and is never part of the total. */}
+          {quote.loading ? (
+            <Card>
+              <Skeleton height={20} width="45%" />
+              <Skeleton height={64} radius="var(--radius-md)" style={{ marginTop: 'var(--space-md)' }} />
+            </Card>
+          ) : quote.error ? (
+            <ErrorState message={quote.error} onRetry={quote.refresh} inline />
+          ) : quote.quote ? (
+            <PriceBreakdown
+              lines={quote.quote.lines}
+              depositAmount={quote.quote.depositAmount}
+            />
+          ) : (
+            <Card>
+              <div className={styles.noPrice}>
+                <Icon name="calendar-outline" size={16} color="var(--ink3)" />
+                <Text variant="small" tone="ink3" raw>
+                  {t('flow.price.needDates')}
+                </Text>
+              </div>
+            </Card>
+          )}
         </aside>
       </div>
     </div>

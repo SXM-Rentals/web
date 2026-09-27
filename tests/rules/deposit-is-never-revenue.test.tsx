@@ -59,8 +59,11 @@ describe('Rule 1 — a security deposit is never revenue', () => {
     // The wording matters as much as the arithmetic. A customer seeing $500
     // next to $520 needs to be told which one is being taken, or the separation
     // is only visual.
-    expect(screen.getByText(/not included in the total above/i)).toBeInTheDocument();
-    expect(screen.getByText(/released when you return the car/i)).toBeInTheDocument();
+    expect(screen.getByText(/not part of the total above/i)).toBeInTheDocument();
+    // And, while SXM Rentals cannot hold deposits, who does. Whoever switches
+    // card payments on has to come back here, which is the point: the deposit
+    // wording must change with them.
+    expect(screen.getByText(/arranges it with you when you collect the car/i)).toBeInTheDocument();
   });
 
   it('says something different once the deposit is actually being held', () => {

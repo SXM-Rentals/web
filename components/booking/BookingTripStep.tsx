@@ -9,11 +9,17 @@
 // customer side that does. Rather than refusing outright, it explains what is
 // needed and sends them to sign in with a note of where to come back to, so they
 // land on this booking again rather than on the homepage having lost their place.
+//
+// THE DATES ARE PRICED BY THE BACKEND as soon as they are chosen, so anything
+// it will refuse — too few days, too many, a car already booked for those days
+// — is said here, at the step where it can still be changed, rather than at the
+// end after an agreement has been signed.
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { daysBetween, dateRange, money } from '@/lib/format';
+import { daysBetween, dateRange } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import { useQuote } from '@/hooks/useQuote';
 import { useSession } from '@/lib/auth';
 import {
   Button,
@@ -36,6 +42,7 @@ export function BookingTripStep({ vehicle }: { vehicle: Vehicle }) {
   const { trip, setTrip, hasDates } = useTrip();
   const { isSignedIn, loading } = useSession();
   const [datesOpen, setDatesOpen] = useState(false);
+  const quote = useQuote(vehicle.id, trip);
 
   const days = hasDates ? daysBetween(trip.startDate!, trip.endDate!) : 0;
 
@@ -49,6 +56,10 @@ export function BookingTripStep({ vehicle }: { vehicle: Vehicle }) {
       return `This car can be rented for at most ${vehicle.maximumDays} days.`;
     if (trip.collection === 'delivery' && !trip.location.trim())
       return 'Add the address the car should be delivered to.';
+    // What the backend said when it priced these dates — including a car that
+    // has been booked by somebody else since this page was opened.
+    if (quote.error) return quote.error;
+    if (quote.quote && !quote.quote.available) return t('flow.trip.justBooked');
     return null;
   };
 
@@ -96,6 +107,7 @@ export function BookingTripStep({ vehicle }: { vehicle: Vehicle }) {
       step={1}
       title={t('flow.trip.title')}
       subtitle={t('flow.trip.subtitle')}
+      quote={quote}
       actions={
         <>
           <Button
@@ -107,7 +119,7 @@ export function BookingTripStep({ vehicle }: { vehicle: Vehicle }) {
           <Button
             label={t('flow.trip.continueToPayment')}
             size="md"
-            disabled={Boolean(blockedReason)}
+            disabled={Boolean(blockedReason) || quote.loading}
             onClick={() => router.push(`/booking/${vehicle.id}/payment`)}
           />
         </>
@@ -175,11 +187,7 @@ export function BookingTripStep({ vehicle }: { vehicle: Vehicle }) {
                 placeholder={t('flow.trip.deliverPlaceholder')}
                 value={trip.location}
                 onChange={(event) => setTrip({ location: event.target.value })}
-                hint={
-                  vehicle.deliveryFee
-                    ? `This business charges ${money(vehicle.deliveryFee)} for delivery. It is on the price breakdown.`
-                    : 'This business does not charge for delivery.'
-                }
+                hint={t('flow.trip.deliveryFree')}
               />
             </div>
           ) : (
