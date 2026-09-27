@@ -71,7 +71,7 @@ app/                  every page, and the frames around them
     settings/         how the DASHBOARD behaves for whoever is looking at it
   sitemap.ts          /sitemap.xml, generated from the data
   robots.ts           /robots.txt
-  opengraph-image.tsx the picture shown when a link is shared
+  opengraph-image.jpg the picture shown when a link is shared (twitter-image.jpg for X)
 components/
   ui/                 the shared building blocks. One barrel: components/ui
   layout/             top bar, sidebars, footer, the floating share button
@@ -194,7 +194,11 @@ cannot appear in a search result.
   deliberately left out
 - `app/robots.ts` — asks search engines to skip the same pages. **This is not a
   security measure**; the sign-in check on each page is what protects it
-- `app/opengraph-image.tsx` — drawn, not designed, so it cannot fall out of step
+- `app/opengraph-image.jpg` and `app/twitter-image.jpg` — the picture shown when
+  a link is shared, with its description beside each in a `.alt.txt` file.
+  1200×630 and kept small (about 60 KB), because WhatsApp can leave out a preview
+  image that is too large. To change it, replace both files with the same
+  picture at that size; Next.js writes the page tags from them
 
 **Before launch, set `NEXT_PUBLIC_SITE_URL`** to the real domain. Everything else
 is built from it, and until it is set every canonical address and shared link
