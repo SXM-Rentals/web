@@ -2,34 +2,27 @@
 
 Written while connecting `sxm-rentals-web` to
 `https://sxm-rentals-api.onrender.com/api/v1`, and updated after reading the
-backend's own code on 2026-09-21 and 2026-09-22.
+backend's own code on 2026-09-21, 2026-09-22 and 2026-09-27.
 
-**One item blocks going live — the first one.** Everything after it is
-something the website works around. Those workarounds run today, but each is
-either slow, fragile, or a number that can drift out of agreement with the
-backend's own. They are in the order they cost the most.
-
-The blocking item, with exact instructions, went to the backend chat as
-`SXM_RENTALS_BACKEND_EMAIL_HANDOFF.md`.
+The first item was the one that blocked going live. It is built now, and
+waits only on its settings. Everything after it is something the website works
+around. Those workarounds run today, but each is either slow, fragile, or a
+number that can drift out of agreement with the backend's own. They are in
+the order they cost the most.
 
 ---
 
-## Blocking: send real emails
+## ~~Blocking: send real emails~~ — built, waiting on its settings
 
-**Today, in production, every email is dropped.** No provider is connected, so
-`src/lib/email.ts` logs the message as unsent and moves on.
+**Built** (backend `61ec5eb`, pushed 2026-09-27): a Resend sender, used as soon
+as `RESEND_API_KEY` is set on Render. Until then every email is dropped, and
+sign-up cannot be finished — the link never comes, signing in is refused with
+`email_not_verified`, and signing up again says the address is taken.
 
-That makes sign-up impossible to finish. A visitor signs up and is told to
-check their inbox; the link never comes; signing in is refused with
-`email_not_verified`; and signing up again says the address is taken. They
-are stuck for good.
-
-**The fix:** a Resend sender, used in production when `RESEND_API_KEY` is set,
-and `APP_URL=https://www.sxmrentals.app` on Render so the emailed links open
-the website.
-
-**The website will not switch to real accounts on the live site until a real
-email has arrived.**
+What is left is settings, not code: `RESEND_API_KEY` on Render, the domain's
+DNS records verified in Resend, and `APP_URL=https://www.sxmrentals.app`.
+**Until a real email has arrived at a real inbox, treat sign-up on the live
+site as unproven.**
 
 ---
 
@@ -169,10 +162,20 @@ is not recorded yet.
 
 ---
 
-## 8. Photo upload for cars
+## 8. ~~Photo upload for cars~~ — built, waiting on its settings
 
-Every listing currently shows a placeholder where the photographs go. The
-business form already says so.
+**Built** (backend `131c427`, pushed 2026-09-27), and the website uses it. A
+photo goes from the browser straight to Cloudinary with a ticket the backend
+signs, and the backend is then told the address — it never passes through the
+API. The website shrinks each photo to at most 2000 pixels and redraws it as a
+JPEG first, which also leaves behind the location the phone wrote into it.
+Photos show in search, on the car's page (with its search-engine and sharing
+picture), in the fleet and on bookings.
+
+What is left is settings: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and
+`CLOUDINARY_API_SECRET` on Render. Until all three are set, asking for a ticket
+answers `uploads_unavailable`, and the website says photo uploads are not
+switched on yet — the car itself is still saved.
 
 ---
 
@@ -272,6 +275,48 @@ before staff have looked at it. Worth filtering the public list to
 
 ---
 
+## 16. Closing an account or a business — built, three follow-ups
+
+**Built** (backend `6323724`, pushed 2026-09-27), and the website uses both:
+`POST /customers/me/close` (with the password) and `POST /providers/me/close`.
+Checked end to end against the backend's own code on 2026-09-27.
+
+**A closed business is still a business to `/providers/me`.** Closing sets the
+business's `deletedAt` and suspends its cars, but its owner stays a member, and
+`requireProviderFor` does not look at `deletedAt`. So after closing,
+`GET /providers/me` still returns the business, and every `/providers/me/*`
+route still works — including `POST /providers/me/vehicles`, which lets a
+closed business list new cars, straight into the approval queue. The website
+works around it: a business whose public page answers "not found" is taken as
+closed, and its owner sees "Your business is closed" instead of a dashboard.
+And because the membership stays, `POST /providers/apply` answers
+`already_a_provider` for good: the owner can never open a business again. The
+website says to email instead. **The fix:** refuse a closed business in
+`requireProviderFor` (`not_a_provider`, or a new `business_closed`), and decide
+whether its owner may register again.
+
+**Closing a business takes no password.** Closing an account asks for it
+again, which is right: a session left open on a borrowed computer should not be
+enough to end something for good. Closing a business delists every car and
+takes the business page down, and needs only a session. The website asks for
+the business's name to be typed out, which guards against a slip, not against
+somebody else at the keyboard. Worth taking `{ password }` here too — the
+website would send it the moment the backend asks.
+
+**A closed account keeps the person's details, and their email stays taken.**
+Closing marks the customer row closed and ends every session, which is right
+for sign-in. But the name, email and phone stay on the row, and
+`customers_email_unique` is not limited to open accounts — so the same person
+can never sign up again with that address (sign-up quietly sends "you already
+have an account" instead). And Apple (guideline 5.1.1(v)) and Google Play both
+expect deleting an account to remove the personal data that is not needed for
+legal or financial records, which matters once the phone app offers closing.
+**The fix:** on closing, erase or anonymise what bookings and payouts do not
+need — the phone, the name down to what receipts require, and the email
+replaced so the address is free again.
+
+---
+
 ## Smaller notes
 
 - **A weekly rate cannot be removed once set.** `PATCH` treats a missing
@@ -282,9 +327,9 @@ before staff have looked at it. Worth filtering the public list to
   does not return `contactEmail`, `ownerName` or `ownerPhone`, so the profile
   page cannot show them or offer to change them, although `PATCH` accepts all
   three.
-- **Emails link to `/sign-in`; the website's page is `/login`.** The website
-  redirects one to the other, so nothing breaks, but linking `/login` directly
-  saves a hop.
+- ~~**Emails link to `/sign-in`; the website's page is `/login`.**~~ Answered:
+  they link to `/login` since backend `4db77bf`. The website still redirects
+  `/sign-in`, for links already in people's inboxes.
 
 - **`limit` and `offset` on `GET /vehicles` are accepted and ignored** — the
   whole catalogue comes back regardless. Worth either honouring them or
