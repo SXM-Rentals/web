@@ -53,6 +53,13 @@ export type ApiErrorCode =
   | 'already_cancelled'
   | 'empty_message'
   | 'payments_unavailable' // Stripe is not connected yet
+  | 'has_live_rental' // an account or business with a rental coming up or out cannot close
+  | 'has_held_deposit' // nor one with a deposit still held
+  | 'owns_business' // an account cannot close while its business is open
+  | 'payout_pending' // nor a business with a payment to it still on its way
+  | 'owner_only' // only a business's owner can close it
+  | 'wrong_password' // the password asked for again, before closing, was wrong
+  | 'already_closed'
   | 'route_not_found' // a bug in our code, not something a person did
   // ---- MADE UP HERE ----
   | 'offline' // the request never left, or nothing answered

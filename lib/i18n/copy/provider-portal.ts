@@ -1328,18 +1328,6 @@ export const providerPortal = {
     fr: 'Ce compte',
     es: 'Esta cuenta',
   },
-  'pp.settings.closeNote': {
-    en: 'Closing a business account is not something you can do here, and that is deliberate — there may be live bookings, a deposit held against somebody’s card, and a payout still owed to you. Message SXM Rentals and we will work through those with you first.',
-    nl: 'Een zakelijk account sluiten kan hier niet, en dat is bewust — er kunnen lopende boekingen zijn, een borgsom die op iemands kaart staat, en een uitbetaling die u nog tegoed heeft. Stuur SXM Rentals een bericht, dan lopen wij die eerst met u door.',
-    fr: 'Fermer un compte professionnel ne se fait pas ici, et c’est délibéré : il peut rester des réservations en cours, une caution bloquée sur la carte de quelqu’un, et un versement qui vous est dû. Écrivez à SXM Rentals et nous verrons cela avec vous d’abord.',
-    es: 'Cerrar una cuenta de empresa no se puede hacer aquí, y es a propósito: puede haber reservas en curso, una fianza retenida en la tarjeta de alguien y un pago que aún se le debe. Escriba a SXM Rentals y lo revisaremos con usted primero.',
-  },
-  'pp.settings.contactUs': {
-    en: 'Message SXM Rentals',
-    nl: 'Bericht SXM Rentals',
-    fr: 'Écrire à SXM Rentals',
-    es: 'Escribir a SXM Rentals',
-  },
 
   // ---- CONNECTED TO THE BACKEND — names, approval, saving, and saying what is not built ----
   'pp.car.removed': {
@@ -1605,5 +1593,81 @@ export const providerPortal = {
     nl: 'Optioneel. Klanten zien dit op uw bedrijfspagina — waarin u gespecialiseerd bent, hoe lang u al bestaat. U kunt het later wijzigen.',
     fr: 'Facultatif. Affiché aux clients sur la page de votre entreprise : votre spécialité, depuis combien de temps vous existez. Vous pourrez le modifier plus tard.',
     es: 'Opcional. Se muestra a los clientes en la página de su empresa: en qué se especializa, cuánto tiempo lleva. Puede cambiarlo más adelante.',
+  },
+
+  // ---- CLOSING THE BUSINESS ----
+  'pp.close.title': {
+    en: 'Close Your Business',
+    nl: 'Uw bedrijf sluiten',
+    fr: 'Fermer votre entreprise',
+    es: 'Cerrar su empresa',
+  },
+  'pp.close.body': {
+    en: 'Closing your business takes every one of your cars off SXM Rentals straight away and removes your business page, so customers can no longer find or book you. Your own account stays open.',
+    nl: 'Als u uw bedrijf sluit, worden al uw auto’s direct van SXM Rentals gehaald en verdwijnt uw bedrijfspagina, zodat klanten u niet meer kunnen vinden of boeken. Uw eigen account blijft open.',
+    fr: 'Fermer votre entreprise retire immédiatement toutes vos voitures de SXM Rentals et supprime la page de votre entreprise : les clients ne peuvent plus vous trouver ni réserver. Votre propre compte reste ouvert.',
+    es: 'Cerrar su empresa retira de inmediato todos sus coches de SXM Rentals y elimina la página de su empresa, de modo que los clientes ya no pueden encontrarle ni reservar. Su propia cuenta sigue abierta.',
+  },
+  'pp.close.conditions': {
+    en: 'You can’t close it while a rental is coming up or out, a deposit is held, or a payment to you is still on its way — the next step says which. Only the business’s owner can close it.',
+    nl: 'U kunt het niet sluiten zolang er een huur gepland of lopend is, er een borgsom wordt vastgehouden of er nog een betaling aan u onderweg is — de volgende stap zegt welke. Alleen de eigenaar van het bedrijf kan het sluiten.',
+    fr: 'Vous ne pouvez pas la fermer tant qu’une location est prévue ou en cours, qu’une caution est bloquée ou qu’un versement est encore en route vers vous — l’étape suivante vous dira lequel. Seul le propriétaire de l’entreprise peut la fermer.',
+    es: 'No puede cerrarla mientras haya un alquiler próximo o en curso, una fianza retenida o un pago todavía en camino hacia usted; el siguiente paso le dirá cuál. Solo el propietario de la empresa puede cerrarla.',
+  },
+  'pp.close.button': {
+    en: 'Close My Business',
+    nl: 'Mijn Bedrijf Sluiten',
+    fr: 'Fermer Mon Entreprise',
+    es: 'Cerrar Mi Empresa',
+  },
+  'pp.close.sheetTitle': {
+    en: 'Close your business?',
+    nl: 'Uw bedrijf sluiten?',
+    fr: 'Fermer votre entreprise ?',
+    es: '¿Cerrar su empresa?',
+  },
+  'pp.close.understand': {
+    en: 'I understand customers will no longer be able to find or book my cars.',
+    nl: 'Ik begrijp dat klanten mijn auto’s niet meer kunnen vinden of boeken.',
+    fr: 'Je comprends que les clients ne pourront plus trouver ni réserver mes voitures.',
+    es: 'Entiendo que los clientes ya no podrán encontrar ni reservar mis coches.',
+  },
+  'pp.close.done': {
+    en: 'Your business is closed',
+    nl: 'Uw bedrijf is gesloten',
+    fr: 'Votre entreprise est fermée',
+    es: 'Su empresa está cerrada',
+  },
+  'pp.close.doneBody': {
+    en: 'Its cars are no longer listed. Your own account is still open for renting cars.',
+    nl: 'De auto’s worden niet meer aangeboden. Uw eigen account blijft open om auto’s te huren.',
+    fr: 'Ses voitures ne sont plus proposées. Votre propre compte reste ouvert pour louer des voitures.',
+    es: 'Sus coches ya no se ofrecen. Su propia cuenta sigue abierta para alquilar coches.',
+  },
+
+  // ---- A CLOSED BUSINESS — components/business/BusinessClosed.tsx ----
+  'pp.closed.title': {
+    en: 'Your Business Is Closed',
+    nl: 'Uw bedrijf is gesloten',
+    fr: 'Votre entreprise est fermée',
+    es: 'Su empresa está cerrada',
+  },
+  'pp.closed.body': {
+    en: 'It was closed, so it no longer appears on SXM Rentals and its cars are not listed. Your own account is still open for renting cars.',
+    nl: 'Het is gesloten, dus het staat niet meer op SXM Rentals en de auto’s worden niet meer aangeboden. Uw eigen account blijft open om auto’s te huren.',
+    fr: 'Elle a été fermée : elle n’apparaît plus sur SXM Rentals et ses voitures ne sont plus proposées. Votre propre compte reste ouvert pour louer des voitures.',
+    es: 'Se cerró, así que ya no aparece en SXM Rentals y sus coches no se ofrecen. Su propia cuenta sigue abierta para alquilar coches.',
+  },
+  'pp.closed.reopen': {
+    en: 'To open a business on SXM Rentals again, write to us at {email}. It can’t be done on the website yet.',
+    nl: 'Wilt u weer een bedrijf openen op SXM Rentals, schrijf ons dan op {email}. Dat kan nog niet via de website.',
+    fr: 'Pour ouvrir à nouveau une entreprise sur SXM Rentals, écrivez-nous à {email}. Ce n’est pas encore possible sur le site.',
+    es: 'Para volver a abrir una empresa en SXM Rentals, escríbanos a {email}. Todavía no se puede hacer en el sitio web.',
+  },
+  'pp.closed.toAccount': {
+    en: 'Go to Your Account',
+    nl: 'Naar uw account',
+    fr: 'Aller à votre compte',
+    es: 'Ir a su cuenta',
   },
 } satisfies Record<string, Phrase>;

@@ -814,18 +814,6 @@ export const accountPages = {
     fr: 'Ces interrupteurs ne font encore rien — aucun système d’e-mail n’est connecté. Ils sont là pour que les choix soient visibles, pas parce qu’ils fonctionnent.',
     es: 'Estos interruptores todavía no hacen nada: no hay ningún sistema de correo conectado. Están aquí para que las opciones se vean, no porque funcionen.',
   },
-  'acct.settings.deleteAccount': {
-    en: 'Delete My Account',
-    nl: 'Mijn Account Verwijderen',
-    fr: 'Supprimer Mon Compte',
-    es: 'Eliminar Mi Cuenta',
-  },
-  'acct.settings.deleteNote': {
-    en: 'Deleting an account cannot be undone, and rentals that have already happened have to be kept for tax and legal reasons even after it.',
-    nl: 'Een account verwijderen kan niet ongedaan worden gemaakt, en huurperiodes die al hebben plaatsgevonden moeten om fiscale en juridische redenen ook daarna bewaard blijven.',
-    fr: 'La suppression d’un compte est définitive, et les locations déjà effectuées doivent être conservées pour des raisons fiscales et légales même après.',
-    es: 'Eliminar una cuenta no se puede deshacer, y los alquileres que ya han ocurrido deben conservarse por motivos fiscales y legales incluso después.',
-  },
   'acct.settings.signOutTitle': {
     en: 'Sign out?',
     nl: 'Uitloggen?',
@@ -837,18 +825,6 @@ export const accountPages = {
     nl: 'U moet opnieuw inloggen om uw huurauto’s en berichten te zien. Rondkijken kan zonder account.',
     fr: 'Vous devrez vous reconnecter pour voir vos locations et vos messages. Naviguer ne demande pas de compte.',
     es: 'Tendrá que iniciar sesión otra vez para ver sus alquileres y mensajes. Para mirar no hace falta cuenta.',
-  },
-  'acct.settings.deleteTitle': {
-    en: 'Delete your account?',
-    nl: 'Uw account verwijderen?',
-    fr: 'Supprimer votre compte ?',
-    es: '¿Eliminar su cuenta?',
-  },
-  'acct.settings.deleteBody': {
-    en: 'This is not built yet. When it is, it will permanently remove your profile, saved cars and documents — though completed rentals have to be kept for tax and legal reasons.',
-    nl: 'Dit is nog niet gebouwd. Wanneer dat wel zo is, verwijdert dit permanent uw profiel, opgeslagen auto’s en documenten — al moeten afgeronde huurperiodes om fiscale en juridische redenen bewaard blijven.',
-    fr: 'Ce n’est pas encore développé. Quand ce le sera, cela supprimera définitivement votre profil, vos voitures enregistrées et vos documents — les locations terminées devant toutefois être conservées pour des raisons fiscales et légales.',
-    es: 'Esto todavía no está desarrollado. Cuando lo esté, eliminará de forma permanente su perfil, sus coches guardados y sus documentos, aunque los alquileres completados deben conservarse por motivos fiscales y legales.',
   },
 
   // ---- HELP AND SUPPORT ----
@@ -1074,5 +1050,55 @@ export const accountPages = {
     nl: 'Het bedrijf ziet uw telefoonnummer en e-mailadres niet. Alles blijft in de berichten van SXM Rentals.',
     fr: 'Le loueur ne voit ni votre numéro de téléphone ni votre adresse e-mail. Tout reste dans les messages SXM Rentals.',
     es: 'La empresa no ve su número de teléfono ni su dirección de correo electrónico. Todo queda en los mensajes de SXM Rentals.',
+  },
+
+  // ---- CLOSING THE ACCOUNT ----
+  'acct.close.title': {
+    en: 'Close Your Account',
+    nl: 'Uw account sluiten',
+    fr: 'Fermer votre compte',
+    es: 'Cerrar su cuenta',
+  },
+  'acct.close.body': {
+    en: 'Closing your account signs you out on every device, and it can’t be signed in to again. Your past rentals stay on record. This can’t be undone.',
+    nl: 'Als u uw account sluit, wordt u op elk apparaat afgemeld en kan er niet meer mee worden ingelogd. Uw eerdere huurperiodes blijven bewaard. Dit kan niet ongedaan worden gemaakt.',
+    fr: 'Fermer votre compte vous déconnecte sur tous vos appareils, et plus personne ne pourra s’y connecter. Vos locations passées restent enregistrées. Cette action est définitive.',
+    es: 'Cerrar su cuenta cierra su sesión en todos sus dispositivos, y ya no se podrá volver a entrar en ella. Sus alquileres anteriores quedan registrados. No se puede deshacer.',
+  },
+  'acct.close.conditions': {
+    en: 'You can’t close it while a rental is coming up or out, or while a deposit is held — cancel or finish those first. If you run a business on SXM Rentals, close the business first, from its settings.',
+    nl: 'U kunt het niet sluiten zolang er een huur gepland of lopend is, of er een borgsom wordt vastgehouden — annuleer of rond die eerst af. Heeft u een bedrijf op SXM Rentals, sluit dan eerst het bedrijf, via de instellingen daarvan.',
+    fr: 'Vous ne pouvez pas le fermer tant qu’une location est prévue ou en cours, ou qu’une caution est bloquée — annulez-la ou terminez-la d’abord. Si vous gérez une entreprise sur SXM Rentals, fermez d’abord l’entreprise, depuis ses réglages.',
+    es: 'No puede cerrarla mientras tenga un alquiler próximo o en curso, o una fianza retenida: cancélelo o termínelo antes. Si tiene una empresa en SXM Rentals, cierre primero la empresa, desde sus ajustes.',
+  },
+  'acct.close.button': {
+    en: 'Close My Account',
+    nl: 'Mijn Account Sluiten',
+    fr: 'Fermer Mon Compte',
+    es: 'Cerrar Mi Cuenta',
+  },
+  'acct.close.sheetTitle': {
+    en: 'Close your account?',
+    nl: 'Uw account sluiten?',
+    fr: 'Fermer votre compte ?',
+    es: '¿Cerrar su cuenta?',
+  },
+  'acct.close.understand': {
+    en: 'I understand my account is closed for good and cannot be reopened.',
+    nl: 'Ik begrijp dat mijn account definitief wordt gesloten en niet opnieuw kan worden geopend.',
+    fr: 'Je comprends que mon compte sera fermé définitivement et ne pourra pas être rouvert.',
+    es: 'Entiendo que mi cuenta se cierra de forma definitiva y no se puede volver a abrir.',
+  },
+  'acct.close.done': {
+    en: 'Your account is closed',
+    nl: 'Uw account is gesloten',
+    fr: 'Votre compte est fermé',
+    es: 'Su cuenta está cerrada',
+  },
+  'acct.close.doneBody': {
+    en: 'Thank you for renting with SXM Rentals.',
+    nl: 'Bedankt dat u met SXM Rentals heeft gehuurd.',
+    fr: 'Merci d’avoir loué avec SXM Rentals.',
+    es: 'Gracias por alquilar con SXM Rentals.',
   },
 } satisfies Record<string, Phrase>;

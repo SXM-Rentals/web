@@ -1,0 +1,22 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The layout inside the "close for good" step — what
+   will happen, the password, the tick, and the backend's reason if it
+   refuses. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* The refusal, next to the button that was just pressed rather than off at
+   the top of the page where nobody is looking. */
+.problem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+}

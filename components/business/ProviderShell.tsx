@@ -25,6 +25,7 @@
 //
 //   Is somebody signed in?      No  → sign in, then come straight back here.
 //   Do they run a business?     No  → register one.
+//                               Closed → say so (components/business/BusinessClosed.tsx).
 //
 // "Could not tell" is never read as "no" at either step: a sleeping backend
 // gets a retry, not a sign-in form or an invitation to register a business
@@ -42,6 +43,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProviderNav } from './ProviderNav';
+import { BusinessClosed } from './BusinessClosed';
 import {
   AppErrorBoundary,
   Button,
@@ -126,6 +128,14 @@ export function ProviderShell({ children }: { children: React.ReactNode }) {
     return (
       <BareFrame>
         <ErrorState message={business.error} onRetry={business.refresh} />
+      </BareFrame>
+    );
+  }
+
+  if (business.closed) {
+    return (
+      <BareFrame>
+        <BusinessClosed />
       </BareFrame>
     );
   }

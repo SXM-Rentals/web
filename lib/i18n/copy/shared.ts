@@ -175,4 +175,44 @@ export const shared = {
     fr: 'Aller directement au contenu principal',
     es: 'Saltar al contenido principal',
   },
+
+  // ---- CLOSING SOMETHING FOR GOOD — an account or a business ----
+  'close.passwordLabel': {
+    en: 'Your Password',
+    nl: 'Uw wachtwoord',
+    fr: 'Votre mot de passe',
+    es: 'Su contraseña',
+  },
+  'close.passwordHint': {
+    en: 'So we know it’s really you.',
+    nl: 'Zodat we weten dat u het echt bent.',
+    fr: 'Pour être sûrs que c’est bien vous.',
+    es: 'Para saber que es usted de verdad.',
+  },
+  'close.notConnected': {
+    en: 'Closing online isn’t switched on yet. Until it is, email {email} from the address you signed up with, and we’ll close it for you.',
+    nl: 'Online sluiten staat nog niet aan. Stuur tot die tijd een e-mail naar {email} vanaf het adres waarmee u zich heeft aangemeld, dan sluiten wij het voor u.',
+    fr: 'La fermeture en ligne n’est pas encore activée. D’ici là, écrivez à {email} depuis l’adresse de votre inscription, et nous la ferons pour vous.',
+    es: 'El cierre en línea todavía no está activado. Mientras tanto, escriba a {email} desde la dirección con la que se registró y lo cerraremos por usted.',
+  },
+  'close.wrongPassword': {
+    en: 'That password isn’t right.',
+    nl: 'Dat wachtwoord klopt niet.',
+    fr: 'Ce mot de passe n’est pas correct.',
+    es: 'Esa contraseña no es correcta.',
+  },
+  'close.failed': {
+    en: 'That didn’t go through. Please try again.',
+    nl: 'Dat is niet gelukt. Probeer het opnieuw.',
+    fr: 'Cela n’a pas abouti. Veuillez réessayer.',
+    es: 'No se ha podido completar. Inténtelo de nuevo.',
+  },
+
+  // ---- CLOSING A BUSINESS — typing its name to confirm ----
+  'close.typeToConfirm': {
+    en: 'Type {name} to confirm',
+    nl: 'Typ {name} ter bevestiging',
+    fr: 'Saisissez {name} pour confirmer',
+    es: 'Escriba {name} para confirmar',
+  },
 } satisfies Record<string, Phrase>;

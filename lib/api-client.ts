@@ -37,7 +37,7 @@
 
 import { legalDocuments, findLegalDocument } from './content/legal';
 import { request } from './api/http';
-import { isNotFound, notImplemented } from './api/errors';
+import { isApiError, isNotFound, notImplemented } from './api/errors';
 import type {
   AppNotification,
   BusinessChatThread,
@@ -76,6 +76,23 @@ let lookupCache: {
 /** Forgets the shared lookup, so the next screen fetches afresh. Used by tests. */
 export function clearCatalogueLookup(): void {
   lookupCache = null;
+}
+
+/**
+ * For an address the backend is expected to add but may not have yet.
+ *
+ * The backend answers an address it does not have with `route_not_found`.
+ * Turning that into "not connected yet" lets the screen say so plainly — and
+ * the moment the backend ships the address, the same code starts working,
+ * with no change to the website. Every other refusal comes through as it is.
+ */
+async function notYetIfMissing<T>(promise: Promise<T>, what: string): Promise<T> {
+  try {
+    return await promise;
+  } catch (caught) {
+    if (isApiError(caught) && caught.code === 'route_not_found') notImplemented(what);
+    throw caught;
+  }
 }
 
 /**
@@ -599,6 +616,44 @@ export const apiClient = {
 
   async getPayouts(signal?: AbortSignal): Promise<PayoutRecord[]> {
     return request<PayoutRecord[]>('/providers/me/payouts', { signal, auth: true });
+  },
+
+  // ==================== CLOSING AN ACCOUNT OR A BUSINESS ====================
+  // On the live backend since 2026-09-27. A backend without them answers
+  // `route_not_found`, which both turn into "not connected yet" (see
+  // notYetIfMissing) rather than an error that looks like a fault.
+
+  /**
+   * Closes the signed-in person's account for good. Needs their password
+   * again (`wrong_password` if it is not right). Every session ends and the
+   * sign-in cookie is taken off. Refused, in words worth showing, while a
+   * rental is coming up or out (`has_live_rental`), a deposit is held
+   * (`has_held_deposit`), or they run a business that is still open
+   * (`owns_business`).
+   */
+  async closeAccount(password: string): Promise<void> {
+    await notYetIfMissing(
+      request('/customers/me/close', { method: 'POST', body: { password }, auth: true }),
+      'Closing an account',
+    );
+  },
+
+  /**
+   * Closes the signed-in person's business: every car comes off SXM Rentals
+   * and the business page goes. Only its owner can (`owner_only`), and not
+   * while a rental is coming up or out (`has_live_rental`), a deposit is held
+   * (`has_held_deposit`) or a payment to the business is still on its way
+   * (`payout_pending`). Their own account stays open.
+   *
+   * The backend does not ask for the password here, so nothing is sent: the
+   * screen asks for the business's name to be typed instead, as a guard
+   * against a slip rather than as a security check.
+   */
+  async closeBusiness(): Promise<void> {
+    await notYetIfMissing(
+      request('/providers/me/close', { method: 'POST', auth: true }),
+      'Closing a business',
+    );
   },
 
   // ==================== BUILT, BUT WITH NOTHING BEHIND THEM ====================

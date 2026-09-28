@@ -5,8 +5,8 @@
 //
 // WHY. "Has a business" used to be a fixed yes, so everybody who signed in was
 // shown a made-up business and its made-up payouts. These tests pin down the
-// three real answers — yes, no, and "could not tell" — and that the dashboard
-// shows nothing of a business to somebody who does not have one.
+// real answers — yes, no, closed, and "could not tell" — and that the
+// dashboard shows nothing of a business to somebody who does not have one.
 
 import React, { useEffect } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -104,6 +104,33 @@ describe('whether somebody runs a business', () => {
     expect(business.current?.error).toBeNull();
   });
 
+  it('takes a business whose public page is gone as closed, not open', async () => {
+    // What the backend does after a business is closed: the private record
+    // still comes back, the public page does not.
+    fakeBackend({
+      'GET /customers/me': { status: 200, body: OWNER },
+      'GET /providers/me': { status: 200, body: PROFILE },
+      'GET /providers/p9': refusal(404, 'not_found', 'We could not find that rental business.'),
+    });
+    const business = withBusiness();
+    await waitFor(() => expect(business.current?.loading).toBe(false));
+    expect(business.current?.hasBusiness).toBe(false);
+    expect(business.current?.closed).toBe(true);
+    expect(business.current?.error).toBeNull();
+  });
+
+  it('does not take a public page that failed to load as a closed business', async () => {
+    fakeBackend({
+      'GET /customers/me': { status: 200, body: OWNER },
+      'GET /providers/me': { status: 200, body: PROFILE },
+      'GET /providers/p9': refusal(429, 'rate_limited', 'Too many requests.'),
+    });
+    const business = withBusiness();
+    await waitFor(() => expect(business.current?.loading).toBe(false));
+    expect(business.current?.hasBusiness).toBe(true);
+    expect(business.current?.closed).toBe(false);
+  });
+
   it('does not take a failing server as "no business"', async () => {
     // Otherwise an owner is invited to register a business they already run,
     // because a server was waking up.
@@ -144,6 +171,18 @@ describe('the gate in front of the dashboard', () => {
     });
     openDashboard();
     expect(await screen.findByText(/no rental business yet/i)).toBeInTheDocument();
+    expect(screen.queryByText('THE DASHBOARD ITSELF')).not.toBeInTheDocument();
+  });
+
+  it('says a closed business is closed, rather than opening its dashboard', async () => {
+    fakeBackend({
+      'GET /customers/me': { status: 200, body: OWNER },
+      'GET /providers/me': { status: 200, body: PROFILE },
+      'GET /providers/p9': refusal(404, 'not_found'),
+    });
+    openDashboard();
+    expect(await screen.findByText('Your Business Is Closed')).toBeInTheDocument();
+    expect(screen.getByText(/hello@sxmrentals\.app/)).toBeInTheDocument();
     expect(screen.queryByText('THE DASHBOARD ITSELF')).not.toBeInTheDocument();
   });
 

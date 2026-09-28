@@ -32,6 +32,17 @@
 // A business that has applied but not yet been approved still HAS a business.
 // The backend lets it into the dashboard straight away to add its cars; what
 // waits for approval is each car appearing in search.
+//
+// ---- A CLOSED BUSINESS ----
+//
+// Closing a business takes its public page down and its cars off. But the
+// backend still hands its owner the private record, exactly as if it were
+// open — checked against the backend itself, 2026-09-27. So a business whose
+// public page answers "there is no such business" is taken as closed: no
+// dashboard, and no registration form either, since the backend would refuse
+// a second business on the same account. (Asked of the backend in
+// docs/backend-asks.md, ask 16. When it answers `not_a_provider` for a closed
+// business instead, this still reads correctly: that is "no business".)
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
@@ -42,6 +53,8 @@ import type { BusinessProfile, Provider } from '@/types';
 type BusinessValue = {
   /** Whether the signed-in person runs a business here, approved or not yet. */
   hasBusiness: boolean;
+  /** Whether the business they ran has been closed. See the top of the file. */
+  closed: boolean;
   /** True until the answer is known. Nothing is decided while it is. */
   loading: boolean;
   /** Set when we could not find out. Not the same as "no business". */
@@ -67,6 +80,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: sessionLoading } = useSession();
   const [profile, setProfile] = useState<BusinessProfile | undefined>(undefined);
   const [provider, setProvider] = useState<Provider | undefined>(undefined);
+  const [closed, setClosed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -79,6 +93,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
     setProfile(undefined);
     setProvider(undefined);
+    setClosed(false);
     setError(null);
 
     // Nobody signed in: no business, and nothing to ask.
@@ -93,16 +108,24 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const mine = await apiClient.getBusinessProfile(controller.signal);
-        // The public half. Missing it costs the name in the dashboard's
-        // header, not the dashboard, so a failure here is not fatal.
-        const publicRecord = await apiClient
-          .getProvider(mine.providerId, { signal: controller.signal })
-          .catch(() => undefined);
+        // The public half. Failing to get it costs the name in the
+        // dashboard's header, not the dashboard, so a failure is not fatal.
+        // But "there is no such business" is an answer, not a failure: it
+        // means the business was closed (see the top of the file).
+        let publicRecord: Provider | undefined;
+        let isClosed = false;
+        try {
+          publicRecord = await apiClient.getProvider(mine.providerId, { signal: controller.signal });
+          isClosed = publicRecord === undefined;
+        } catch {
+          publicRecord = undefined;
+        }
         // Somebody else signed in, or out, while this was on its way. Their
         // answer is not this person's.
         if (controller.signal.aborted) return;
         setProfile(mine);
         setProvider(publicRecord);
+        setClosed(isClosed);
       } catch (caught) {
         if (controller.signal.aborted || (isApiError(caught) && caught.code === 'aborted')) return;
         if (!(isApiError(caught) && caught.code === 'not_a_provider')) {
@@ -132,7 +155,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<BusinessValue>(
     () => ({
-      hasBusiness: profile !== undefined,
+      hasBusiness: profile !== undefined && !closed,
+      closed,
       loading: sessionLoading || loading,
       error,
       refresh,
@@ -140,7 +164,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       provider,
       profile,
     }),
-    [profile, provider, sessionLoading, loading, error, refresh, applyChanges],
+    [profile, provider, closed, sessionLoading, loading, error, refresh, applyChanges],
   );
 
   return <BusinessContext.Provider value={value}>{children}</BusinessContext.Provider>;

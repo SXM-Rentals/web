@@ -23,8 +23,21 @@
 // effect and are remembered. The email switches have nothing behind them yet, so
 // they say so — a setting that appears to work and does not is worse than one
 // marked unfinished.
+//
+// ---- CLOSING THE BUSINESS ----
+//
+// This used to say closing was not possible here, and send the owner to a
+// support page that was not connected. It is a real step now: the business's
+// name typed out, a tick, and the backend's own reason if it refuses — a
+// rental coming up or out, a deposit held, or a payment still on its way.
+// Only the owner can close it. The owner's own account stays open; closing
+// that is on the account settings page.
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+import { useBusiness } from '@/lib/business';
+import { CloseForGood } from '@/components/account/CloseForGood';
 import { useTheme, type ThemePreference } from '@/lib/theme/ThemeProvider';
 import { useTranslation, languageOptions, type Language } from '@/lib/i18n';
 import { useSignOut } from '@/hooks/useSignOut';
@@ -38,6 +51,7 @@ import {
   SegmentedControl,
   Text,
   Toggle,
+  useToast,
 } from '@/components/ui';
 import styles from '@/app/provider/provider.module.css';
 
@@ -45,6 +59,9 @@ export default function ProviderSettingsPage() {
   const { t, language, setLanguage } = useTranslation();
   const { preference, setPreference } = useTheme();
   const signOut = useSignOut();
+  const router = useRouter();
+  const business = useBusiness();
+  const { showToast } = useToast();
 
   // Remembered only for this visit, and the page says so.
   const [newBooking, setNewBooking] = useState(true);
@@ -53,6 +70,7 @@ export default function ProviderSettingsPage() {
   const [newMessage, setNewMessage] = useState(true);
 
   const [signOutOpen, setSignOutOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
 
   return (
     <div className={styles.page}>
@@ -201,9 +219,7 @@ export default function ProviderSettingsPage() {
         </div>
       </Card>
 
-      {/* ==================== THIS ACCOUNT ====================
-          There is no "delete my business" button here, and that is not an
-          oversight — see the note. */}
+      {/* ==================== THIS ACCOUNT ==================== */}
       <Card padded>
         <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-md)' }} raw>
           {t('pp.settings.accountTitle')}
@@ -216,21 +232,55 @@ export default function ProviderSettingsPage() {
             size="md"
             onClick={() => setSignOutOpen(true)}
           />
-          <Button
-            label={t('pp.settings.contactUs')}
-            href="/account/support"
-            variant="secondary"
-            size="md"
-          />
         </div>
+      </Card>
+
+      {/* ==================== CLOSING THE BUSINESS ==================== */}
+      <Card padded>
+        <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-md)' }} raw>
+          {t('pp.close.title')}
+        </Text>
+        <Text variant="body" tone="ink2" raw>
+          {t('pp.close.body')}
+        </Text>
 
         <div className={styles.note}>
           <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
           <Text variant="small" tone="ink3" raw>
-            {t('pp.settings.closeNote')}
+            {t('pp.close.conditions')}
           </Text>
         </div>
+
+        <div style={{ marginTop: 'var(--space-lg)' }}>
+          <Button
+            label={t('pp.close.button')}
+            variant="danger"
+            size="md"
+            onClick={() => setCloseOpen(true)}
+          />
+        </div>
       </Card>
+
+      <CloseForGood
+        open={closeOpen}
+        onClose={() => setCloseOpen(false)}
+        title={t('pp.close.sheetTitle')}
+        body={t('pp.close.body')}
+        understandLabel={t('pp.close.understand')}
+        confirmLabel={t('pp.close.button')}
+        // Typed out, because the backend takes no password for this — see
+        // components/account/CloseForGood.tsx.
+        confirmWith={{ kind: 'typeName', name: business.provider?.businessName ?? 'CLOSE' }}
+        action={() => apiClient.closeBusiness()}
+        onDone={() => {
+          setCloseOpen(false);
+          showToast(t('pp.close.done'), t('pp.close.doneBody'));
+          // Off the dashboard first: once the business is looked up again,
+          // there is no business for the dashboard to show.
+          router.push('/account');
+          business.refresh();
+        }}
+      />
 
       <Dialog
         open={signOutOpen}
