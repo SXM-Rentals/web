@@ -52,6 +52,35 @@
   .galleryStrip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+/* With real photos: one row, scrolled sideways when there are more than fit,
+   rather than rows of them pushing the car's details down the page. */
+.photoStrip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 2 * var(--space-sm)) / 3);
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 2px;
+}
+
+@media (min-width: 640px) {
+  .photoStrip { grid-auto-columns: calc((100% - 4 * var(--space-sm)) / 5); }
+}
+
+button.thumb {
+  display: block;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+/* The one showing above. */
+button.thumbShown { border-color: var(--brand); }
+
 /* ---- THE HEADING BLOCK ---- */
 .titleRow {
   display: flex;

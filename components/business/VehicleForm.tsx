@@ -25,6 +25,13 @@
 // those are shown, not offered: a box that looks editable and then does not
 // save is worse than no box.
 //
+// ---- PHOTOS ----
+//
+// A car being added has nowhere to put a photo until it exists, so the photos
+// are held on this page and uploaded to it the moment it has been added — on
+// the "submitted" screen, which waits for them. A car already listed uploads
+// each photo as it is chosen. Both are in components/business/VehiclePhotos.tsx.
+//
 // ---- WHAT THIS FORM NO LONGER ASKS ----
 //
 // A delivery fee and the car's accident history. The form used to ask for
@@ -49,7 +56,6 @@ import {
   Dialog,
   Icon,
   Input,
-  PhotoPlaceholder,
   SegmentedControl,
   Text,
   TextArea,
@@ -57,6 +63,7 @@ import {
   useToast,
 } from '@/components/ui';
 import { TownPicker } from '@/components/business/TownPicker';
+import { PhotoPicker, VehiclePhotos, type ChosenPhoto } from '@/components/business/VehiclePhotos';
 import type { FleetVehicle, VehicleClass, VehicleInput } from '@/types';
 import styles from '@/app/provider/provider.module.css';
 import { useTranslation } from '@/lib/i18n';
@@ -124,6 +131,12 @@ function VehicleFormBody({
   );
   const [description, setDescription] = useState(vehicle?.description ?? '');
 
+  // Photos chosen for a car still being added, uploaded once it has been.
+  const [chosen, setChosen] = useState<ChosenPhoto[]>([]);
+  // Whether photos are still going up. Nothing that would leave the page —
+  // saving, or the buttons after adding — goes before they have.
+  const [photosBusy, setPhotosBusy] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<FleetVehicle | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
@@ -136,6 +149,7 @@ function VehicleFormBody({
   // What still has to be put right before this can be saved, as a sentence
   // rather than a silently disabled button.
   const missing = (): string | null => {
+    if (photosBusy) return t('pp.photos.waitForUploads');
     if (!editing) {
       if (!make.trim() || !model.trim()) return 'Add the make and model.';
       if (!isWhole(year, 1950, LATEST_YEAR)) return `Add the year, between 1950 and ${LATEST_YEAR}.`;
@@ -252,24 +266,39 @@ function VehicleFormBody({
   if (saved) {
     const name = `${saved.make} ${saved.model}`;
     return (
-      <Card padded className={styles.stack}>
-        <Icon name="checkmark-circle-outline" size={38} color="var(--success)" />
-        <Text variant="h2" as="h1" raw>
-          {editing ? t('pp.vform.savedTitle') : t('pp.vform.submittedTitle')}
-        </Text>
-        <Text variant="body" tone="ink2" raw>
-          {editing
-            ? t('pp.vform.savedBody')
-            : t('pp.vform.submittedBody').replace('{name}', name)}
-        </Text>
+      <>
+        <Card padded className={styles.stack}>
+          <Icon name="checkmark-circle-outline" size={38} color="var(--success)" />
+          <Text variant="h2" as="h1" raw>
+            {editing ? t('pp.vform.savedTitle') : t('pp.vform.submittedTitle')}
+          </Text>
+          <Text variant="body" tone="ink2" raw>
+            {editing
+              ? t('pp.vform.savedBody')
+              : t('pp.vform.submittedBody').replace('{name}', name)}
+          </Text>
 
-        <div className={styles.headActions}>
-          <Button label={t('pp.vform.backToFleet')} href="/provider/fleet" size="md" />
-          {!editing ? (
-            <Button label={t('pp.vform.addAnother')} variant="outline" size="md" onClick={onAddAnother} />
-          ) : null}
-        </div>
-      </Card>
+          <div className={styles.headActions}>
+            <Button label={t('pp.vform.backToFleet')} href="/provider/fleet" size="md" disabled={photosBusy} />
+            {!editing ? (
+              <Button
+                label={t('pp.vform.addAnother')}
+                variant="outline"
+                size="md"
+                onClick={onAddAnother}
+                disabled={photosBusy}
+              />
+            ) : null}
+          </div>
+        </Card>
+
+        {/* The photos chosen while adding it, going up to it now. */}
+        {!editing && chosen.length > 0 ? (
+          <Card padded>
+            <VehiclePhotos vehicleId={saved.id} startWith={chosen} onBusyChange={setPhotosBusy} />
+          </Card>
+        ) : null}
+      </>
     );
   }
 
@@ -281,36 +310,11 @@ function VehicleFormBody({
     <>
       {/* ---- PHOTOS ---- */}
       <Card padded>
-        <div className={styles.formHead}>
-          <Text variant="label" as="h2">
-            Photos
-          </Text>
-          <Text variant="small" tone="ink2">
-            Four or five is plenty: the outside from the front and back, the inside, and
-            the boot. Daylight, and a clean car.
-          </Text>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-            gap: 'var(--space-md)',
-            marginTop: 'var(--space-lg)',
-          }}
-        >
-          {Array.from({ length: 4 }).map((_, index) => (
-            <PhotoPlaceholder key={index} shape="wide" iconSize={26} />
-          ))}
-        </div>
-
-        <div className={styles.note}>
-          <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
-          <Text variant="small" tone="ink3">
-            Photo uploading is not built yet. Listings currently show a placeholder in
-            place of each photograph.
-          </Text>
-        </div>
+        {vehicle ? (
+          <VehiclePhotos vehicleId={vehicle.id} onBusyChange={setPhotosBusy} />
+        ) : (
+          <PhotoPicker chosen={chosen} setChosen={setChosen} />
+        )}
       </Card>
 
       {/* ---- THE VEHICLE ---- */}

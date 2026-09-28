@@ -25,8 +25,10 @@ import {
   transmissionLabels,
 } from '@/lib/format';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
-import { Button, Card, Divider, Icon, PhotoPlaceholder, StarRow, Text } from '@/components/ui';
+import { Button, Card, Divider, Icon, StarRow, Text } from '@/components/ui';
 import { BookingPanel } from '@/components/vehicle/BookingPanel';
+import { VehicleGallery } from '@/components/vehicle/VehicleGallery';
+import { photoAt } from '@/lib/photos';
 import { ReviewCard } from '@/components/vehicle/ReviewCard';
 import {
   AccidentBlock,
@@ -72,6 +74,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!vehicle) return { title: 'Car not found' };
 
   const name = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
+  // The car's cover photo, cut to the shape a shared link shows. Without one,
+  // the site's own picture is used instead.
+  const cover = photoAt(vehicle.photos?.[0], { width: 1200, height: 630 });
 
   return {
     alternates: canonical(`/vehicles/${vehicle.id}`),
@@ -85,7 +90,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${name} · SXM Rentals`,
       description: `${money(vehicle.dailyRate)} per day in ${vehicle.pickupTown}.`,
       type: 'website',
+      ...(cover ? { images: [{ url: cover, width: 1200, height: 630, alt: name }] } : {}),
     },
+    ...(cover
+      ? {
+          twitter: {
+            card: 'summary_large_image',
+            title: `${name} · SXM Rentals`,
+            description: `${money(vehicle.dailyRate)} per day in ${vehicle.pickupTown}.`,
+            images: [cover],
+          },
+        }
+      : {}),
   };
 }
 
@@ -134,14 +150,7 @@ export default async function VehiclePage({ params }: PageProps) {
         {/* ==================== LEFT: THE CAR ==================== */}
         <div className={styles.main}>
           {/* ---- THE GALLERY ---- */}
-          <div className={styles.gallery}>
-            <PhotoPlaceholder shape="wide" iconSize={70} label={name} />
-            <div className={styles.galleryStrip}>
-              {Array.from({ length: 4 }).map((_, index) => (
-                <PhotoPlaceholder key={index} shape="square" iconSize={26} />
-              ))}
-            </div>
-          </div>
+          <VehicleGallery photos={vehicle.photos ?? []} name={name} />
 
           {/* ---- THE HEADING ---- */}
           <div>

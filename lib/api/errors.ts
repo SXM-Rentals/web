@@ -60,6 +60,10 @@ export type ApiErrorCode =
   | 'owner_only' // only a business's owner can close it
   | 'wrong_password' // the password asked for again, before closing, was wrong
   | 'already_closed'
+  | 'too_many_photos' // a car has the most photos it may have
+  | 'photo_not_recognised' // a photo address that was not uploaded for that car
+  | 'incomplete_order' // a new photo order that leaves some out
+  | 'uploads_unavailable' // photo storage is not switched on
   | 'route_not_found' // a bug in our code, not something a person did
   // ---- MADE UP HERE ----
   | 'offline' // the request never left, or nothing answered
@@ -68,6 +72,9 @@ export type ApiErrorCode =
   | 'aborted' // we cancelled it ourselves; not a failure at all
   | 'not_implemented' // the screen exists, the endpoint does not
   | 'misconfigured' // the website is set up wrong; a developer problem
+  | 'photo_unreadable' // a file this browser cannot open as a picture
+  | 'photo_too_large' // a photo over the size the upload ticket allows
+  | 'upload_failed' // the photo store refused an upload, or answered oddly
   | 'unknown';
 
 export type FieldError = { field: string; message: string };
@@ -130,7 +137,10 @@ export function isNotFound(caught: unknown): boolean {
 /** True when this screen is built but the endpoint behind it is not. */
 export function isUnavailable(caught: unknown): boolean {
   return (
-    isApiError(caught) && (caught.code === 'not_implemented' || caught.code === 'payments_unavailable')
+    isApiError(caught) &&
+    (caught.code === 'not_implemented' ||
+      caught.code === 'payments_unavailable' ||
+      caught.code === 'uploads_unavailable')
   );
 }
 

@@ -1,14 +1,14 @@
 /* SXM Rentals — Created by Giordano Bertin-Maurice
    Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
-   WHAT THIS FILE DOES: The look of the stand-in blocks used wherever a real
-   photograph will eventually go, and of the round initials shown in place of a
-   profile picture. */
+   WHAT THIS FILE DOES: The look of the block where a car's photo goes, and of
+   the round initials shown in place of a profile picture. */
 
-/* ---- PHOTO PLACEHOLDER ----
-   There are no car photographs yet, so every car shows a soft grey block with a
-   car outline in it. Drawing a deliberate placeholder is much better than
-   leaving a gap or a broken-image icon: the page keeps its real proportions, so
-   nothing shifts around later when actual photographs are added. */
+/* ---- THE PHOTO BLOCK ----
+   Every car draws a soft grey block with a car outline in it, and a car with
+   photos has its photo laid on top. Drawing a deliberate block is much better
+   than leaving a gap or a broken-image icon: the page keeps its real
+   proportions, so nothing shifts around as a photo arrives — or if it never
+   does. */
 .photo {
   display: flex;
   flex-direction: column;
@@ -55,6 +55,17 @@
   gap: 6px;
   text-align: center;
   padding: var(--space-md);
+}
+
+/* The photo itself, covering the block. The block stays underneath: it is what
+   shows while the photo loads, and if it never does. */
+.photoImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* ---- AVATAR ----

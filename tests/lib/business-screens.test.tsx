@@ -178,6 +178,7 @@ describe('adding a car', () => {
 describe('editing a car', () => {
   it('offers only what the backend will change, and sends only that', async () => {
     const calls = fakeBackend({
+      'GET /providers/me/vehicles/v7/photos': { status: 200, body: [] },
       'PATCH /providers/me/vehicles/v7': { status: 200, body: { ...FLEET_CAR, dailyRate: 42 } },
     });
     render(<VehicleForm vehicle={FLEET_CAR} />);
@@ -200,6 +201,7 @@ describe('editing a car', () => {
 
   it('keeps a car with a rental coming up, and says why', async () => {
     fakeBackend({
+      'GET /providers/me/vehicles/v7/photos': { status: 200, body: [] },
       'DELETE /providers/me/vehicles/v7': refusal(
         409,
         'vehicle_has_bookings',

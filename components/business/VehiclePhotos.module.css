@@ -1,0 +1,147 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of a car's photos on the business's form — a
+   grid of them, each with its buttons, the one still uploading dimmed, and
+   the tile that adds more. */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One photo. The same 4:3 as a car's photo everywhere else on the site, so
+   what the business sees here is how it will be cut. */
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--tile);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Waiting, uploading, or not uploaded: dimmed, and saying which. */
+.status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--space-sm);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+}
+
+/* Top left: "Cover" on the first photo, and a button to make any other one
+   the cover. Both are the same pill, so the choice reads as one place. */
+.cover,
+button.makeCover {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+button.makeCover {
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+button.makeCover:hover:not(:disabled) { color: var(--ink); }
+button.makeCover:disabled { cursor: default; opacity: 0.6; }
+
+/* Bottom right: move, try again, remove. */
+.tools {
+  position: absolute;
+  right: var(--space-sm);
+  bottom: var(--space-sm);
+  display: flex;
+  gap: 6px;
+}
+
+/* The tile that adds photos. A label around a hidden file box, so it opens
+   the picker from a click, a tap, or the keyboard. */
+.add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 4 / 3;
+  padding: var(--space-sm);
+  border: 2px dashed var(--hairline);
+  border-radius: var(--radius-md);
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.add:hover { border-color: var(--ink3); color: var(--ink); }
+
+/* The box itself is hidden, so the ring goes on the tile around it. */
+.add:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.addBusy { cursor: progress; opacity: 0.7; }
+
+.footer {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.line > :first-child { flex-shrink: 0; margin-top: 2px; }

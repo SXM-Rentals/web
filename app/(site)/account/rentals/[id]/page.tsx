@@ -175,7 +175,7 @@ export default function RentalDetailPage({ params }: PageProps) {
           <Card data-print="keep">
             <div className={styles.rental}>
               <div className={styles.rentalPhoto}>
-                <PhotoPlaceholder shape="wide" iconSize={34} />
+                <PhotoPlaceholder shape="wide" iconSize={34} photo={vehicle?.photos?.[0]} size="thumb" />
               </div>
               <div className={styles.rentalBody}>
                 <Text variant="label" as="h2" raw>

@@ -86,7 +86,7 @@ export default function ProviderFleetPage() {
 
           return (
             <Card key={vehicle.id} padded={false} flush>
-              <PhotoPlaceholder shape="wide" iconSize={40} />
+              <PhotoPlaceholder shape="wide" iconSize={40} photo={vehicle.photos?.[0]} />
 
               <div style={{ padding: 'var(--space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                 <div>

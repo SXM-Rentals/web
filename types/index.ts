@@ -89,7 +89,9 @@ export type Vehicle = {
   seats: number;
   doors: number;
   airConditioning: boolean;
-  photos: string[]; // file names inside assets/images/vehicles
+  // Where each photo is kept (Cloudinary), the cover first. Empty until the
+  // business adds some. See lib/photos.ts for showing one at a sensible size.
+  photos: string[];
   providerId: string;
 
   // Pricing
@@ -305,6 +307,30 @@ export type BusinessSummary = {
   totalConversions: number;
 };
 
+// One photo of one of the business's own cars, as the backend lists it. The
+// order is the business's choice, and the first photo — the cover — is the
+// one customers see in search results.
+export type VehiclePhoto = {
+  id: string;
+  url: string;
+  position: number;
+  isCover: boolean;
+};
+
+// Permission to upload one photo straight to where photos are kept, for one
+// car, for an hour. The fields go with the file exactly as given: they are
+// signed, and changing any of them (the folder, say) voids the permission.
+export type PhotoUploadTicket = {
+  uploadUrl: string;
+  fields: Record<string, string>;
+  // The largest file that will be accepted, so it can be said before a
+  // minute is spent uploading one that will be refused.
+  maxBytes: number;
+  expiresAt: string;
+  // How many more photos this car can have.
+  photosAllowed: number;
+};
+
 // Whether customers can see a car yet. Every new car starts as
 // 'pending_review' and waits for SXM Rentals staff to approve it.
 export type ListingStatus = 'live' | 'pending_review' | 'suspended';
@@ -320,8 +346,8 @@ export type FleetVehicle = Vehicle & {
 // What the business fills in to list a car. Prices in dollars, as typed.
 //
 // There is no accident history or delivery fee here, though the form asks
-// about both: the backend does not accept them yet (ask #6). And no photos —
-// there is nowhere to upload them (ask #8).
+// about both: the backend does not accept them yet (ask #6). No photos either:
+// those are added one at a time once the car exists — see VehiclePhoto below.
 export type VehicleInput = {
   make: string;
   model: string;

@@ -98,7 +98,7 @@ export function BookingShell({
           <Card>
             <div className={styles.vehicle}>
               <div className={styles.vehiclePhoto}>
-                <PhotoPlaceholder shape="square" iconSize={26} />
+                <PhotoPlaceholder shape="square" iconSize={26} photo={vehicle.photos?.[0]} size="thumb" />
               </div>
               <div className={styles.vehicleBody}>
                 <Text variant="label" as="h2" raw>

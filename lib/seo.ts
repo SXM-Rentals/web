@@ -23,6 +23,7 @@
 // in a script tag that only a search engine reads.
 
 import type { Vehicle, Provider, LegalDocument } from '@/types';
+import { photoAt } from '@/lib/photos';
 
 // ---- WHERE THE SITE LIVES ----
 //
@@ -212,11 +213,18 @@ export function jsonLdWebsite(): JsonLd {
 // attached — otherwise a $65 daily rate reads as a $65 car.
 export function jsonLdVehicle(vehicle: Vehicle, provider?: Provider): JsonLd {
   const name = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
+  // Search engines show a product result with its picture, and pass over one
+  // without. Only included when there are photos: an empty list is worse
+  // than none.
+  const images = (vehicle.photos ?? [])
+    .map((photo) => photoAt(photo, { width: 1200 }))
+    .filter((photo): photo is string => Boolean(photo));
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name,
+    ...(images.length > 0 ? { image: images } : {}),
     description: vehicle.description,
     category: 'Car rental',
     brand: { '@type': 'Brand', name: vehicle.make },

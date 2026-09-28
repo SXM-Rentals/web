@@ -38,6 +38,7 @@
 import { legalDocuments, findLegalDocument } from './content/legal';
 import { request } from './api/http';
 import { isApiError, isNotFound, notImplemented } from './api/errors';
+import { uploadPhoto } from './api/upload';
 import type {
   AppNotification,
   BusinessChatThread,
@@ -47,6 +48,7 @@ import type {
   FleetVehicle,
   ImportRow,
   PayoutRecord,
+  PhotoUploadTicket,
   ProviderBooking,
   VehiclePerformance,
   Booking,
@@ -59,6 +61,7 @@ import type {
   Vehicle,
   VehicleClass,
   VehicleInput,
+  VehiclePhoto,
 } from '@/types';
 
 // ---- THE SHARED LOOKUP (see catalogueLookup) ----
@@ -94,6 +97,10 @@ async function notYetIfMissing<T>(promise: Promise<T>, what: string): Promise<T>
     throw caught;
   }
 }
+
+/** Where one of the business's own cars keeps its photos. */
+const photosPath = (vehicleId: string) =>
+  `/providers/me/vehicles/${encodeURIComponent(vehicleId)}/photos`;
 
 /**
  * Looks something up and turns "there is no such thing" into `undefined`,
@@ -549,6 +556,77 @@ export const apiClient = {
    */
   async removeVehicle(id: string): Promise<void> {
     await request(`/providers/me/vehicles/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
+  },
+
+  // ==================== A CAR'S PHOTOS ====================
+  // The photo itself never passes through the backend. It signs a ticket, the
+  // file goes straight to Cloudinary with it (lib/api/upload.ts), and the
+  // backend is then told the address. Until Cloudinary is set up there, the
+  // ticket is refused with `uploads_unavailable`, which screens show as "not
+  // switched on yet".
+
+  /** The photos of one of the business's own cars, the cover first. */
+  async getVehiclePhotos(vehicleId: string, signal?: AbortSignal): Promise<VehiclePhoto[]> {
+    return notYetIfMissing(
+      request<VehiclePhoto[]>(photosPath(vehicleId), { signal, auth: true }),
+      'Car photos',
+    );
+  },
+
+  /**
+   * Steps one and two: a ticket from the backend, then the file straight to
+   * Cloudinary with it. Hands back the address the photo is now at — which
+   * is NOT on the listing until attachVehiclePhoto puts it there. The two are
+   * kept apart so that a retry after a dropped connection can send the
+   * address again without uploading the file a second time.
+   *
+   * Give it a photo made ready by preparePhoto in lib/photos.ts.
+   */
+  async uploadVehiclePhoto(vehicleId: string, photo: Blob, signal?: AbortSignal): Promise<string> {
+    const ticket = await notYetIfMissing(
+      request<PhotoUploadTicket>(`${photosPath(vehicleId)}/upload-ticket`, {
+        method: 'POST',
+        signal,
+        auth: true,
+      }),
+      'Car photos',
+    );
+    return uploadPhoto(ticket, photo, signal);
+  },
+
+  /**
+   * Step three: puts an uploaded photo on the listing, last in the order, and
+   * hands back all of the car's photos. The same address sent twice changes
+   * nothing, so this is safe to try again. Refused with `photo_not_recognised`
+   * for an address that was not uploaded for this car, and `too_many_photos`
+   * past twelve.
+   */
+  async attachVehiclePhoto(vehicleId: string, url: string): Promise<VehiclePhoto[]> {
+    return request<VehiclePhoto[]>(photosPath(vehicleId), {
+      method: 'POST',
+      body: { url },
+      auth: true,
+    });
+  },
+
+  /**
+   * Puts the photos in a new order. Every photo, each exactly once
+   * (`incomplete_order` otherwise). The first is the cover.
+   */
+  async orderVehiclePhotos(vehicleId: string, order: string[]): Promise<VehiclePhoto[]> {
+    return request<VehiclePhoto[]>(photosPath(vehicleId), {
+      method: 'PATCH',
+      body: { order },
+      auth: true,
+    });
+  },
+
+  /** Takes a photo off the listing, and hands back the ones left. */
+  async removeVehiclePhoto(vehicleId: string, photoId: string): Promise<VehiclePhoto[]> {
+    return request<VehiclePhoto[]>(`${photosPath(vehicleId)}/${encodeURIComponent(photoId)}`, {
+      method: 'DELETE',
+      auth: true,
+    });
   },
 
   async getFleetPerformance(signal?: AbortSignal): Promise<VehiclePerformance[]> {

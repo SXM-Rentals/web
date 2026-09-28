@@ -328,4 +328,18 @@ export const vehicle = {
     fr: 'POSSIBLE · GRATUIT',
     es: 'DISPONIBLE · GRATIS',
   },
+
+  // ---- THE CAR’S PHOTOS — components/vehicle/VehicleGallery.tsx ----
+  'vehicle.photoOf': {
+    en: '{name}, photo {n} of {total}',
+    nl: '{name}, foto {n} van {total}',
+    fr: '{name}, photo {n} sur {total}',
+    es: '{name}, foto {n} de {total}',
+  },
+  'vehicle.showPhoto': {
+    en: 'Show photo {n}',
+    nl: 'Toon foto {n}',
+    fr: 'Afficher la photo {n}',
+    es: 'Mostrar la foto {n}',
+  },
 } satisfies Record<string, Phrase>;

@@ -185,7 +185,7 @@ function RentalCard({
     <Card>
       <div className={styles.rental}>
         <div className={styles.rentalPhoto}>
-          <PhotoPlaceholder shape="wide" iconSize={34} />
+          <PhotoPlaceholder shape="wide" iconSize={34} photo={vehicle?.photos?.[0]} size="thumb" />
         </div>
 
         <div className={styles.rentalBody}>

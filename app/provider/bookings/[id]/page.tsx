@@ -173,7 +173,13 @@ export default function ProviderBookingDetailPage({ params }: PageProps) {
           </Text>
 
           <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
-            <PhotoPlaceholder shape="wide" iconSize={28} style={{ width: 120, flexShrink: 0 }} />
+            <PhotoPlaceholder
+              shape="wide"
+              iconSize={28}
+              style={{ width: 120, flexShrink: 0 }}
+              photo={vehicle?.photos?.[0]}
+              size="thumb"
+            />
             <div style={{ minWidth: 0 }}>
               <Text variant="label" as="p" raw>
                 {vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` : cars.name(booking.vehicleId)}

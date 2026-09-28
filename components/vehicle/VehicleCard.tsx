@@ -67,7 +67,7 @@ export function VehicleCard({
     <Card padded={false} flush className={cx(styles.card, className)}>
       <div className={styles.photoWrap}>
         <Link href={`/vehicles/${vehicle.id}`} tabIndex={-1} aria-hidden="true">
-          <PhotoPlaceholder shape="wide" className={styles.photo} iconSize={54} />
+          <PhotoPlaceholder shape="wide" className={styles.photo} iconSize={54} photo={vehicle.photos?.[0]} />
         </Link>
 
         <span className={styles.heart}>
@@ -137,7 +137,7 @@ export function VehicleCardWide({
     <Card padded={false} flush className={cx(styles.wide, className)}>
       <Link href={`/vehicles/${vehicle.id}`} tabIndex={-1} aria-hidden="true">
         <div className={styles.widePhoto}>
-          <PhotoPlaceholder shape="fill" className={styles.photo} iconSize={40} />
+          <PhotoPlaceholder shape="fill" className={styles.photo} iconSize={40} photo={vehicle.photos?.[0]} size="thumb" />
         </div>
       </Link>
 
