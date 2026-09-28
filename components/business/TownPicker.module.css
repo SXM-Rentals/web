@@ -1,0 +1,48 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of the town drop-down. The box around it is
+   the ordinary input box (components/ui/Input.module.css); this is only what
+   is particular to a drop-down.
+
+   ---- WHY THE DROP-DOWN HAS ITS OWN SOLID BACKGROUND ----
+
+   The ordinary typing area is transparent and lets the box behind it show
+   through. A drop-down cannot work that way. When its list opens, Chrome
+   paints the list with the drop-down's own background colour, and a
+   transparent one is painted white. In dark mode the town names are light
+   text, so the open list was white on white: a blank box. So the drop-down
+   and its options carry the card colour and the ink colour themselves, which
+   is the same card colour as the box around it, so nothing changes when the
+   list is closed.
+
+   The selectors are element-plus-class on purpose. The typing area's own
+   rule is a single class that sets `background: transparent`, and two
+   single-class rules of equal weight are decided by whichever stylesheet
+   loads last (see "The one trap to know about" in README.md). This wins
+   regardless of order. */
+
+select.select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  /* Room on the right for the arrow drawn on top. */
+  padding-right: 28px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+select.select option,
+select.select optgroup {
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* The arrow the browser would draw differs on every platform; this one is
+   drawn on top, and clicks pass through it to the drop-down. */
+.arrow {
+  position: absolute;
+  right: var(--space-md);
+  display: flex;
+  pointer-events: none;
+  color: var(--ink2);
+}

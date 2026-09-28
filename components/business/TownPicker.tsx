@@ -19,6 +19,7 @@ import React, { useId } from 'react';
 import { Icon, Text } from '@/components/ui';
 import { TOWNS, type Town } from '@/lib/content/towns';
 import inputStyles from '@/components/ui/Input.module.css';
+import styles from './TownPicker.module.css';
 import { useTranslation } from '@/lib/i18n';
 
 export function TownPicker({
@@ -83,8 +84,9 @@ export function TownPicker({
 
         <select
           id={id}
-          className={inputStyles.input}
-          style={{ appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', paddingRight: 28 }}
+          // Its own solid background, so the list is readable in dark mode —
+          // see TownPicker.module.css.
+          className={`${inputStyles.input} ${styles.select}`}
           value={value}
           required={required}
           aria-invalid={error ? true : undefined}
@@ -104,10 +106,7 @@ export function TownPicker({
 
         {/* The browser's own arrow differs on every platform; this one is drawn
             on top, and clicks pass through it to the drop-down. */}
-        <span
-          aria-hidden="true"
-          style={{ position: 'absolute', right: 'var(--space-md)', display: 'flex', pointerEvents: 'none', color: 'var(--ink2)' }}
-        >
+        <span aria-hidden="true" className={styles.arrow}>
           <Icon name="chevron-down" size={16} />
         </span>
       </div>
