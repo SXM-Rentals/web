@@ -5,7 +5,9 @@ Written while connecting `sxm-rentals-web` to
 backend's own code on 2026-09-21, 2026-09-22 and 2026-09-27.
 
 The first item was the one that blocked going live. It is built now, and
-waits only on its settings. Everything after it is something the website works
+waits only on its settings. The backend's own history also says it has since
+answered asks 1, 9, 13 and 15 (backend `0549da6`, `07418fa`, `4b084b4`); the
+website does not use those answers yet, so they stay below until it does. Everything after it is something the website works
 around. Those workarounds run today, but each is either slow, fragile, or a
 number that can drift out of agreement with the backend's own. They are in
 the order they cost the most.
@@ -275,45 +277,25 @@ before staff have looked at it. Worth filtering the public list to
 
 ---
 
-## 16. Closing an account or a business — built, three follow-ups
+## 16. ~~Closing an account or a business~~ — answered, and the website follows it
 
-**Built** (backend `6323724`, pushed 2026-09-27), and the website uses both:
-`POST /customers/me/close` (with the password) and `POST /providers/me/close`.
-Checked end to end against the backend's own code on 2026-09-27.
+**Built** (backend `6323724`), and the three follow-ups answered on 2026-09-28.
+Checked against the backend's code on 2026-09-30, and the website changed to
+match:
 
-**A closed business is still a business to `/providers/me`.** Closing sets the
-business's `deletedAt` and suspends its cars, but its owner stays a member, and
-`requireProviderFor` does not look at `deletedAt`. So after closing,
-`GET /providers/me` still returns the business, and every `/providers/me/*`
-route still works — including `POST /providers/me/vehicles`, which lets a
-closed business list new cars, straight into the approval queue. The website
-works around it: a business whose public page answers "not found" is taken as
-closed, and its owner sees "Your business is closed" instead of a dashboard.
-And because the membership stays, `POST /providers/apply` answers
-`already_a_provider` for good: the owner can never open a business again. The
-website says to email instead. **The fix:** refuse a closed business in
-`requireProviderFor` (`not_a_provider`, or a new `business_closed`), and decide
-whether its owner may register again.
-
-**Closing a business takes no password.** Closing an account asks for it
-again, which is right: a session left open on a borrowed computer should not be
-enough to end something for good. Closing a business delists every car and
-takes the business page down, and needs only a session. The website asks for
-the business's name to be typed out, which guards against a slip, not against
-somebody else at the keyboard. Worth taking `{ password }` here too — the
-website would send it the moment the backend asks.
-
-**A closed account keeps the person's details, and their email stays taken.**
-Closing marks the customer row closed and ends every session, which is right
-for sign-in. But the name, email and phone stay on the row, and
-`customers_email_unique` is not limited to open accounts — so the same person
-can never sign up again with that address (sign-up quietly sends "you already
-have an account" instead). And Apple (guideline 5.1.1(v)) and Google Play both
-expect deleting an account to remove the personal data that is not needed for
-legal or financial records, which matters once the phone app offers closing.
-**The fix:** on closing, erase or anonymise what bookings and payouts do not
-need — the phone, the name down to what receipts require, and the email
-replaced so the address is free again.
+- **A closed business answers `business_closed`** (backend `07418fa`) on every
+  `/providers/me/*` route, and its owner may register a new business. The
+  website shows "Your business is closed" with a way to register again, and
+  no longer works it out from the public page being gone.
+- **Closing a business takes the password** (`{ password }`, `wrong_password`
+  when it is not right). The website asks for it, as it does for an account,
+  instead of having the business's name typed.
+- **Closing an account removes the person's details** (backend `c16671b`): the
+  phone number goes, the surname comes down to an initial, and the email
+  address is replaced, which frees it for a new sign-up. The first name and the
+  rentals stay. The website's wording says exactly that, on the settings page
+  and on the public page at `/account/close`, which is the address for Google
+  Play's Data safety form.
 
 ---
 
