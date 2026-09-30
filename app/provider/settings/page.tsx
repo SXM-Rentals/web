@@ -27,11 +27,11 @@
 // ---- CLOSING THE BUSINESS ----
 //
 // This used to say closing was not possible here, and send the owner to a
-// support page that was not connected. It is a real step now: the business's
-// name typed out, a tick, and the backend's own reason if it refuses — a
-// rental coming up or out, a deposit held, or a payment still on its way.
-// Only the owner can close it. The owner's own account stays open; closing
-// that is on the account settings page.
+// support page that was not connected. It is a real step now: the password
+// again, a tick, and the backend's own reason if it refuses — a rental coming
+// up or out, a deposit held, or a payment still on its way. Only the owner can
+// close it. The owner's own account stays open; closing that is on the account
+// settings page. Once closed, the owner may register a business again.
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -268,10 +268,7 @@ export default function ProviderSettingsPage() {
         body={t('pp.close.body')}
         understandLabel={t('pp.close.understand')}
         confirmLabel={t('pp.close.button')}
-        // Typed out, because the backend takes no password for this — see
-        // components/account/CloseForGood.tsx.
-        confirmWith={{ kind: 'typeName', name: business.provider?.businessName ?? 'CLOSE' }}
-        action={() => apiClient.closeBusiness()}
+        action={(password) => apiClient.closeBusiness(password)}
         onDone={() => {
           setCloseOpen(false);
           showToast(t('pp.close.done'), t('pp.close.doneBody'));

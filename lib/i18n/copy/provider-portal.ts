@@ -1639,10 +1639,10 @@ export const providerPortal = {
     es: 'Su empresa está cerrada',
   },
   'pp.close.doneBody': {
-    en: 'Its cars are no longer listed. Your own account is still open for renting cars.',
-    nl: 'De auto’s worden niet meer aangeboden. Uw eigen account blijft open om auto’s te huren.',
-    fr: 'Ses voitures ne sont plus proposées. Votre propre compte reste ouvert pour louer des voitures.',
-    es: 'Sus coches ya no se ofrecen. Su propia cuenta sigue abierta para alquilar coches.',
+    en: 'Its cars are no longer listed. You can register a business again whenever you like.',
+    nl: 'De auto’s worden niet meer aangeboden. U kunt op elk moment opnieuw een bedrijf registreren.',
+    fr: 'Ses voitures ne sont plus proposées. Vous pouvez enregistrer une nouvelle entreprise quand vous le souhaitez.',
+    es: 'Sus coches ya no se ofrecen. Puede volver a registrar una empresa cuando quiera.',
   },
 
   // ---- A CAR’S PHOTOS — components/business/VehiclePhotos.tsx ----
@@ -1846,16 +1846,18 @@ export const providerPortal = {
     fr: 'Elle a été fermée : elle n’apparaît plus sur SXM Rentals et ses voitures ne sont plus proposées. Votre propre compte reste ouvert pour louer des voitures.',
     es: 'Se cerró, así que ya no aparece en SXM Rentals y sus coches no se ofrecen. Su propia cuenta sigue abierta para alquilar coches.',
   },
-  'pp.closed.reopen': {
-    en: 'To open a business on SXM Rentals again, write to us at {email}. It can’t be done on the website yet.',
-    nl: 'Wilt u weer een bedrijf openen op SXM Rentals, schrijf ons dan op {email}. Dat kan nog niet via de website.',
-    fr: 'Pour ouvrir à nouveau une entreprise sur SXM Rentals, écrivez-nous à {email}. Ce n’est pas encore possible sur le site.',
-    es: 'Para volver a abrir una empresa en SXM Rentals, escríbanos a {email}. Todavía no se puede hacer en el sitio web.',
-  },
   'pp.closed.toAccount': {
     en: 'Go to Your Account',
     nl: 'Naar uw account',
     fr: 'Aller à votre compte',
     es: 'Ir a su cuenta',
+  },
+
+  // ---- A CLOSED BUSINESS — registering a new one ----
+  'pp.closed.registerAgain': {
+    en: 'Register a New Business',
+    nl: 'Nieuw bedrijf registreren',
+    fr: 'Enregistrer une nouvelle entreprise',
+    es: 'Registrar una nueva empresa',
   },
 } satisfies Record<string, Phrase>;

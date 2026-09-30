@@ -6,7 +6,9 @@
 //   - something closed for good on a single click, or without the password;
 //   - a wrong password, a rental still coming up, or a backend that has not
 //     got the address yet, all reported as one vague failure;
-//   - somebody left looking at an account or a dashboard that no longer exists.
+//   - somebody left looking at an account or a dashboard that no longer exists;
+//   - the page explaining how to close an account needing a sign-in to read,
+//     or naming buttons that are not there.
 
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -19,18 +21,21 @@ import { fakeBackend, refusal } from '../fakeBackend';
 import { CloseForGood } from '@/components/account/CloseForGood';
 import AccountSettingsPage from '@/app/(site)/account/settings/page';
 import ProviderSettingsPage from '@/app/provider/settings/page';
+import { AccountGate } from '@/components/account/AccountGate';
+import { CloseAccountGuide } from '@/components/account/CloseAccountGuide';
 
-const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
+const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), pathname: '/account/settings' }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: nav.push, replace: nav.replace, back: vi.fn(), prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/account/settings',
+  usePathname: () => nav.pathname,
 }));
 
 afterEach(() => {
   vi.unstubAllGlobals();
   nav.push.mockReset();
+  nav.pathname = '/account/settings';
 });
 
 const USER = {
@@ -54,7 +59,6 @@ function openSheet(onDone = vi.fn()) {
       body="Closing your account signs you out on every device."
       understandLabel="I understand my account is closed for good and cannot be reopened."
       confirmLabel="Close My Account"
-      confirmWith={{ kind: 'password' }}
       action={(password) => apiClient.closeAccount(password)}
       onDone={onDone}
     />,
@@ -167,13 +171,13 @@ describe('closing, from the settings pages', () => {
     expect(calls).toContain('POST /auth/logout');
   });
 
-  it('closes the business, leaves the dashboard, and looks the business up again', async () => {
+  it('closes the business with the password, leaves the dashboard, and looks the business up again', async () => {
     let closed = false;
     const calls = fakeBackend({
       'GET /customers/me': { status: 200, body: USER },
       'GET /providers/me': () =>
         closed
-          ? refusal(403, 'not_a_provider', 'This account is not linked to a rental business.')
+          ? refusal(403, 'business_closed', 'This business is closed, so it can no longer be changed.')
           : { status: 200, body: { providerId: 'p9', legalName: 'Harbour View Rentals N.V.' } as BusinessProfile },
       'GET /providers/p9': { status: 200, body: { id: 'p9', businessName: 'Harbour View Rentals' } as Provider },
       'POST /providers/me/close': () => {
@@ -193,22 +197,79 @@ describe('closing, from the settings pages', () => {
     const buttons = () => screen.getAllByRole('button', { name: /Close My Business/i });
     const confirm = () => buttons()[buttons().length - 1];
 
-    // The backend takes no password for this, so none is asked for: the
-    // business's name is typed out instead, and nothing less will do.
-    expect(screen.queryByLabelText(/Your Password/i)).not.toBeInTheDocument();
-    const nameBox = await screen.findByLabelText(/Type Harbour View Rentals to confirm/i);
+    // The backend checks the password for this too.
     tick();
-    fireEvent.change(nameBox, { target: { value: 'Harbour View' } });
     expect(confirm()).toBeDisabled();
-    fireEvent.change(nameBox, { target: { value: 'harbour view rentals' } });
+    typePassword('correct horse battery');
     expect(confirm()).toBeEnabled();
     fireEvent.click(confirm());
 
     await waitFor(() => expect(nav.push).toHaveBeenCalledWith('/account'));
-    expect(calls.sent.find((entry) => entry.call === 'POST /providers/me/close')?.body).toBeUndefined();
+    expect(calls.sent.find((entry) => entry.call === 'POST /providers/me/close')?.body).toEqual({
+      password: 'correct horse battery',
+    });
     // Looked up again after closing: now there is no business.
     await waitFor(() =>
       expect(calls.filter((call) => call === 'GET /providers/me').length).toBeGreaterThan(1),
     );
+  });
+});
+
+describe('the page explaining how to close an account', () => {
+  it('opens without signing in, inside the account area', async () => {
+    fakeBackend({ 'GET /customers/me': refusal(401, 'unauthorized') });
+    nav.pathname = '/account/close';
+    render(
+      <SessionProvider>
+        <AccountGate>
+          <CloseAccountGuide />
+        </AccountGate>
+      </SessionProvider>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Closing Your SXM Rentals Account' })).toBeInTheDocument();
+    // What goes and what stays — what Google Play looks for on this page.
+    expect(screen.getByText(/phone number and email address are removed/)).toBeInTheDocument();
+    expect(screen.getByText(/past rentals with their receipts/)).toBeInTheDocument();
+    // Signing in from here comes back to the settings, where the button is.
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /Sign In to Close Your Account/i })).toHaveAttribute(
+        'href',
+        '/login?next=%2Faccount%2Fsettings',
+      ),
+    );
+  });
+
+  it('names the buttons by the words they really use', async () => {
+    fakeBackend({ 'GET /customers/me': refusal(401, 'unauthorized') });
+    render(
+      <SessionProvider>
+        <CloseAccountGuide />
+      </SessionProvider>,
+    );
+
+    expect(await screen.findByText('Open Account, then Settings.')).toBeInTheDocument();
+    expect(
+      screen.getByText('At the bottom of the page, under “Close Your Account”, choose Close My Account.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'hello@sxmrentals.app' })).toHaveAttribute(
+      'href',
+      'mailto:hello@sxmrentals.app',
+    );
+  });
+
+  it('keeps every other account page behind the sign-in', async () => {
+    fakeBackend({ 'GET /customers/me': refusal(401, 'unauthorized') });
+    nav.pathname = '/account/settings';
+    render(
+      <SessionProvider>
+        <AccountGate>
+          <p>SOMEBODY&apos;S SETTINGS</p>
+        </AccountGate>
+      </SessionProvider>,
+    );
+
+    await waitFor(() => expect(screen.queryByText('SOMEBODY\'S SETTINGS')).not.toBeInTheDocument());
+    expect(await screen.findByRole('link', { name: /sign in/i })).toBeInTheDocument();
   });
 });

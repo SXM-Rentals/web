@@ -3,17 +3,14 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: What somebody whose business has been closed sees
-// instead of its dashboard, or the form for registering one.
+// instead of its dashboard.
 //
-// Not the dashboard: the business is gone from SXM Rentals, and a dashboard
-// that still let its owner add cars would be offering to list them for a
-// business that no longer exists. Not the registration form either: the
-// backend refuses a second business on the same account, so the form would
-// only fail at the end. It says what happened, and where to write to open a
-// business again — the one thing the website cannot do yet.
+// Not the dashboard: the business is gone from SXM Rentals, and the backend
+// refuses every change to it (`business_closed`). It says what happened, and
+// offers the way forward — registering a new business, which the backend
+// allows, or going back to their own account.
 
 import React from 'react';
-import { CONTACT_EMAIL } from '@/lib/social';
 import { Button, Card, Icon, Text } from '@/components/ui';
 import { useTranslation } from '@/lib/i18n';
 import gateStyles from '@/components/layout/RequireSignIn.module.css';
@@ -31,11 +28,9 @@ export function BusinessClosed() {
       <Text variant="body" tone="ink2" raw>
         {t('pp.closed.body')}
       </Text>
-      <Text variant="small" tone="ink3" raw>
-        {t('pp.closed.reopen').replace('{email}', CONTACT_EMAIL)}
-      </Text>
       <div className={gateStyles.actions}>
         <Button label={t('pp.closed.toAccount')} href="/account" size="md" />
+        <Button label={t('pp.closed.registerAgain')} href="/provider/apply" variant="outline" size="md" />
       </div>
     </Card>
   );

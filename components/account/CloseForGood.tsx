@@ -3,21 +3,17 @@
 // SXM Rentals — Created by Giordano Bertin-Maurice
 // Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
 // WHAT THIS FILE DOES: The last step before closing something for good — an
-// account, or a rental business. It says what will happen, asks for a
-// confirmation that cannot be given by accident, and asks the person to tick
-// that they understand.
+// account, or a rental business. It says what will happen, asks for the
+// password again, and asks the person to tick that they understand.
 //
-// ---- TWO WAYS OF CONFIRMING, AND WHY ----
+// ---- WHY THE PASSWORD AGAIN ----
 //
-// CLOSING AN ACCOUNT asks for the password again, and the backend checks it.
-// Being signed in is not proof enough: a session left open on a shared or
-// borrowed computer would otherwise let anybody end the account.
-//
-// CLOSING A BUSINESS asks for the business's name to be typed. The backend
-// does not take a password for this one, and asking for a password that
-// nothing checks would be a lock drawn on a door. Typing the name is honest
-// about what it is: a guard against a slip, not a security check. (Asking the
-// backend to require the password here too is in docs/backend-asks.md.)
+// Being signed in is not proof enough. A session left open on a shared or
+// borrowed computer would otherwise let anybody end an account, or take every
+// car a business has off the site. The backend checks the password for both.
+// (Closing a business used to take none, and the site asked for the business's
+// name to be typed instead. The backend asks for the password since
+// 2026-09-28, so the site does too.)
 //
 // ---- WHAT A REFUSAL LOOKS LIKE ----
 //
@@ -30,15 +26,9 @@
 import React, { useState } from 'react';
 import { isApiError, isUnavailable } from '@/lib/api/errors';
 import { CONTACT_EMAIL } from '@/lib/social';
-import { Button, Checkbox, Icon, Input, PasswordInput, Sheet, Text } from '@/components/ui';
+import { Button, Checkbox, Icon, PasswordInput, Sheet, Text } from '@/components/ui';
 import styles from './CloseForGood.module.css';
 import { useTranslation } from '@/lib/i18n';
-
-export type CloseConfirmation =
-  /** The password, checked by the backend. */
-  | { kind: 'password' }
-  /** The name, typed out — a guard against a slip, checked here. */
-  | { kind: 'typeName'; name: string };
 
 export function CloseForGood({
   open,
@@ -47,7 +37,6 @@ export function CloseForGood({
   body,
   understandLabel,
   confirmLabel,
-  confirmWith,
   action,
   onDone,
 }: {
@@ -59,28 +48,23 @@ export function CloseForGood({
   /** "I understand …" — the tick that must be given before closing. */
   understandLabel: string;
   confirmLabel: string;
-  confirmWith: CloseConfirmation;
-  /** The request itself; given the password when that is how it confirms. */
+  /** The request itself, given the password. */
   action: (password: string) => Promise<void>;
   /** Called once it has closed. */
   onDone: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
-  const [typed, setTyped] = useState('');
+  const [password, setPassword] = useState('');
   const [understood, setUnderstood] = useState(false);
   const [working, setWorking] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  const confirmed =
-    confirmWith.kind === 'password'
-      ? typed.length > 0
-      : typed.trim().toLowerCase() === confirmWith.name.trim().toLowerCase();
-  const ready = confirmed && understood && !working;
+  const ready = password.length > 0 && understood && !working;
 
   // A fresh start every time: a password must never still be sitting in the
   // box from an earlier attempt.
   const close = () => {
-    setTyped('');
+    setPassword('');
     setUnderstood(false);
     setProblem(null);
     onClose();
@@ -91,8 +75,8 @@ export function CloseForGood({
     setWorking(true);
     setProblem(null);
     try {
-      await action(confirmWith.kind === 'password' ? typed : '');
-      setTyped('');
+      await action(password);
+      setPassword('');
       await onDone();
     } catch (caught) {
       if (isUnavailable(caught)) {
@@ -127,7 +111,7 @@ export function CloseForGood({
             variant="danger"
             size="md"
             loading={working}
-            disabled={!confirmed || !understood}
+            disabled={!password || !understood}
             onClick={confirm}
           />
         </>
@@ -138,25 +122,14 @@ export function CloseForGood({
           {body}
         </Text>
 
-        {confirmWith.kind === 'password' ? (
-          <PasswordInput
-            label={t('close.passwordLabel')}
-            hint={t('close.passwordHint')}
-            autoComplete="current-password"
-            value={typed}
-            onChange={(event) => setTyped(event.target.value)}
-            onKeyDown={onKeyDown}
-          />
-        ) : (
-          <Input
-            label={t('close.typeToConfirm').replace('{name}', confirmWith.name)}
-            autoComplete="off"
-            spellCheck={false}
-            value={typed}
-            onChange={(event) => setTyped(event.target.value)}
-            onKeyDown={onKeyDown}
-          />
-        )}
+        <PasswordInput
+          label={t('close.passwordLabel')}
+          hint={t('close.passwordHint')}
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          onKeyDown={onKeyDown}
+        />
 
         <Checkbox checked={understood} onChange={setUnderstood} label={understandLabel} />
 

@@ -98,7 +98,10 @@ describe('the sitemap', () => {
     // Someone else's rentals, a half-finished booking, a business dashboard. A
     // search result pointing at any of these is a dead end at best.
     const forbidden = ['/account', '/booking/', '/login', '/signup', '/otp', '/verify-'];
-    for (const url of urls) {
+    // The one public page under /account: how to close an account, which has
+    // to be findable without signing in. It is checked on its own below.
+    const publicPages = [`${SITE_URL}/account/close`];
+    for (const url of urls.filter((entry) => !publicPages.includes(entry))) {
       for (const path of forbidden) {
         expect(url, `${url} should not be in the sitemap`).not.toContain(path);
       }
@@ -108,6 +111,12 @@ describe('the sitemap', () => {
   it('lets the one public provider page through', () => {
     // A rental business looking to sign up has to be able to find this.
     expect(urls).toContain(`${SITE_URL}/provider/apply`);
+  });
+
+  it('lets the page explaining how to close an account through', () => {
+    // Somebody looking for how to delete their account should find it — and
+    // it is the address given to Google Play.
+    expect(urls).toContain(`${SITE_URL}/account/close`);
   });
 
   it('gives every entry a full address, not a path', () => {

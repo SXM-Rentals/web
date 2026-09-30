@@ -35,14 +35,11 @@
 //
 // ---- A CLOSED BUSINESS ----
 //
-// Closing a business takes its public page down and its cars off. But the
-// backend still hands its owner the private record, exactly as if it were
-// open — checked against the backend itself, 2026-09-27. So a business whose
-// public page answers "there is no such business" is taken as closed: no
-// dashboard, and no registration form either, since the backend would refuse
-// a second business on the same account. (Asked of the backend in
-// docs/backend-asks.md, ask 16. When it answers `not_a_provider` for a closed
-// business instead, this still reads correctly: that is "no business".)
+// The backend answers `business_closed` for somebody whose business has been
+// closed — a third answer beside "yes" and "no". It gets its own page instead
+// of the dashboard (components/business/BusinessClosed.tsx), and it is not
+// "has a business": the registration form is open to them again, because the
+// backend lets them register a new one.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
@@ -108,27 +105,21 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const mine = await apiClient.getBusinessProfile(controller.signal);
-        // The public half. Failing to get it costs the name in the
-        // dashboard's header, not the dashboard, so a failure is not fatal.
-        // But "there is no such business" is an answer, not a failure: it
-        // means the business was closed (see the top of the file).
-        let publicRecord: Provider | undefined;
-        let isClosed = false;
-        try {
-          publicRecord = await apiClient.getProvider(mine.providerId, { signal: controller.signal });
-          isClosed = publicRecord === undefined;
-        } catch {
-          publicRecord = undefined;
-        }
+        // The public half. Missing it costs the name in the dashboard's
+        // header, not the dashboard, so a failure here is not fatal.
+        const publicRecord = await apiClient
+          .getProvider(mine.providerId, { signal: controller.signal })
+          .catch(() => undefined);
         // Somebody else signed in, or out, while this was on its way. Their
         // answer is not this person's.
         if (controller.signal.aborted) return;
         setProfile(mine);
         setProvider(publicRecord);
-        setClosed(isClosed);
       } catch (caught) {
         if (controller.signal.aborted || (isApiError(caught) && caught.code === 'aborted')) return;
-        if (!(isApiError(caught) && caught.code === 'not_a_provider')) {
+        if (isApiError(caught) && caught.code === 'business_closed') {
+          setClosed(true);
+        } else if (!(isApiError(caught) && caught.code === 'not_a_provider')) {
           setError(isApiError(caught) ? caught.message : 'We could not check for a business. Please try again.');
         }
         // `not_a_provider` needs nothing: no profile is the answer.

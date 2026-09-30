@@ -104,6 +104,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    // How to close an account. Public, and worth finding: somebody looking for
+    // how to delete their account should get a straight answer.
+    { url: `${SITE_URL}/account/close`, lastModified: now, changeFrequency: 'monthly', priority: 0.2 },
   ];
 
   // ---- ONE ENTRY PER CAR ----

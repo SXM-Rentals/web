@@ -42,6 +42,7 @@ export type ApiErrorCode =
   | 'invalid_input' // a form problem; see fieldErrors
   | 'rate_limited'
   | 'not_a_provider' // signed in, but not linked to a rental business
+  | 'business_closed' // linked to a rental business that has been closed
   | 'already_a_provider' // tried to register a second business
   | 'vehicle_unavailable' // booked by somebody else in the meantime
   | 'vehicle_has_bookings' // a car with bookings cannot simply be removed

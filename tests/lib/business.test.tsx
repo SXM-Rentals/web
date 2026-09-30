@@ -104,13 +104,10 @@ describe('whether somebody runs a business', () => {
     expect(business.current?.error).toBeNull();
   });
 
-  it('takes a business whose public page is gone as closed, not open', async () => {
-    // What the backend does after a business is closed: the private record
-    // still comes back, the public page does not.
+  it('takes "business_closed" as closed — not open, and not a failure', async () => {
     fakeBackend({
       'GET /customers/me': { status: 200, body: OWNER },
-      'GET /providers/me': { status: 200, body: PROFILE },
-      'GET /providers/p9': refusal(404, 'not_found', 'We could not find that rental business.'),
+      'GET /providers/me': refusal(403, 'business_closed', 'This business is closed, so it can no longer be changed.'),
     });
     const business = withBusiness();
     await waitFor(() => expect(business.current?.loading).toBe(false));
@@ -119,7 +116,7 @@ describe('whether somebody runs a business', () => {
     expect(business.current?.error).toBeNull();
   });
 
-  it('does not take a public page that failed to load as a closed business', async () => {
+  it('still opens a business whose public page failed to load', async () => {
     fakeBackend({
       'GET /customers/me': { status: 200, body: OWNER },
       'GET /providers/me': { status: 200, body: PROFILE },
@@ -174,15 +171,14 @@ describe('the gate in front of the dashboard', () => {
     expect(screen.queryByText('THE DASHBOARD ITSELF')).not.toBeInTheDocument();
   });
 
-  it('says a closed business is closed, rather than opening its dashboard', async () => {
+  it('says a closed business is closed, and offers to register a new one', async () => {
     fakeBackend({
       'GET /customers/me': { status: 200, body: OWNER },
-      'GET /providers/me': { status: 200, body: PROFILE },
-      'GET /providers/p9': refusal(404, 'not_found'),
+      'GET /providers/me': refusal(403, 'business_closed'),
     });
     openDashboard();
     expect(await screen.findByText('Your Business Is Closed')).toBeInTheDocument();
-    expect(screen.getByText(/hello@sxmrentals\.app/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Register a New Business/i })).toHaveAttribute('href', '/provider/apply');
     expect(screen.queryByText('THE DASHBOARD ITSELF')).not.toBeInTheDocument();
   });
 

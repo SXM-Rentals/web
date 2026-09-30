@@ -207,12 +207,4 @@ export const shared = {
     fr: 'Cela n’a pas abouti. Veuillez réessayer.',
     es: 'No se ha podido completar. Inténtelo de nuevo.',
   },
-
-  // ---- CLOSING A BUSINESS — typing its name to confirm ----
-  'close.typeToConfirm': {
-    en: 'Type {name} to confirm',
-    nl: 'Typ {name} ter bevestiging',
-    fr: 'Saisissez {name} pour confirmer',
-    es: 'Escriba {name} para confirmar',
-  },
 } satisfies Record<string, Phrase>;

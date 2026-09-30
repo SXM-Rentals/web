@@ -1,0 +1,46 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look of /account/close — numbered steps, what goes
+   beside what stays, and the list of what can stop a closure. */
+
+.steps,
+.blockers {
+  display: grid;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+  padding-left: 1.4em;
+  color: var(--ink);
+}
+
+/* Numbered and bulleted by hand: the site's base styles take list markers
+   off everywhere, and steps without their numbers stop reading as steps. */
+.steps { list-style: decimal; }
+.blockers { list-style: disc; }
+
+.steps li::marker { font-weight: 700; color: var(--ink2); }
+.blockers li::marker { color: var(--ink3); }
+
+.gap { margin-top: var(--space-sm); }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+/* Side by side where there is room, one under the other on a phone. */
+.pair {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 720px) {
+  .pair { grid-template-columns: 1fr 1fr; }
+}
+
+.link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

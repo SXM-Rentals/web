@@ -10,11 +10,13 @@
 //
 // The account area is the one part of the customer site that genuinely needs an
 // account. Rather than each page checking for itself and producing a slightly
-// different answer, the check happens once here.
+// different answer, the check happens once here — except for /account/close,
+// which explains closing an account and has to open without signing in (see
+// components/account/AccountGate.tsx).
 
 import React from 'react';
 import type { Metadata } from 'next';
-import { RequireSignIn } from '@/components/layout/RequireSignIn';
+import { AccountGate } from '@/components/account/AccountGate';
 import styles from './layout.module.css';
 
 // The pages in here run in the browser, and a client component cannot export a
@@ -30,7 +32,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   return (
     <div className="container">
       <div className={styles.content} style={{ paddingTop: 'var(--space-2xl)' }}>
-        <RequireSignIn>{children}</RequireSignIn>
+        <AccountGate>{children}</AccountGate>
       </div>
     </div>
   );

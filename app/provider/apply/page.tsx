@@ -37,7 +37,6 @@ import { useBusiness } from '@/lib/business';
 import { findTown } from '@/lib/content/towns';
 import { RequireSignIn } from '@/components/layout/RequireSignIn';
 import { TownPicker } from '@/components/business/TownPicker';
-import { BusinessClosed } from '@/components/business/BusinessClosed';
 import {
   Button,
   Card,
@@ -88,10 +87,6 @@ function ApplyWhenSignedIn() {
   }
 
   if (business.error) return <ErrorState message={business.error} onRetry={business.refresh} />;
-
-  // The backend refuses a second business on the same account, so the form
-  // would only fail at the end.
-  if (business.closed) return <BusinessClosed />;
 
   if (business.hasBusiness) return <AlreadyRegistered name={business.provider?.businessName} />;
 

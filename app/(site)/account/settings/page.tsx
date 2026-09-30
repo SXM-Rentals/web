@@ -18,6 +18,7 @@
 // setting that appears to work and does not is worse than one marked unfinished.
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTheme, type ThemePreference } from '@/lib/theme/ThemeProvider';
 import { useTranslation, languageOptions } from '@/lib/i18n';
@@ -198,7 +199,10 @@ export default function SettingsPage() {
         <div className={styles.note}>
           <Icon name="information-circle-outline" size={15} color="var(--ink3)" />
           <Text variant="small" tone="ink3" raw>
-            {t('acct.close.conditions')}
+            {t('acct.close.conditions')}{' '}
+            <Link href="/account/close" style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>
+              {t('acct.close.learnMore')}
+            </Link>
           </Text>
         </div>
 
@@ -231,7 +235,6 @@ export default function SettingsPage() {
         body={t('acct.close.body')}
         understandLabel={t('acct.close.understand')}
         confirmLabel={t('acct.close.button')}
-        confirmWith={{ kind: 'password' }}
         action={(password) => apiClient.closeAccount(password)}
         onDone={async () => {
           setCloseOpen(false);

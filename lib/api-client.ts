@@ -718,18 +718,16 @@ export const apiClient = {
 
   /**
    * Closes the signed-in person's business: every car comes off SXM Rentals
-   * and the business page goes. Only its owner can (`owner_only`), and not
-   * while a rental is coming up or out (`has_live_rental`), a deposit is held
+   * and the business page goes. Needs their password again (`wrong_password`
+   * if it is not right). Only its owner can (`owner_only`), and not while a
+   * rental is coming up or out (`has_live_rental`), a deposit is held
    * (`has_held_deposit`) or a payment to the business is still on its way
-   * (`payout_pending`). Their own account stays open.
-   *
-   * The backend does not ask for the password here, so nothing is sent: the
-   * screen asks for the business's name to be typed instead, as a guard
-   * against a slip rather than as a security check.
+   * (`payout_pending`). Their own account stays open, and they may register a
+   * business again afterwards.
    */
-  async closeBusiness(): Promise<void> {
+  async closeBusiness(password: string): Promise<void> {
     await notYetIfMissing(
-      request('/providers/me/close', { method: 'POST', auth: true }),
+      request('/providers/me/close', { method: 'POST', body: { password }, auth: true }),
       'Closing a business',
     );
   },

@@ -25,8 +25,9 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       // Allow wins over disallow for a more specific path, so the page a rental
       // business needs to find stays findable even though everything else under
-      // /provider/ is blocked below.
-      allow: ['/', '/provider/apply'],
+      // /provider/ is blocked below — and so does the page explaining how to
+      // close an account, the one public page under /account/.
+      allow: ['/', '/provider/apply', '/account/close'],
       disallow: [
         // Somebody else's rentals, messages, saved cars and settings.
         '/account/',
