@@ -299,6 +299,21 @@ match:
 
 ---
 
+## 17. Let a saved card be chosen when paying
+
+Saving a card works (`/payments/methods/setup`), and the website has the page
+for it. But a rental payment (`createRentalPayment`) and a deposit hold are
+started without `customer` set on the PaymentIntent, and Stripe will only offer
+a customer's saved cards on a payment made for that customer. So a saved card
+cannot be picked when paying, on the website or the phone app: every payment
+takes the card in full, and the saved-cards page says so. **The fix:** set
+`customer` (the customer's `stripeCustomerId`) on the rental and deposit
+PaymentIntents, and hand back what Stripe's form needs to show saved cards (a
+Customer Session's client secret); the website will offer them the moment it
+gets one.
+
+---
+
 ## Smaller notes
 
 - **A weekly rate cannot be removed once set.** `PATCH` treats a missing
