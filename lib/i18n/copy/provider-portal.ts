@@ -1860,4 +1860,72 @@ export const providerPortal = {
     fr: 'Enregistrer une nouvelle entreprise',
     es: 'Registrar una nueva empresa',
   },
+
+  // ---- WHERE THE MONEY GOES — components/business/PayoutSetup.tsx ----
+  'pp.payoutSetup.title': {
+    en: 'Where Your Money Goes',
+    nl: 'Waar uw geld naartoe gaat',
+    fr: 'Où va votre argent',
+    es: 'Adónde va su dinero',
+  },
+  'pp.payoutSetup.notStarted': {
+    en: 'Before SXM Rentals can pay you, tell Stripe where to send the money. It takes a few minutes, with your bank details and an ID to hand. Your bank details go to Stripe directly and are never held by SXM Rentals.',
+    nl: 'Voordat SXM Rentals u kan uitbetalen, geeft u bij Stripe aan waar het geld naartoe moet. Dat duurt een paar minuten; houd uw bankgegevens en een identiteitsbewijs bij de hand. Uw bankgegevens gaan rechtstreeks naar Stripe en worden nooit door SXM Rentals bewaard.',
+    fr: 'Avant que SXM Rentals puisse vous payer, indiquez à Stripe où envoyer l’argent. Cela prend quelques minutes, avec vos coordonnées bancaires et une pièce d’identité à portée de main. Vos coordonnées bancaires sont transmises directement à Stripe et ne sont jamais détenues par SXM Rentals.',
+    es: 'Antes de que SXM Rentals pueda pagarle, indique a Stripe adónde enviar el dinero. Le llevará unos minutos, con sus datos bancarios y un documento de identidad a mano. Sus datos bancarios van directamente a Stripe y SXM Rentals nunca los guarda.',
+  },
+  'pp.payoutSetup.pending': {
+    en: 'Stripe still needs a few details before it can pay you ({count} to go). Your bookings are not affected; payouts start as soon as Stripe has what it needs.',
+    nl: 'Stripe heeft nog enkele gegevens nodig voordat het u kan uitbetalen (nog {count}). Uw boekingen merken hier niets van; de uitbetalingen beginnen zodra Stripe heeft wat het nodig heeft.',
+    fr: 'Stripe a encore besoin de quelques informations avant de pouvoir vous payer ({count} restantes). Vos réservations ne sont pas concernées ; les versements commencent dès que Stripe a ce qu’il lui faut.',
+    es: 'Stripe todavía necesita algunos datos antes de poder pagarle (faltan {count}). Sus reservas no se ven afectadas; los pagos empiezan en cuanto Stripe tenga lo que necesita.',
+  },
+  'pp.payoutSetup.pendingChecking': {
+    en: 'Stripe is checking the details you gave. This usually takes a few minutes; this page shows the result when you come back to it.',
+    nl: 'Stripe controleert de gegevens die u hebt opgegeven. Dat duurt meestal een paar minuten; deze pagina toont het resultaat wanneer u terugkomt.',
+    fr: 'Stripe vérifie les informations que vous avez fournies. Cela prend généralement quelques minutes ; cette page affiche le résultat quand vous y revenez.',
+    es: 'Stripe está comprobando los datos que facilitó. Suele tardar unos minutos; esta página muestra el resultado cuando vuelva a ella.',
+  },
+  'pp.payoutSetup.restricted': {
+    en: 'Stripe has paused payouts to you until it has more details. Nothing already earned is lost; it is paid once Stripe is satisfied.',
+    nl: 'Stripe heeft de uitbetalingen aan u gepauzeerd totdat het meer gegevens heeft. Wat u al hebt verdiend gaat niet verloren; het wordt uitbetaald zodra Stripe tevreden is.',
+    fr: 'Stripe a suspendu vos versements en attendant plus d’informations. Rien de ce que vous avez déjà gagné n’est perdu ; ce sera versé dès que Stripe aura ce qu’il lui faut.',
+    es: 'Stripe ha pausado sus pagos hasta tener más datos. No se pierde nada de lo ya ganado; se pagará en cuanto Stripe tenga lo que necesita.',
+  },
+  'pp.payoutSetup.active': {
+    en: 'Payouts are on. Stripe pays your share into the bank account you gave them.',
+    nl: 'Uitbetalingen staan aan. Stripe betaalt uw deel uit op de bankrekening die u hebt opgegeven.',
+    fr: 'Les versements sont activés. Stripe verse votre part sur le compte bancaire que vous lui avez indiqué.',
+    es: 'Los pagos están activados. Stripe ingresa su parte en la cuenta bancaria que les facilitó.',
+  },
+  'pp.payoutSetup.start': {
+    en: 'Set Up Payouts',
+    nl: 'Uitbetalingen instellen',
+    fr: 'Configurer les versements',
+    es: 'Configurar los pagos',
+  },
+  'pp.payoutSetup.continue': {
+    en: 'Continue With Stripe',
+    nl: 'Verder bij Stripe',
+    fr: 'Continuer avec Stripe',
+    es: 'Continuar con Stripe',
+  },
+  'pp.payoutSetup.leaving': {
+    en: 'You’ll go to Stripe’s own page, and come back here when you’re done.',
+    nl: 'U gaat naar de eigen pagina van Stripe en komt hier terug wanneer u klaar bent.',
+    fr: 'Vous serez redirigé vers la page de Stripe, puis ramené ici une fois terminé.',
+    es: 'Irá a la propia página de Stripe y volverá aquí cuando termine.',
+  },
+  'pp.payoutSetup.notOn': {
+    en: 'Payouts can’t be set up just yet. Please try again later.',
+    nl: 'Uitbetalingen kunnen nog niet worden ingesteld. Probeer het later opnieuw.',
+    fr: 'Les versements ne peuvent pas encore être configurés. Veuillez réessayer plus tard.',
+    es: 'Todavía no se pueden configurar los pagos. Inténtelo de nuevo más tarde.',
+  },
+  'pp.payoutSetup.loadFailed': {
+    en: 'We couldn’t check how your payouts are set up.',
+    nl: 'We konden niet controleren hoe uw uitbetalingen zijn ingesteld.',
+    fr: 'Nous n’avons pas pu vérifier la configuration de vos versements.',
+    es: 'No pudimos comprobar cómo están configurados sus pagos.',
+  },
 } satisfies Record<string, Phrase>;

@@ -37,7 +37,7 @@
 
 import { legalDocuments, findLegalDocument } from './content/legal';
 import { request } from './api/http';
-import { isApiError, isNotFound, notImplemented } from './api/errors';
+import { ApiError, isApiError, isNotFound, notImplemented } from './api/errors';
 import { uploadPhoto } from './api/upload';
 import type {
   AppNotification,
@@ -47,6 +47,7 @@ import type {
   BusinessSummary,
   FleetVehicle,
   ImportRow,
+  PayoutAccount,
   PayoutRecord,
   PhotoUploadTicket,
   ProviderBooking,
@@ -694,6 +695,53 @@ export const apiClient = {
 
   async getPayouts(signal?: AbortSignal): Promise<PayoutRecord[]> {
     return request<PayoutRecord[]>('/providers/me/payouts', { signal, auth: true });
+  },
+
+  /**
+   * Where the business's money goes, read live from Stripe by the backend.
+   * `undefined` when the business has no payout record at all, which reads the
+   * same as never having started.
+   */
+  async getPayoutAccount(signal?: AbortSignal): Promise<PayoutAccount | undefined> {
+    return findOrUndefined(
+      request<PayoutAccount>('/providers/me/payout-account', { signal, auth: true }),
+    );
+  },
+
+  /**
+   * A one-time link to Stripe, where the business gives its bank details.
+   * Stripe sends them back to /provider/payouts afterwards — and if the link
+   * has expired by the time they use it, to the same page, which offers a new
+   * one. Refused with `payments_unavailable` while Stripe is not set up.
+   *
+   * Only ever an https address on stripe.com: the browser is about to be sent
+   * there, and a link anywhere else is not one Stripe made.
+   */
+  async startPayoutSetup(): Promise<string> {
+    const { url } = await request<{ url: string }>('/providers/me/payout-account', {
+      method: 'POST',
+      body: { returnTo: 'web' },
+      auth: true,
+    });
+    let address: URL | null = null;
+    try {
+      address = new URL(url);
+    } catch {
+      address = null;
+    }
+    const isStripe =
+      address !== null &&
+      address.protocol === 'https:' &&
+      (address.hostname === 'stripe.com' || address.hostname.endsWith('.stripe.com'));
+    if (!isStripe) {
+      throw new ApiError({
+        code: 'unknown',
+        message: 'The link to set up payouts did not look right, so it was not opened. Please try again.',
+        status: 0,
+        developerHint: `POST /providers/me/payout-account returned ${String(url).slice(0, 120)}`,
+      });
+    }
+    return url;
   },
 
   // ==================== CLOSING AN ACCOUNT OR A BUSINESS ====================

@@ -420,6 +420,20 @@ export type PayoutRecord = {
   status: 'paid' | 'pending' | 'processing';
 };
 
+// Where a business's money goes: its Stripe account, as the backend reports
+// it (GET /providers/me/payout-account). The bank details themselves are given
+// to Stripe directly and never come through SXM Rentals.
+export type PayoutAccount = {
+  // not_started — never begun; pending — Stripe still needs details;
+  // active — payouts on; restricted — Stripe has paused payouts for now.
+  status: 'not_started' | 'pending' | 'active' | 'restricted';
+  payoutsEnabled: boolean;
+  // What Stripe still needs, in Stripe's own codes. Counted, never shown raw:
+  // "individual.verification.document" means nothing to a business.
+  outstanding: string[];
+  country: string;
+};
+
 // How one vehicle is doing. Every money figure here is the business's own
 // share, after commission.
 export type VehiclePerformance = {

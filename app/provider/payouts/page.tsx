@@ -11,6 +11,11 @@
 // your money, trust us on the arithmetic" is not a relationship anybody should
 // accept from a platform taking thirty per cent.
 //
+// WHERE THE MONEY GOES comes first: the card that sends a business to Stripe
+// to give its bank details (components/business/PayoutSetup.tsx). Stripe sends
+// them back to this page when they are done, so it is shown whether or not
+// there are payouts yet — before the first one is exactly when it matters.
+//
 // SECURITY DEPOSITS ARE NOT IN ANY PAYOUT and cannot be. A deposit is held
 // against the customer's card and given back to them; no commission is taken
 // from it and it is never the business's money. The note at the bottom says so,
@@ -31,6 +36,7 @@ import {
   Text,
 } from '@/components/ui';
 import { StatTile, EarningsSplit } from '@/components/business/Stats';
+import { PayoutSetup } from '@/components/business/PayoutSetup';
 import styles from '../provider.module.css';
 import { useTranslation } from '@/lib/i18n';
 
@@ -55,11 +61,14 @@ export default function ProviderPayoutsPage() {
 
   if (!payouts || payouts.length === 0) {
     return (
-      <EmptyState
-        title={t('pp.payouts.emptyTitle')}
-        body={t('pp.payouts.emptyBody')}
-        icon="card-outline"
-      />
+      <div className={styles.stack}>
+        <PayoutSetup />
+        <EmptyState
+          title={t('pp.payouts.emptyTitle')}
+          body={t('pp.payouts.emptyBody')}
+          icon="card-outline"
+        />
+      </div>
     );
   }
 
@@ -90,6 +99,8 @@ export default function ProviderPayoutsPage() {
           </Text>
         </div>
       </div>
+
+      <PayoutSetup />
 
       {/* ---- THE HEADLINE NUMBERS ---- */}
       <div className={styles.statGrid}>
