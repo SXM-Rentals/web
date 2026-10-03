@@ -7,19 +7,12 @@
 //
 // ---- NOTHING IS CHARGED HERE, AND THE PAGE SAYS SO ----
 //
-// SXM Rentals cannot take card payments yet: the backend has no payment
-// provider connected, records every booking as unpaid, and marks the deposit
-// "not taken". This page used to draw a card form, wait 700 milliseconds, and
-// move on as though a payment had been taken. It now says what actually
-// happens — the rental is settled with the business, and no deposit is held —
-// because a customer who believes they have paid, and a business expecting
-// SXM Rentals to have collected, is the worst possible way for the two to meet.
-//
-// THERE ARE NO CARD FIELDS, not even as a stand-in. When payments are
-// connected this step will use Stripe Elements, whose fields belong to Stripe,
-// so the card number never passes through this site or its server. A
-// placeholder that looks like a card form on a page that takes no payment is
-// both a lie and an invitation to type a card number into nothing.
+// The card is taken AFTER the booking is confirmed, not on this step: the
+// backend can only start a payment for a booking that exists, and the booking
+// is made on the confirm step. So this step says how paying works — by card,
+// through Stripe, on the page straight after confirming, or later from the
+// rental's own page (components/payments/PayForBooking.tsx) — and draws no
+// card fields of its own.
 //
 // THE DEPOSIT IS STILL EXPLAINED. It is the number that surprises people, and
 // what it is does not change: it is not a charge, and it is not part of the
@@ -72,22 +65,19 @@ export function BookingPaymentStep({ vehicle }: { vehicle: Vehicle }) {
         </>
       }
     >
-      {/* ---- WHAT HAPPENS ABOUT MONEY ---- */}
+      {/* ---- HOW PAYING WORKS ---- */}
       <Card>
         <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-md)' }} raw>
-          {t('flow.payment.notConnectedTitle')}
+          {t('flow.payment.howTitle')}
         </Text>
 
-        <Text variant="body" tone="ink2" raw>
-          {total === undefined
-            ? t('flow.payment.notConnectedBody').replace('{amount}', t('flow.payment.theRental'))
-            : t('flow.payment.notConnectedBody').replace('{amount}', money(total))}
-        </Text>
-
-        <div className={styles.note}>
+        <div className={styles.note} style={{ marginTop: 0 }}>
           <Icon name="card-outline" size={16} color="var(--ink2)" />
-          <Text variant="small" tone="ink2" raw>
-            {t('flow.payment.whenConnected')}
+          <Text variant="body" tone="ink2" raw>
+            {t('flow.payment.howBody').replace(
+              '{amount}',
+              total === undefined ? t('flow.payment.theRental') : money(total),
+            )}
           </Text>
         </div>
       </Card>

@@ -42,6 +42,9 @@ import { uploadPhoto } from './api/upload';
 import type {
   AppNotification,
   BusinessChatThread,
+  CardPaymentStart,
+  DepositState,
+  SavedCard,
   BusinessApplication,
   BusinessProfile,
   BusinessSummary,
@@ -341,6 +344,62 @@ export const apiClient = {
    */
   async cancelBooking(id: string): Promise<Booking> {
     return request<Booking>(`/bookings/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+      auth: true,
+    });
+  },
+
+  // ==================== PAYING BY CARD ====================
+  // The card number never comes near this site or the backend: each of these
+  // hands back a one-time secret, and Stripe's own form, on the page, takes
+  // the card with it (components/payments/CardForm.tsx). Nothing is paid or
+  // held because the page says so — only Stripe telling the backend, which then
+  // shows on the booking. Refused with `payments_unavailable` while Stripe is
+  // not set up, or `feature_off` while the owner has it switched off.
+
+  /** Starts (or picks up) the card payment for one of the customer's rentals. */
+  async startRentalPayment(bookingId: string): Promise<CardPaymentStart> {
+    return request<CardPaymentStart>(`/payments/bookings/${encodeURIComponent(bookingId)}/intent`, {
+      method: 'POST',
+      auth: true,
+    });
+  },
+
+  /** Where a booking's security deposit stands, and when it may be held. */
+  async getDeposit(bookingId: string, signal?: AbortSignal): Promise<DepositState | undefined> {
+    return findOrUndefined(
+      request<DepositState>(`/deposits/bookings/${encodeURIComponent(bookingId)}`, { signal, auth: true }),
+    );
+  },
+
+  /**
+   * Starts the hold for a booking's deposit: set aside on the card, never
+   * taken. Refused with `too_early` before the two days before pickup.
+   */
+  async startDepositHold(bookingId: string): Promise<CardPaymentStart> {
+    return request<CardPaymentStart>(`/deposits/bookings/${encodeURIComponent(bookingId)}/authorize`, {
+      method: 'POST',
+      auth: true,
+    });
+  },
+
+  /** The customer's saved cards: brand, last four digits and expiry, never more. */
+  async listCards(signal?: AbortSignal): Promise<SavedCard[]> {
+    return request<SavedCard[]>('/payments/methods', { signal, auth: true });
+  },
+
+  /** A one-time secret for saving a new card through Stripe's own form. */
+  async startCardSetup(): Promise<CardPaymentStart> {
+    return request<CardPaymentStart>('/payments/methods/setup', { method: 'POST', auth: true });
+  },
+
+  async removeCard(cardId: string): Promise<void> {
+    await request(`/payments/methods/${encodeURIComponent(cardId)}`, { method: 'DELETE', auth: true });
+  },
+
+  /** Makes a card the one offered first, and hands back the cards as they now stand. */
+  async makeDefaultCard(cardId: string): Promise<SavedCard[]> {
+    return request<SavedCard[]>(`/payments/methods/${encodeURIComponent(cardId)}/default`, {
       method: 'POST',
       auth: true,
     });

@@ -18,11 +18,20 @@
 // shows the booking that exists — and still shows it after a reload. Arriving
 // here without one means somebody opened the page directly; it then says so
 // rather than inventing a booking.
+//
+// ---- PAYING ----
+//
+// The rental can be paid by card right here (components/payments/
+// PayForBooking.tsx), straight after booking — or later, from the rental's own
+// page, where the same panel stays until it is paid.
 
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { dateRange, daysBetween } from '@/lib/format';
 import { useTrip } from '@/lib/trip';
+import { apiClient } from '@/lib/api-client';
+import { useAsyncData } from '@/hooks/useAsyncData';
+import { PayForBooking } from '@/components/payments/PayForBooking';
 import { Button, Card, Icon, Text } from '@/components/ui';
 import type { IconName } from '@/components/ui';
 import type { Vehicle } from '@/types';
@@ -37,6 +46,12 @@ export function BookingDoneStep({ vehicle }: { vehicle: Vehicle }) {
 
   const reference = params.get('ref');
   const bookingId = params.get('booking');
+  // The booking itself, for the payment panel: its total and whether it is
+  // already paid. Without an id there is nothing to pay for.
+  const { data: booking } = useAsyncData(
+    (signal) => (bookingId ? apiClient.getBooking(bookingId, signal) : Promise.resolve(undefined)),
+    [bookingId],
+  );
 
   const nextSteps: { icon: IconName; title: string; body: string }[] = [
     {
@@ -86,6 +101,12 @@ export function BookingDoneStep({ vehicle }: { vehicle: Vehicle }) {
             {t('flow.done.noReference')}
           </Text>
         )}
+
+        {booking ? (
+          <div style={{ width: '100%' }}>
+            <PayForBooking booking={booking} />
+          </div>
+        ) : null}
 
         {/* ---- WHAT HAPPENS NEXT ---- */}
         <Card padded style={{ width: '100%' }}>

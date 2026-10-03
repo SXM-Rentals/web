@@ -1,0 +1,57 @@
+/* SXM Rentals — Created by Giordano Bertin-Maurice
+   Copyright (c) 2026 Giordano Bertin-Maurice. All rights reserved.
+   WHAT THIS FILE DOES: The look around Stripe's card form — the test-mode
+   note, the problem line, the buttons — and of the payment panels that use
+   it. The card fields themselves are Stripe's, drawn by Stripe. */
+
+.form {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.testMode,
+.problem,
+.secure,
+.line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.testMode > :first-child,
+.problem > :first-child,
+.secure > :first-child,
+.line > :first-child { flex-shrink: 0; margin-top: 2px; }
+
+.testMode {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+}
+
+.problem {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}

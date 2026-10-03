@@ -184,6 +184,11 @@ export type Booking = {
   depositAmount: number;
   depositStatus: DepositStatus;
   totalDueToday: number;
+  // Whether the rental itself has been paid for by card. "authorized" is the
+  // backend's word for "not paid yet" — every booking starts there. Only
+  // Stripe, telling the backend, ever makes it "paid"; never the page.
+  // Optional, because an older backend did not send it.
+  paymentStatus?: 'authorized' | 'paid' | 'refunded' | 'failed';
 
   agreementSigned: boolean;
   createdAt: string;
@@ -418,6 +423,46 @@ export type PayoutRecord = {
   periodEnd: string;
   paidOn?: string;
   status: 'paid' | 'pending' | 'processing';
+};
+
+// What the backend hands over to start a card payment (for a rental, or a
+// deposit hold) or to save a card: a one-time secret for Stripe's own form.
+// Being handed one does NOT mean anything is paid — only Stripe telling the
+// backend afterwards does.
+export type CardPaymentStart = {
+  clientSecret: string;
+  // Dollars. Absent when saving a card, which charges nothing.
+  amount?: number;
+  status?: string;
+};
+
+// A card saved with Stripe, as the site may show it: brand, last four digits,
+// expiry. The number itself stays with Stripe and never reaches SXM Rentals.
+export type SavedCard = {
+  id: string;
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+};
+
+// A booking's security deposit, as the customer sees it
+// (GET /deposits/bookings/:id). Held, never charged.
+export type DepositState = {
+  amount: number;
+  status: DepositStatus;
+  heldSince: string | null;
+  // When the bank will drop a hold, and whether that is before the car is due
+  // back — on a long rental it can be.
+  holdExpiresAt: string | null;
+  expiresBeforeReturn: boolean;
+  // When the hold may be placed: two days before pickup. Earlier, the bank
+  // would drop it before the car was even collected.
+  holdOpensAt: string;
+  releasedAt: string | null;
+  claimedAmount?: number;
+  claimReason?: string;
 };
 
 // Where a business's money goes: its Stripe account, as the backend reports

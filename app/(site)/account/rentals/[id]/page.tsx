@@ -34,6 +34,8 @@ import {
   StatusPill,
   Text,
 } from '@/components/ui';
+import { PayForBooking } from '@/components/payments/PayForBooking';
+import { HoldDeposit } from '@/components/payments/HoldDeposit';
 import styles from '../../account.module.css';
 import { useTranslation } from '@/lib/i18n';
 
@@ -50,10 +52,9 @@ const STATUS_LOOK: Record<string, { label: string; tone: 'neutral' | 'success' |
 };
 
 const DEPOSIT_EXPLAINER: Record<string, string> = {
-  // Every real booking sits here for now: SXM Rentals cannot hold a deposit
-  // until payments are connected, so nothing is set aside automatically.
-  not_taken:
-    'Nothing has been set aside. SXM Rentals does not hold deposits yet — the rental business arranges it with you when you collect the car.',
+  // Until the customer places the hold, from two days before pickup — the
+  // panel under this says when, or offers the button (HoldDeposit).
+  not_taken: 'Nothing is set aside on your card yet.',
   held: 'This amount is currently set aside on your card. It has not been charged, and is released after you return the car.',
   released:
     'The hold has been lifted. Your bank may take a few working days to show the money as available again.',
@@ -214,6 +215,10 @@ export default function RentalDetailPage({ params }: PageProps) {
             </div>
           </Card>
 
+          {/* ---- PAYING FOR IT ----
+              Until it is paid, and after: "paid" stays, as the receipt. */}
+          <PayForBooking booking={booking} onPaid={() => refresh()} />
+
           {/* ---- THE DETAILS ---- */}
           <Card data-print="keep">
             <Text variant="label" as="h2" style={{ marginBottom: 'var(--space-lg)' }} raw>
@@ -334,6 +339,11 @@ export default function RentalDetailPage({ params }: PageProps) {
                 <Text variant="small" tone="ink2">
                   {DEPOSIT_EXPLAINER[booking.depositStatus]}
                 </Text>
+
+                {/* Placing the hold, or when it can be placed. */}
+                <div style={{ marginTop: 'var(--space-md)' }}>
+                  <HoldDeposit booking={booking} onHeld={() => refresh()} />
+                </div>
               </>
             )}
           </Card>

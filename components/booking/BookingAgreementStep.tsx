@@ -57,7 +57,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
       heading: 'Who this agreement is between',
       body: `You${
         user ? `, ${user.firstName} ${user.lastName},` : ''
-      } and the rental business listing this vehicle. SXM Rentals handles the booking and the messages between you, but the car is rented to you by the business, and you settle the rental and the deposit with them.`,
+      } and the rental business listing this vehicle. SXM Rentals handles the booking, the payment and the messages between you, but the car is rented to you by the business.`,
     },
     {
       heading: 'The vehicle and the dates',
@@ -69,7 +69,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
       heading: 'The security deposit',
       body: `${money(
         quote.quote?.depositAmount ?? vehicle.depositAmount,
-      )}, arranged with the business when you collect the car. SXM Rentals does not hold deposits yet. Whatever is held is not a charge, is not part of the rental price, and is given back after the car is returned and checked.`,
+      )}, held on your card by SXM Rentals, through Stripe, from two days before pickup. It is not a charge, is not part of the rental price, and is released after the car is returned and checked.`,
     },
     {
       heading: 'Who may drive',
@@ -85,7 +85,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
     },
     {
       heading: 'Cancelling',
-      body: 'You can cancel a rental that has not started, from the rental in your account. What you get back depends on how close to the start you cancel and is settled with the business, under the Cancellation and Refund Policy.',
+      body: 'You can cancel a rental that has not started, from the rental in your account. What you get back depends on how close to the start you cancel, under the Cancellation and Refund Policy.',
     },
   ];
 

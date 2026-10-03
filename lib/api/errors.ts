@@ -54,6 +54,13 @@ export type ApiErrorCode =
   | 'already_cancelled'
   | 'empty_message'
   | 'payments_unavailable' // Stripe is not connected yet
+  | 'feature_off' // built, but the owner has not switched it on (see /capabilities)
+  | 'already_paid' // a rental that has already been paid for
+  | 'booking_cancelled'
+  | 'deposit_already_held'
+  | 'deposit_claimed'
+  | 'booking_finished'
+  | 'too_early' // a deposit hold asked for before its window opens
   | 'has_live_rental' // an account or business with a rental coming up or out cannot close
   | 'has_held_deposit' // nor one with a deposit still held
   | 'owns_business' // an account cannot close while its business is open
@@ -141,7 +148,8 @@ export function isUnavailable(caught: unknown): boolean {
     isApiError(caught) &&
     (caught.code === 'not_implemented' ||
       caught.code === 'payments_unavailable' ||
-      caught.code === 'uploads_unavailable')
+      caught.code === 'uploads_unavailable' ||
+      caught.code === 'feature_off')
   );
 }
 

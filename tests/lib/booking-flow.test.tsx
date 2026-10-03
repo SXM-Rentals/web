@@ -135,16 +135,16 @@ describe('the price on a car page', () => {
 });
 
 describe('the payment step', () => {
-  it('takes no payment, says so, and draws no card form', async () => {
+  it('says the card is taken after confirming, through Stripe, and draws no card form', async () => {
     fakeBackend({
       'GET /customers/me': { status: 200, body: CUSTOMER },
       'POST /bookings/quote': { status: 200, body: QUOTE },
     });
     renderWithTrip(<BookingPaymentStep vehicle={CAR} />);
 
-    await screen.findByText(/You settle \$119\.70 with the rental business/);
-    expect(screen.getByText('Paying Online Is Not Connected Yet')).toBeInTheDocument();
-    expect(screen.queryByText(/card number/i)).not.toBeInTheDocument();
+    await screen.findByText(/you pay \$119\.70 by card on the next page, through Stripe/);
+    expect(screen.getByText('How You Pay')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /card/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/pay and continue/i)).not.toBeInTheDocument();
   });
 });

@@ -691,10 +691,10 @@ export const accountPages = {
     es: 'Métodos de pago',
   },
   'acct.pay.subtitle': {
-    en: 'Cards you have used, kept for next time.',
-    nl: 'Kaarten die u heeft gebruikt, bewaard voor de volgende keer.',
-    fr: 'Les cartes que vous avez utilisées, gardées pour la prochaine fois.',
-    es: 'Las tarjetas que ha usado, guardadas para la próxima vez.',
+    en: 'Cards saved with Stripe, for paying next time.',
+    nl: 'Kaarten die bij Stripe zijn opgeslagen, om de volgende keer mee te betalen.',
+    fr: 'Les cartes enregistrées chez Stripe, pour payer la prochaine fois.',
+    es: 'Tarjetas guardadas en Stripe, para pagar la próxima vez.',
   },
   'acct.pay.notConnected': {
     en: 'Not Connected Yet',
@@ -708,17 +708,11 @@ export const accountPages = {
     fr: 'Aucune carte enregistrée',
     es: 'No hay tarjetas guardadas',
   },
-  'acct.pay.noCardsBody': {
-    en: 'A card is offered here for next time once payments are connected. Nothing can be saved yet, because there is no payment system behind this build.',
-    nl: 'Zodra betalingen zijn gekoppeld wordt hier een kaart voor de volgende keer aangeboden. Er kan nog niets worden opgeslagen, omdat er geen betaalsysteem achter deze versie zit.',
-    fr: 'Une carte vous sera proposée ici la prochaine fois, une fois les paiements connectés. Rien ne peut encore être enregistré, car aucun système de paiement n’est branché sur cette version.',
-    es: 'Se le ofrecerá aquí una tarjeta para la próxima vez cuando los pagos estén conectados. Todavía no se puede guardar nada, porque esta versión no tiene ningún sistema de pago detrás.',
-  },
   'acct.pay.howTitle': {
-    en: 'How Card Details Will Be Handled',
-    nl: 'Hoe met kaartgegevens wordt omgegaan',
-    fr: 'Comment les données de carte seront traitées',
-    es: 'Cómo se tratarán los datos de la tarjeta',
+    en: 'How Card Details Are Handled',
+    nl: 'Hoe kaartgegevens worden behandeld',
+    fr: 'Comment les données de carte sont traitées',
+    es: 'Cómo se tratan los datos de la tarjeta',
   },
   'acct.pay.stripeNote': {
     en: 'Card numbers are typed into fields that belong to Stripe, not to SXM Rentals. The number goes straight to them and never touches this site or our servers.',
