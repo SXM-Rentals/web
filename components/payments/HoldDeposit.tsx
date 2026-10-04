@@ -22,6 +22,14 @@
 //
 // Once Stripe says the hold went through, this waits for the deposit itself
 // to say "held" — set by Stripe telling the backend — before it says so.
+//
+// ---- MOSTLY, THE BACKEND DOES IT ----
+//
+// When the rental was paid with the card saved for the deposit, the backend
+// places the hold itself (`autoHold: "scheduled"`), and this only says when.
+// The button is for the other two cases: the automatic hold was tried and
+// could not go through (`needs_customer`, with the backend's own sentence
+// why), or no card was saved for it (`off`).
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -131,6 +139,20 @@ export function HoldDeposit({ booking, onHeld }: { booking: Booking; onHeld?: ()
 
   if (deposit.status !== 'not_taken') return null;
 
+  // ---- HELD BY THE BACKEND, ON THE CARD THAT PAID ----
+  if (deposit.autoHold === 'scheduled') {
+    const when = deposit.autoHoldAt ?? deposit.holdOpensAt;
+    const due = Date.now() >= new Date(when).getTime();
+    return (
+      <div className={styles.line}>
+        <Icon name="checkmark-circle-outline" size={15} color="var(--success)" />
+        <Text variant="small" tone="ink2" raw>
+          {due ? t('pay.deposit.placingNow') : t('pay.deposit.scheduled').replace('{date}', longDate(when))}
+        </Text>
+      </div>
+    );
+  }
+
   const opens = new Date(deposit.holdOpensAt);
   if (Date.now() < opens.getTime()) {
     return (
@@ -151,7 +173,8 @@ export function HoldDeposit({ booking, onHeld }: { booking: Booking; onHeld?: ()
       setSecret(clientSecret);
       setPhase('form');
     } catch (caught) {
-      if (isApiError(caught) && caught.code === 'deposit_already_held') {
+      // Held already, or being held on the saved card this very minute.
+      if (isApiError(caught) && (caught.code === 'deposit_already_held' || caught.code === 'hold_in_progress')) {
         setPhase('waiting');
         return;
       }
@@ -180,6 +203,16 @@ export function HoldDeposit({ booking, onHeld }: { booking: Booking; onHeld?: ()
         />
       ) : (
         <>
+          {deposit.autoHold === 'needs_customer' ? (
+            // Why the automatic hold could not go through, in the backend's
+            // own words — the bank wanting approval, or a declined card.
+            <div className={styles.problem} role="alert">
+              <Icon name="alert-circle-outline" size={15} color="var(--warning)" />
+              <Text variant="small" tone="ink2" raw>
+                {deposit.autoHoldProblem || t('pay.deposit.needsYou')}
+              </Text>
+            </div>
+          ) : null}
           <Text variant="small" tone="ink2" raw>
             {t('pay.deposit.intro').replace('{amount}', amount)}
           </Text>

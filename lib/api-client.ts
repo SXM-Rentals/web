@@ -357,10 +357,22 @@ export const apiClient = {
   // shows on the booking. Refused with `payments_unavailable` while Stripe is
   // not set up, or `feature_off` while the owner has it switched off.
 
-  /** Starts (or picks up) the card payment for one of the customer's rentals. */
-  async startRentalPayment(bookingId: string): Promise<CardPaymentStart> {
+  /**
+   * Starts (or picks up) the card payment for one of the customer's rentals.
+   *
+   * `saveCardForDeposit` also saves the card, so the backend can place the
+   * deposit hold on it by itself two days before pickup. Send it ONLY when
+   * the customer has been shown, beside the pay button, that the card will be
+   * used for that — it is their agreement to a hold placed while they are
+   * not there (see components/payments/PayForBooking.tsx).
+   */
+  async startRentalPayment(
+    bookingId: string,
+    options: { saveCardForDeposit?: boolean } = {},
+  ): Promise<CardPaymentStart> {
     return request<CardPaymentStart>(`/payments/bookings/${encodeURIComponent(bookingId)}/intent`, {
       method: 'POST',
+      ...(options.saveCardForDeposit ? { body: { saveCardForDeposit: true } } : {}),
       auth: true,
     });
   },

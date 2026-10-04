@@ -69,7 +69,7 @@ export function BookingAgreementStep({ vehicle }: { vehicle: Vehicle }) {
       heading: 'The security deposit',
       body: `${money(
         quote.quote?.depositAmount ?? vehicle.depositAmount,
-      )}, held on your card by SXM Rentals, through Stripe, from two days before pickup. It is not a charge, is not part of the rental price, and is released after the car is returned and checked.`,
+      )}, held on the card you pay with — automatically, from two days before pickup — and released after you return the car. It is never charged unless a claim is made, with a written reason, and it is not part of the rental price.`,
     },
     {
       heading: 'Who may drive',

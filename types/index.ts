@@ -231,7 +231,9 @@ export type NotificationKind =
   | 'late_return'
   | 'cancellation'
   | 'verification'
-  | 'promotion';
+  | 'promotion'
+  // The automatic deposit hold could not go through: the customer is needed.
+  | 'deposit_hold_needed';
 
 export type AppNotification = {
   id: string;
@@ -240,6 +242,8 @@ export type AppNotification = {
   body: string;
   sentAt: string;
   read: boolean;
+  // The rental it is about, when it is about one — so it can open it.
+  bookingId?: string | null;
 };
 
 // ---- REWARDS ----
@@ -434,6 +438,10 @@ export type CardPaymentStart = {
   // Dollars. Absent when saving a card, which charges nothing.
   amount?: number;
   status?: string;
+  // For a rental payment: the deposit beside it — whether this payment saves
+  // the card for the automatic hold, and from when that hold is placed. Null
+  // when the booking has no deposit.
+  deposit?: { amount: number; savesCard: boolean; holdFrom: string } | null;
 };
 
 // A card saved with Stripe, as the site may show it: brand, last four digits,
@@ -463,6 +471,14 @@ export type DepositState = {
   releasedAt: string | null;
   claimedAmount?: number;
   claimReason?: string;
+  // The automatic hold, on the card that paid for the rental:
+  //   scheduled       — it will be held at autoHoldAt, with nothing to do;
+  //   needs_customer  — it was tried and could not go through, and
+  //                     autoHoldProblem says why: the customer places it;
+  //   off             — no card was saved for it: the customer places it.
+  autoHold?: 'scheduled' | 'needs_customer' | 'off';
+  autoHoldAt?: string | null;
+  autoHoldProblem?: string | null;
 };
 
 // Where a business's money goes: its Stripe account, as the backend reports

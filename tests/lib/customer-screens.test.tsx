@@ -192,6 +192,25 @@ describe('notifications', () => {
   });
 });
 
+describe('a notification about a rental', () => {
+  it('opens the rental it is about — where a deposit hold that needs the customer is done', async () => {
+    const item = {
+      id: 'n2',
+      kind: 'deposit_hold_needed',
+      title: 'Your deposit hold needs you',
+      body: 'Your bank wants you to approve the $55 deposit hold for SXM-6151.',
+      sentAt: '2026-10-04T10:00:00.000Z',
+      read: false,
+      bookingId: 'b1',
+    } as AppNotification;
+    fakeBackend({ 'GET /notifications': { status: 200, body: [item] } });
+    render(<NotificationsPage />);
+
+    expect(await screen.findByText(/your deposit hold needs you/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open the Rental/i })).toHaveAttribute('href', '/account/rentals/b1');
+  });
+});
+
 describe('messages', () => {
   it('keeps a message in the box when it fails to send', async () => {
     const thread: ChatThread = {

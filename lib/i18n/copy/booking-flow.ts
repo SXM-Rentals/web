@@ -457,10 +457,10 @@ export const bookingFlow = {
     es: 'Sobre la fianza',
   },
   'flow.payment.depositBody': {
-    en: '{amount} is the deposit for this car. It is held on your card, never charged: you place the hold on your rental’s page from two days before pickup, and it is released after the car is returned and checked.',
-    nl: '{amount} is de borg voor deze auto. Die wordt op uw kaart vastgehouden, nooit afgeschreven: u plaatst de blokkering vanaf twee dagen voor het ophalen op de pagina van uw huur, en die wordt vrijgegeven nadat de auto is teruggebracht en gecontroleerd.',
-    fr: '{amount} est la caution pour cette voiture. Elle est bloquée sur votre carte, jamais débitée : vous placez le blocage sur la page de votre location à partir de deux jours avant la prise en charge, et il est levé une fois la voiture rendue et vérifiée.',
-    es: '{amount} es la fianza de este coche. Se retiene en su tarjeta, nunca se cobra: usted la retiene en la página de su alquiler desde dos días antes de la recogida, y se libera cuando el coche se devuelve y se revisa.',
+    en: '{amount} is the deposit for this car. It is held on the card you pay with — automatically, from two days before pickup — never charged, and released after the car is returned and checked.',
+    nl: '{amount} is de borg voor deze auto. Die wordt vastgehouden op de kaart waarmee u betaalt — automatisch, vanaf twee dagen voor het ophalen — nooit afgeschreven, en vrijgegeven nadat de auto is teruggebracht en gecontroleerd.',
+    fr: '{amount} est la caution pour cette voiture. Elle est bloquée sur la carte avec laquelle vous payez — automatiquement, à partir de deux jours avant la prise en charge — jamais débitée, et libérée une fois la voiture rendue et vérifiée.',
+    es: '{amount} es la fianza de este coche. Se retiene en la tarjeta con la que paga —automáticamente, desde dos días antes de la recogida—, nunca se cobra y se libera cuando el coche se devuelve y se revisa.',
   },
   'flow.payment.depositReturned': {
     en: 'A deposit is never a charge. Whatever is held is given back after the car is returned and checked.',
@@ -505,10 +505,10 @@ export const bookingFlow = {
     es: 'Ahora no se cobra nada. Paga a la empresa de alquiler cuando recoge el coche.',
   },
   'flow.done.depositBody': {
-    en: 'Pay the rental by card below, or later from your rental’s page. The deposit is held on your card from two days before pickup; your rental’s page asks you then.',
-    nl: 'Betaal de huur hieronder met uw kaart, of later via de pagina van uw huur. De borg wordt vanaf twee dagen voor het ophalen op uw kaart vastgehouden; de pagina van uw huur vraagt u dat dan.',
-    fr: 'Payez la location par carte ci-dessous, ou plus tard depuis la page de votre location. La caution est bloquée sur votre carte à partir de deux jours avant la prise en charge ; la page de votre location vous le demandera alors.',
-    es: 'Pague el alquiler con tarjeta aquí abajo, o más tarde desde la página de su alquiler. La fianza se retiene en su tarjeta desde dos días antes de la recogida; la página de su alquiler se lo pedirá entonces.',
+    en: 'Pay the rental by card below, or later from your rental’s page. The same card holds the deposit, automatically, from two days before pickup.',
+    nl: 'Betaal de huur hieronder met uw kaart, of later via de pagina van uw huur. Dezelfde kaart houdt de borg vast, automatisch, vanaf twee dagen voor het ophalen.',
+    fr: 'Payez la location par carte ci-dessous, ou plus tard depuis la page de votre location. La même carte sert à bloquer la caution, automatiquement, à partir de deux jours avant la prise en charge.',
+    es: 'Pague el alquiler con tarjeta aquí abajo, o más tarde desde la página de su alquiler. La misma tarjeta retiene la fianza, automáticamente, desde dos días antes de la recogida.',
   },
   'flow.done.noReference': {
     en: 'This page shows a booking once one has been made. Your rentals are in your account.',
@@ -745,5 +745,31 @@ export const bookingFlow = {
     nl: 'Voorlopig vraagt elke betaling de volledige kaartgegevens; een opgeslagen kaart kiezen bij het betalen komt nog.',
     fr: 'Pour l’instant, chaque paiement demande la carte en entier ; le choix d’une carte enregistrée au moment de payer arrive bientôt.',
     es: 'Por ahora, cada pago pide la tarjeta completa; elegir una tarjeta guardada al pagar llegará más adelante.',
+  },
+
+  // ---- THE DEPOSIT, HELD AUTOMATICALLY ON THE CARD THAT PAID ----
+  'pay.rental.depositCard': {
+    en: 'Your card will also be used for the {amount} security deposit. We place a hold on it from two days before pickup, and release it after you return the car. It is never charged unless a claim is made, with a written reason.',
+    nl: 'Uw kaart wordt ook gebruikt voor de borg van {amount}. Wij plaatsen er vanaf twee dagen voor het ophalen een blokkering op, en heffen die op nadat u de auto hebt teruggebracht. Er wordt nooit iets afgeschreven, tenzij er een claim wordt ingediend, met een schriftelijke reden.',
+    fr: 'Votre carte servira aussi pour la caution de {amount}. Nous y plaçons un blocage à partir de deux jours avant la prise en charge, et le levons après le retour de la voiture. Elle n’est jamais débitée, sauf en cas de réclamation, avec un motif écrit.',
+    es: 'Su tarjeta también se usará para la fianza de {amount}. Hacemos una retención en ella desde dos días antes de la recogida y la liberamos cuando devuelva el coche. Nunca se cobra, salvo que se presente una reclamación, con un motivo por escrito.',
+  },
+  'pay.deposit.scheduled': {
+    en: 'Held automatically on {date}, on the card you paid with. There’s nothing for you to do.',
+    nl: 'Wordt automatisch vastgehouden op {date}, op de kaart waarmee u betaalde. U hoeft niets te doen.',
+    fr: 'Bloquée automatiquement le {date}, sur la carte avec laquelle vous avez payé. Vous n’avez rien à faire.',
+    es: 'Se retendrá automáticamente el {date}, en la tarjeta con la que pagó. No tiene que hacer nada.',
+  },
+  'pay.deposit.placingNow': {
+    en: 'Being held now, on the card you paid with. There’s nothing for you to do.',
+    nl: 'Wordt nu vastgehouden, op de kaart waarmee u betaalde. U hoeft niets te doen.',
+    fr: 'En cours de blocage, sur la carte avec laquelle vous avez payé. Vous n’avez rien à faire.',
+    es: 'Se está reteniendo ahora, en la tarjeta con la que pagó. No tiene que hacer nada.',
+  },
+  'pay.deposit.needsYou': {
+    en: 'We couldn’t hold the deposit on the card you paid with. Please place the hold yourself.',
+    nl: 'We konden de borg niet vasthouden op de kaart waarmee u betaalde. Plaats de blokkering alstublieft zelf.',
+    fr: 'Nous n’avons pas pu bloquer la caution sur la carte avec laquelle vous avez payé. Veuillez placer le blocage vous-même.',
+    es: 'No pudimos retener la fianza en la tarjeta con la que pagó. Haga usted la retención, por favor.',
   },
 } satisfies Record<string, Phrase>;

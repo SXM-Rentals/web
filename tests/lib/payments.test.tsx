@@ -13,6 +13,9 @@
 //   - a declined card, or a refusing bank, reported as anything but that;
 //   - a payment started just by opening a page;
 //   - a deposit hold offered before the backend would accept it;
+//   - the card saved for the automatic deposit hold without the customer
+//     having been shown that it would be;
+//   - a button offered for a deposit the backend is about to hold by itself;
 //   - a card removed on a single click.
 
 import React from 'react';
@@ -108,9 +111,16 @@ describe('paying for a rental', () => {
     render(<PayForBooking booking={BOOKING} />);
 
     expect(calls).toHaveLength(0);
+    // Said before anything is sent: this card will also hold the deposit.
+    expect(screen.getByText(/also be used for the \$250 security deposit/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Pay \$119\.70 by Card/i }));
 
     await screen.findByTestId('stripe-card-fields');
+    expect(calls.sent.find((entry) => entry.call === 'POST /payments/bookings/b1/intent')?.body).toEqual({
+      saveCardForDeposit: true,
+    });
+    // Still on screen beside the card form.
+    expect(screen.getByText(/also be used for the \$250 security deposit/)).toBeInTheDocument();
     expect(screen.getByText(/Test mode: no real card is charged/)).toBeInTheDocument();
     await press(/^Pay \$119\.70$/i);
 
@@ -137,6 +147,19 @@ describe('paying for a rental', () => {
 
     await screen.findByText('Your card was declined.');
     expect(calls).not.toContain('GET /bookings/b1');
+  });
+
+  it('does not save the card when the deposit is already held', async () => {
+    const calls = fakeBackend({
+      'POST /payments/bookings/b1/intent': { status: 200, body: { clientSecret: 'pi_1_secret_x' } },
+    });
+    render(<PayForBooking booking={{ ...BOOKING, depositStatus: 'held' }} />);
+
+    expect(screen.queryByText(/security deposit/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Pay \$119\.70 by Card/i }));
+
+    await screen.findByTestId('stripe-card-fields');
+    expect(calls.sent.find((entry) => entry.call === 'POST /payments/bookings/b1/intent')?.body).toBeUndefined();
   });
 
   it('says plainly when card payments are switched off', async () => {
@@ -198,6 +221,49 @@ describe('holding the deposit', () => {
     await waitFor(() => expect(onHeld).toHaveBeenCalled(), { timeout: 8000 });
     expect(stripe.confirmPayment.mock.calls[0][0].confirmParams.return_url).toMatch(/\?paying=deposit$/);
     expect(calls).toContain('POST /deposits/bookings/b1/authorize');
+  });
+});
+
+describe('the deposit held automatically', () => {
+  it('says when the backend will hold it, and offers no button', async () => {
+    fakeBackend({
+      'GET /deposits/bookings/b1': {
+        status: 200,
+        body: deposit({ autoHold: 'scheduled', autoHoldAt: '2099-10-03T10:00:00.000Z', holdOpensAt: '2099-10-03T10:00:00.000Z' }),
+      },
+    });
+    render(<HoldDeposit booking={BOOKING} />);
+
+    expect(await screen.findByText(/Held automatically on .*on the card you paid with/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Hold/i })).not.toBeInTheDocument();
+  });
+
+  it('shows why it could not go through, and offers the button', async () => {
+    fakeBackend({
+      'GET /deposits/bookings/b1': {
+        status: 200,
+        body: deposit({
+          autoHold: 'needs_customer',
+          autoHoldProblem: 'Your bank wants you to approve the $250 deposit hold.',
+        }),
+      },
+    });
+    render(<HoldDeposit booking={BOOKING} />);
+
+    expect(await screen.findByText('Your bank wants you to approve the $250 deposit hold.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Hold the \$250 Deposit/i })).toBeInTheDocument();
+  });
+
+  it('waits rather than holding twice while the backend is placing it', async () => {
+    fakeBackend({
+      'GET /deposits/bookings/b1': { status: 200, body: deposit({ autoHold: 'off' }) },
+      'POST /deposits/bookings/b1/authorize': refusal(409, 'hold_in_progress', 'The deposit is being held on your saved card right now.'),
+    });
+    render(<HoldDeposit booking={BOOKING} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Hold the \$250 Deposit/i }));
+    expect(await screen.findByText(/Waiting for your rental to show it as held/)).toBeInTheDocument();
+    expect(stripe.confirmPayment).not.toHaveBeenCalled();
   });
 });
 

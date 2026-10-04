@@ -1253,4 +1253,12 @@ export const accountPages = {
     fr: 'Lire la politique de confidentialité',
     es: 'Leer la política de privacidad',
   },
+
+  // ---- NOTIFICATIONS — opening the rental one is about ----
+  'acct.notif.openRental': {
+    en: 'Open the Rental',
+    nl: 'Huur openen',
+    fr: 'Ouvrir la location',
+    es: 'Abrir el alquiler',
+  },
 } satisfies Record<string, Phrase>;

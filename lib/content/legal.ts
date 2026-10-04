@@ -75,6 +75,7 @@ export const legalDocuments: LegalDocument[] = [
   doc('payment-policy', 'Payment Policy', 'platform', [
     'Accepted payment methods',
     'When you are charged',
+    'The card that pays also holds the security deposit',
     'Service fees',
     'Currency and exchange rates',
     'Failed and disputed payments',
@@ -120,6 +121,7 @@ export const legalDocuments: LegalDocument[] = [
   doc('security-deposit', 'Security Deposit Policy', 'rental', [
     'What the deposit is for',
     'How much is held and when',
+    'Held automatically on the card that paid, from two days before pickup',
     'The deposit is held, not charged',
     'When the deposit is released',
     'When money may be taken from the deposit',

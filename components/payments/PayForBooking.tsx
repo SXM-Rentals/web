@@ -21,6 +21,16 @@
 // This reads it from there (`paying=rental` says the return is for this panel
 // and not the deposit's) and carries on from step 4.
 //
+// ---- THE SAME CARD HOLDS THE DEPOSIT ----
+//
+// While the deposit is still to be held, the panel says, beside the pay
+// button, that the card will also be used for it — and only then asks the
+// backend to save the card (`saveCardForDeposit`). That sentence is the
+// customer's agreement to a hold placed while they are not there; the
+// backend then places it by itself two days before pickup. Without the
+// sentence on screen the flag is never sent, and the customer places the
+// hold themselves, as before.
+//
 // ---- WHEN CARD PAYMENTS ARE OFF ----
 //
 // `payments_unavailable` or `feature_off`: the panel says so, and that the
@@ -71,6 +81,11 @@ export function PayForBooking({
   );
 
   const amount = money(booking.totalDueToday);
+  // Whether the deposit is still to be held, so this card can be the one.
+  const forDeposit = booking.depositAmount > 0 && booking.depositStatus === 'not_taken';
+  const depositSentence = forDeposit
+    ? t('pay.rental.depositCard').replace('{amount}', money(booking.depositAmount))
+    : null;
 
   // ---- WAITING FOR THE BOOKING TO SAY PAID ----
   useEffect(() => {
@@ -109,7 +124,10 @@ export function PayForBooking({
     setPhase('starting');
     setProblem(null);
     try {
-      const { clientSecret } = await apiClient.startRentalPayment(booking.id);
+      // The flag only goes with the sentence on screen — see the top of the file.
+      const { clientSecret } = await apiClient.startRentalPayment(booking.id, {
+        saveCardForDeposit: forDeposit,
+      });
       setSecret(clientSecret);
       setPhase('form');
     } catch (caught) {
@@ -179,19 +197,23 @@ export function PayForBooking({
           </div>
         </div>
       ) : phase === 'form' && secret ? (
-        <CardForm
-          clientSecret={secret}
-          kind="payment"
-          returnUrl={returnUrl}
-          submitLabel={t('pay.rental.payAmount').replace('{amount}', amount)}
-          onConfirmed={() => setPhase('waiting')}
-          onCancel={() => setPhase('idle')}
-        />
+        <>
+          {depositSentence ? <DepositCardNote sentence={depositSentence} /> : null}
+          <CardForm
+            clientSecret={secret}
+            kind="payment"
+            returnUrl={returnUrl}
+            submitLabel={t('pay.rental.payAmount').replace('{amount}', amount)}
+            onConfirmed={() => setPhase('waiting')}
+            onCancel={() => setPhase('idle')}
+          />
+        </>
       ) : (
         <div className={styles.stack}>
           <Text variant="small" tone="ink2" raw>
             {booking.paymentStatus === 'failed' ? t('pay.rental.lastFailed') : t('pay.rental.intro')}
           </Text>
+          {depositSentence ? <DepositCardNote sentence={depositSentence} /> : null}
           {problem ? (
             <div className={styles.problem} role="alert">
               <Icon name="alert-circle-outline" size={15} color="var(--danger)" />
@@ -211,6 +233,19 @@ export function PayForBooking({
         </div>
       )}
     </Card>
+  );
+}
+
+// The sentence the customer agrees to by paying. Shown beside the button and
+// above the card form, so it cannot be scrolled past unseen.
+function DepositCardNote({ sentence }: { sentence: string }) {
+  return (
+    <div className={styles.line}>
+      <Icon name="shield-outline" size={16} color="var(--ink2)" />
+      <Text variant="small" tone="ink2" raw>
+        {sentence}
+      </Text>
+    </div>
   );
 }
 

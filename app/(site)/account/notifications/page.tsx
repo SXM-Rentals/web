@@ -39,6 +39,7 @@ const KIND_ICON: Record<NotificationKind, 'checkmark-circle-outline' | 'card-out
   cancellation: 'close',
   verification: 'shield-checkmark-outline',
   promotion: 'gift-outline',
+  deposit_hold_needed: 'card-outline',
 };
 
 export default function NotificationsPage() {
@@ -148,6 +149,19 @@ export default function NotificationsPage() {
                   <Text variant="small" tone="ink2">
                     {item.body}
                   </Text>
+
+                  {/* The rental it is about — where the deposit hold, or
+                      anything else it asks for, is done. */}
+                  {item.bookingId ? (
+                    <div style={{ marginTop: 'var(--space-sm)' }}>
+                      <Button
+                        label={t('acct.notif.openRental')}
+                        href={`/account/rentals/${encodeURIComponent(item.bookingId)}`}
+                        variant="outline"
+                        size="sm"
+                      />
+                    </div>
+                  ) : null}
                 </div>
 
                 {!read ? (
