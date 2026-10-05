@@ -24,6 +24,16 @@
 //                  button.
 //   active       — that payouts are on. Nothing to do.
 //
+// ---- WHERE THE BANK IS ----
+//
+// Stripe pays banks in the United States and in France — the French side
+// counts as France — but cannot pay a bank in Sint Maarten. So the first time,
+// the card asks where the business's bank is. US or France: on to Stripe. The
+// Dutch side: nothing goes to Stripe; SXM Rentals pays by bank transfer and
+// contacts the business for its bank details, and the card says so from then
+// on. A French-side business starts with France chosen; a Dutch-side one has
+// to choose, because both a US and a local bank are common there.
+//
 // Stripe's own names for what it still wants ("external_account",
 // "individual.verification.document") are counted, never shown: they mean
 // nothing to somebody running a rental business, and Stripe's page says what
@@ -34,7 +44,9 @@ import { apiClient } from '@/lib/api-client';
 import { isApiError, isUnavailable } from '@/lib/api/errors';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { leaveSiteFor } from '@/lib/leave-site';
-import { Button, Card, Icon, Skeleton, Text } from '@/components/ui';
+import { useBusiness } from '@/lib/business';
+import { Button, Card, Chip, ChipRow, Icon, Skeleton, Text } from '@/components/ui';
+import type { BankCountry } from '@/types';
 import { useTranslation } from '@/lib/i18n';
 import styles from '@/app/provider/provider.module.css';
 
@@ -44,15 +56,35 @@ export function PayoutSetup() {
     (signal) => apiClient.getPayoutAccount(signal),
     [],
   );
+  const { provider } = useBusiness();
   const [going, setGoing] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  // A French-side business banks in France unless it says otherwise.
+  const [bankCountry, setBankCountry] = useState<BankCountry | null>(
+    provider?.side === 'french' ? 'FR' : null,
+  );
+
+  const status = account?.status ?? 'not_started';
+  const byTransfer = account?.method === 'bank_transfer';
+  // The bank's country is only asked the first time; after that the backend
+  // already knows, and carrying on with Stripe needs nothing more.
+  const askBank = status === 'not_started' && !byTransfer;
 
   const goToStripe = async () => {
+    if (askBank && !bankCountry) return;
     setGoing(true);
     setProblem(null);
     try {
-      leaveSiteFor(await apiClient.startPayoutSetup());
-      // Left on "going" on purpose: the page is on its way to Stripe.
+      const answer = await apiClient.startPayoutSetup(askBank ? bankCountry ?? undefined : undefined);
+      if (answer.url) {
+        leaveSiteFor(answer.url);
+        // Left on "going" on purpose: the page is on its way to Stripe.
+        return;
+      }
+      // A bank on the Dutch side: no Stripe page. The card now says how they
+      // are paid instead.
+      setGoing(false);
+      refresh();
     } catch (caught) {
       setGoing(false);
       setProblem(
@@ -69,13 +101,13 @@ export function PayoutSetup() {
     return <Skeleton height={120} radius="var(--radius-lg)" />;
   }
 
-  const status = account?.status ?? 'not_started';
   const outstanding = account?.outstanding.length ?? 0;
-  const done = status === 'active' && account?.payoutsEnabled;
+  const done = byTransfer ? status === 'active' : status === 'active' && account?.payoutsEnabled;
 
   let message: string;
   if (unavailable) message = t('pp.payoutSetup.notOn');
   else if (error) message = t('pp.payoutSetup.loadFailed');
+  else if (byTransfer) message = done ? t('pp.payoutSetup.byTransferActive') : t('pp.payoutSetup.byTransfer');
   else if (done) message = t('pp.payoutSetup.active');
   else if (status === 'restricted') message = t('pp.payoutSetup.restricted');
   else if (status === 'pending' && outstanding === 0) message = t('pp.payoutSetup.pendingChecking');
@@ -86,7 +118,7 @@ export function PayoutSetup() {
   // Nothing to send them to Stripe for once payouts are on, or while Stripe is
   // checking what it already has.
   const offerStripe =
-    !unavailable && !error && !done && !(status === 'pending' && outstanding === 0);
+    !unavailable && !error && !done && !byTransfer && !(status === 'pending' && outstanding === 0);
 
   return (
     <Card padded>
@@ -123,15 +155,44 @@ export function PayoutSetup() {
 
       {offerStripe ? (
         <div style={{ marginTop: 'var(--space-lg)' }}>
+          {askBank ? (
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <Text variant="label" tone="ink2" as="p" style={{ marginBottom: 'var(--space-sm)' }} raw>
+                {t('pp.payoutSetup.bankQuestion')}
+              </Text>
+              <ChipRow>
+                {(
+                  [
+                    ['SX', 'pp.payoutSetup.bankSX'],
+                    ['US', 'pp.payoutSetup.bankUS'],
+                    ['FR', 'pp.payoutSetup.bankFR'],
+                  ] as const
+                ).map(([country, key]) => (
+                  <Chip
+                    key={country}
+                    label={t(key)}
+                    selected={bankCountry === country}
+                    onClick={() => setBankCountry(country)}
+                  />
+                ))}
+              </ChipRow>
+              <Text variant="small" tone="ink3" raw style={{ marginTop: 'var(--space-sm)' }}>
+                {bankCountry === 'SX' ? t('pp.payoutSetup.bankSXNote') : t('pp.payoutSetup.bankHint')}
+              </Text>
+            </div>
+          ) : null}
           <Button
             label={status === 'not_started' ? t('pp.payoutSetup.start') : t('pp.payoutSetup.continue')}
             size="md"
             loading={going}
+            disabled={askBank && !bankCountry}
             onClick={goToStripe}
           />
-          <Text variant="small" tone="ink3" raw style={{ marginTop: 'var(--space-sm)' }}>
-            {t('pp.payoutSetup.leaving')}
-          </Text>
+          {!askBank || (bankCountry && bankCountry !== 'SX') ? (
+            <Text variant="small" tone="ink3" raw style={{ marginTop: 'var(--space-sm)' }}>
+              {t('pp.payoutSetup.leaving')}
+            </Text>
+          ) : null}
         </div>
       ) : null}
     </Card>

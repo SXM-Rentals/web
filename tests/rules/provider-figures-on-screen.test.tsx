@@ -25,6 +25,11 @@ import type { PayoutRecord } from '@/types';
 import ProviderPayoutsPage from '@/app/provider/payouts/page';
 import ProviderBookingsPage from '@/app/provider/bookings/page';
 
+// The payouts page sits inside the business's own record on the real site (it
+// asks which side of the island the business is on, for setting up payouts).
+// Nothing about that is under test here.
+vi.mock('@/lib/business', () => ({ useBusiness: () => ({ provider: undefined }) }));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),

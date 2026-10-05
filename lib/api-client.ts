@@ -50,6 +50,7 @@ import type {
   BusinessSummary,
   FleetVehicle,
   ImportRow,
+  BankCountry,
   PayoutAccount,
   PayoutRecord,
   PhotoUploadTicket,
@@ -780,20 +781,35 @@ export const apiClient = {
   },
 
   /**
-   * A one-time link to Stripe, where the business gives its bank details.
-   * Stripe sends them back to /provider/payouts afterwards — and if the link
-   * has expired by the time they use it, to the same page, which offers a new
-   * one. Refused with `payments_unavailable` while Stripe is not set up.
+   * Sets up where the business is paid. `bankCountry` says where its bank is,
+   * the first time: US or FR opens a Stripe account in that country, and
+   * hands back a one-time link to Stripe, where the business gives its bank
+   * details (Stripe sends them back to /provider/payouts afterwards, and to
+   * the same page if the link has expired). SX — a bank on the Dutch side,
+   * which Stripe cannot pay — hands back no link: SXM Rentals pays by bank
+   * transfer and contacts them for the details. A Dutch-side business that
+   * gives no country is refused with `bank_country_needed`; a French-side one
+   * may leave it out (France). Refused with `payments_unavailable` while
+   * Stripe is not set up.
    *
-   * Only ever an https address on stripe.com: the browser is about to be sent
-   * there, and a link anywhere else is not one Stripe made.
+   * A link is only ever an https address on stripe.com: the browser is about
+   * to be sent there, and a link anywhere else is not one Stripe made.
    */
-  async startPayoutSetup(): Promise<string> {
-    const { url } = await request<{ url: string }>('/providers/me/payout-account', {
-      method: 'POST',
-      body: { returnTo: 'web' },
-      auth: true,
-    });
+  async startPayoutSetup(
+    bankCountry?: BankCountry,
+  ): Promise<{ url: string | null; method: 'stripe' | 'bank_transfer'; message: string | null }> {
+    const answer = await request<{ url: string | null; method?: 'stripe' | 'bank_transfer'; message?: string | null }>(
+      '/providers/me/payout-account',
+      {
+        method: 'POST',
+        body: { returnTo: 'web', ...(bankCountry ? { bankCountry } : {}) },
+        auth: true,
+      },
+    );
+    if (answer.method === 'bank_transfer' || answer.url === null) {
+      return { url: null, method: 'bank_transfer', message: answer.message ?? null };
+    }
+    const url = answer.url;
     let address: URL | null = null;
     try {
       address = new URL(url);
@@ -812,7 +828,7 @@ export const apiClient = {
         developerHint: `POST /providers/me/payout-account returned ${String(url).slice(0, 120)}`,
       });
     }
-    return url;
+    return { url, method: 'stripe', message: null };
   },
 
   // ==================== CLOSING AN ACCOUNT OR A BUSINESS ====================

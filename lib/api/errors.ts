@@ -62,6 +62,7 @@ export type ApiErrorCode =
   | 'booking_finished'
   | 'too_early' // a deposit hold asked for before its window opens
   | 'hold_in_progress' // the automatic deposit hold is being placed that minute
+  | 'bank_country_needed' // setting up payouts without saying where the bank is
   | 'has_live_rental' // an account or business with a rental coming up or out cannot close
   | 'has_held_deposit' // nor one with a deposit still held
   | 'owns_business' // an account cannot close while its business is open

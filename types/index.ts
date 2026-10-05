@@ -493,7 +493,16 @@ export type PayoutAccount = {
   // "individual.verification.document" means nothing to a business.
   outstanding: string[];
   country: string;
+  // How the business is paid: through its Stripe account, or — for a bank on
+  // the Dutch side, which Stripe cannot pay — by bank transfer from SXM
+  // Rentals. Absent from an older backend, which only knew Stripe.
+  method?: 'stripe' | 'bank_transfer';
 };
+
+// Where a business's bank account is, asked when it sets up payouts. Stripe
+// pays US and French banks (the French side counts as France); a bank on the
+// Dutch side (SX) is paid by bank transfer instead.
+export type BankCountry = 'US' | 'FR' | 'SX';
 
 // How one vehicle is doing. Every money figure here is the business's own
 // share, after commission.

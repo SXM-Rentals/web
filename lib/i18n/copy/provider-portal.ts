@@ -1928,4 +1928,54 @@ export const providerPortal = {
     fr: 'Nous n’avons pas pu vérifier la configuration de vos versements.',
     es: 'No pudimos comprobar cómo están configurados sus pagos.',
   },
+
+  // ---- WHERE THE MONEY GOES — where the bank is, and paying by bank transfer ----
+  'pp.payoutSetup.bankQuestion': {
+    en: 'Where is your bank account?',
+    nl: 'Waar is uw bankrekening?',
+    fr: 'Où se trouve votre compte bancaire ?',
+    es: '¿Dónde está su cuenta bancaria?',
+  },
+  'pp.payoutSetup.bankSX': {
+    en: 'Dutch Side',
+    nl: 'Nederlandse kant',
+    fr: 'Partie néerlandaise',
+    es: 'Lado neerlandés',
+  },
+  'pp.payoutSetup.bankUS': {
+    en: 'United States',
+    nl: 'Verenigde Staten',
+    fr: 'États-Unis',
+    es: 'Estados Unidos',
+  },
+  'pp.payoutSetup.bankFR': {
+    en: 'French Side or France',
+    nl: 'Franse kant of Frankrijk',
+    fr: 'Partie française ou France',
+    es: 'Lado francés o Francia',
+  },
+  'pp.payoutSetup.bankHint': {
+    en: 'Stripe pays your share straight into a bank in the United States or France — the French side counts as France.',
+    nl: 'Stripe betaalt uw deel rechtstreeks uit op een bank in de Verenigde Staten of Frankrijk — de Franse kant telt als Frankrijk.',
+    fr: 'Stripe verse votre part directement sur une banque aux États-Unis ou en France — la partie française compte comme la France.',
+    es: 'Stripe ingresa su parte directamente en un banco de Estados Unidos o de Francia; el lado francés cuenta como Francia.',
+  },
+  'pp.payoutSetup.bankSXNote': {
+    en: 'Stripe can’t pay banks on the Dutch side, so SXM Rentals pays you by bank transfer instead. Our team will contact you for your bank details.',
+    nl: 'Stripe kan geen banken aan de Nederlandse kant uitbetalen, dus SXM Rentals betaalt u per bankoverschrijving. Ons team neemt contact met u op voor uw bankgegevens.',
+    fr: 'Stripe ne peut pas verser sur une banque de la partie néerlandaise : SXM Rentals vous paie donc par virement bancaire. Notre équipe vous contactera pour vos coordonnées bancaires.',
+    es: 'Stripe no puede pagar a bancos del lado neerlandés, así que SXM Rentals le paga por transferencia bancaria. Nuestro equipo se pondrá en contacto con usted para pedirle sus datos bancarios.',
+  },
+  'pp.payoutSetup.byTransfer': {
+    en: 'You’re paid by bank transfer from SXM Rentals, to your bank on the Dutch side. Our team will contact you for your bank details.',
+    nl: 'U wordt door SXM Rentals per bankoverschrijving betaald, op uw bank aan de Nederlandse kant. Ons team neemt contact met u op voor uw bankgegevens.',
+    fr: 'Vous êtes payé par virement bancaire de SXM Rentals, sur votre banque de la partie néerlandaise. Notre équipe vous contactera pour vos coordonnées bancaires.',
+    es: 'SXM Rentals le paga por transferencia bancaria, a su banco del lado neerlandés. Nuestro equipo se pondrá en contacto con usted para pedirle sus datos bancarios.',
+  },
+  'pp.payoutSetup.byTransferActive': {
+    en: 'Payouts are on. SXM Rentals pays your share by bank transfer, to your bank on the Dutch side.',
+    nl: 'Uitbetalingen staan aan. SXM Rentals betaalt uw deel per bankoverschrijving uit, op uw bank aan de Nederlandse kant.',
+    fr: 'Les versements sont activés. SXM Rentals vous verse votre part par virement bancaire, sur votre banque de la partie néerlandaise.',
+    es: 'Los pagos están activados. SXM Rentals le ingresa su parte por transferencia bancaria, en su banco del lado neerlandés.',
+  },
 } satisfies Record<string, Phrase>;
