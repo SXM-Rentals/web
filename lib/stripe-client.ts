@@ -11,19 +11,20 @@
 // account; it cannot charge anybody or see anything. The secret key, which
 // can, lives only on the backend, on Render, and never comes near this site.
 //
-// The key below is Stripe's TEST-mode key, matching the backend while Stripe
-// is in test mode: no real card is charged, and the payment form says so. When
-// the backend moves to live keys, set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY on
-// Vercel to the live publishable key (pk_live_…) — it takes precedence — or
-// replace the key here. The two must be from the same Stripe account and the
-// same mode, or every payment fails at Stripe with "no such payment".
+// The key below is the LIVE key: real cards, real money, since the backend
+// moved to live keys on 2026-10-12. NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY on
+// Vercel, when set, takes precedence — the same key is set there too. To test
+// again, set that to a test key (pk_test_…) for a test deployment; the payment
+// form then says it is in test mode. Whatever the key, it must be from the
+// same Stripe account and the same mode as the secret key on Render, or every
+// payment fails at Stripe with "no such payment".
 
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
 
-const TEST_MODE_KEY =
-  'pk_test_51UGAj1Q44wCKBXijDVIJ5LYpR3Byeeur0aQSc9AQEDc0EcfaBBgB2NvcakLpg4FNEwSf7bMqLssSP2nPc6rDUwHJ00z0qIN9Jf';
+const LIVE_KEY =
+  'pk_live_51UGAiSLlZdDHowP0wVCquGl935shejirbEK8BNmlbgu3XDyO5TxlViF1MrI2H04Del2X4v7Xw5TxKxi2jvubZ8lL00FLupbjll';
 
-export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || TEST_MODE_KEY;
+export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || LIVE_KEY;
 
 /** True while Stripe is in test mode: cards are not really charged. */
 export const STRIPE_TEST_MODE = STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_');
